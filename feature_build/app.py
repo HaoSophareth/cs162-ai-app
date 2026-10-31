@@ -416,7 +416,11 @@ def handle_plan_form(existing=None):
     def show(step, values, short_warning=None):
         # The too-short confirmation travels with the other hidden answers;
         # when the warning is on screen, continuing confirms the goal shown.
-        confirm = short_plan_key(values) if short_warning else request.form.get("confirm_short", "")
+        # Editing can open past the goal step (?step=2); that saved goal was
+        # already accepted, so it only warns again if the goal is changed.
+        opened_past_goal = request.method == "GET" and step > GOAL
+        confirm = (short_plan_key(values) if short_warning or opened_past_goal
+                   else request.form.get("confirm_short", ""))
         return render_template("plan_form.html", step=step, steps=PLAN_STEPS, values=values,
                                existing=existing, short_warning=short_warning, confirm=confirm)
 
@@ -433,7 +437,9 @@ def handle_plan_form(existing=None):
                       "time_distances": [], "run_days": [1, 3, 5], "long_day": 5,
                       "distance": "5k", "start_date": date.today(),
                       "race_date": date.today() + timedelta(weeks=10)}
-        return show(1, values)
+        # Only an existing plan has answers for the steps before the one opened.
+        wanted = request.args.get("step")
+        return show(int(wanted) if existing and wanted in ("1", "2", "3") else GOAL, values)
 
     step = int(request.form["step"]) if request.form.get("step") in ("1", "2", "3") else 1
     values, errors = read_plan_form(request.form)

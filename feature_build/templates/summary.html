@@ -68,7 +68,7 @@
       </p>
     {% else %}
       <p>An estimated finish time needs a recent race time.
-        <a href="{{ url_for('edit_plan', plan_id=p.id) }}">Add one by editing the plan</a>
+        <a href="{{ url_for('edit_plan', plan_id=p.id, step=2) }}">Add one by editing the plan</a>
         (this regenerates it).</p>
     {% endif %}
   </section>

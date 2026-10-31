@@ -13,8 +13,8 @@
   </ol>
   <h1>{{ "Edit plan" if existing else "Create a plan" }}: {{ steps[step]|lower }}</h1>
 
-  {# Remind people editing a plan, at the start and right before saving. #}
-  {% if existing and step in (1, 3) %}
+  {# Remind people editing a plan, on the step they open and right before saving. #}
+  {% if existing and (step in (1, 3) or request.method == "GET") %}
     <p class="flash warning">
       Saving will regenerate this whole plan. Any changes you made to its runs
       (dates, distances, notes, done marks) will be replaced.
