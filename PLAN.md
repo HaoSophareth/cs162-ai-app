@@ -134,13 +134,6 @@ Runs
 
 Keep it to these features. Distances in km only.
 ```
-| 13 | Race times: Yes/No, then ticked distances | Done; 104s, 10,339 out | Re-prompt (UX) | |
-| 14 | All seven days on one line | Done; 34s, 2,482 out | Re-prompt (UX) | |
-| 15 | Summary link opens Experience step | Done; 75s, 6,960 out | Re-prompt (BUG, Build 1 only) | |
-| 16 | * on mandatory fields, no word optional | Done; 41s, 4,120 out | Re-prompt (UX) | |
-| 17 | Calendar and title do nothing on calendar; fixed top bar | Done; 134s, 8,113 out | Re-prompt (UX) | |
-| 18 | Running history on profile | Done; 77s, 7,652 out | Re-prompt (new scope) | |
-| 19 | Remove username from top bar | Done; 30s, 1,841 out | Re-prompt (UX) | |
 
 ### Build 2 (engineering-wise)
 
@@ -223,6 +216,13 @@ One row per prompt, filled in during each build.
 | 10 | No plan yet: prompt to create one instead of empty calendar | Done | Re-prompt (UX) | |
 | 11 | Forms: times and weekly km only after Yes, no boxes, consistent styling | Done; 162s, 15,667 out | Re-prompt (UX) | |
 | 12 | This week rename + longest recent run + long run reaches peak + remove emoji | Done; added itself a cap so no run beats the long run; migrates its own DB on start; still has a small script in week.html since the month-view round; 209s, 19,111 out | Re-prompt (mixed) | Long run made consistent across builds |
+| 13 | Race times: Yes/No, then ticked distances | Done; 104s, 10,339 out | Re-prompt (UX) | |
+| 14 | All seven days on one line | Done; 34s, 2,482 out | Re-prompt (UX) | |
+| 15 | Summary link opens Experience step | Done; 75s, 6,960 out | Re-prompt (BUG, Build 1 only) | |
+| 16 | * on mandatory fields, no word optional | Done; 41s, 4,120 out | Re-prompt (UX) | |
+| 17 | Calendar and title do nothing on calendar; fixed top bar | Done; 134s, 8,113 out | Re-prompt (UX) | |
+| 18 | Running history on profile | Done; 77s, 7,652 out | Re-prompt (new scope) | |
+| 19 | Remove username from top bar | Done; 30s, 1,841 out | Re-prompt (UX) | |
 
 ### Build 2
 
