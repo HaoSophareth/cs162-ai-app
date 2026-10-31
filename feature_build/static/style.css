@@ -8,6 +8,7 @@
   --border: #dadce0;
   --text: #3c4043;
   --muted: #70757a;
+  --topbar-height: 3.25rem;
 }
 
 * { box-sizing: border-box; }
@@ -38,16 +39,42 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem; }
 .muted { color: var(--muted); }
 
 /* ---------- Top bar ---------- */
+/* Always visible. Its height is fixed so the week toolbar can pin right below it. */
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1.5rem;
+  gap: 1rem;
+  height: var(--topbar-height);
+  padding: 0 1.5rem;
   background: white;
   border-bottom: 1px solid var(--border);
 }
-.brand { font-weight: 600; font-size: 1.1rem; color: var(--text); text-decoration: none; }
-.topbar nav { display: flex; gap: 1rem; align-items: center; }
+.brand {
+  min-width: 0;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar nav { display: flex; flex-shrink: 0; gap: 1rem; align-items: center; }
+/* Calendar while on the calendar: looks like the other links but isn't clickable. */
+.topbar nav a.current { text-decoration: underline; }
+.username { max-width: 10rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Narrow screens: title on one row, links on the next, still a fixed height. */
+@media (max-width: 700px) {
+  :root { --topbar-height: 4.75rem; }
+  .topbar { flex-direction: column; align-items: flex-start; justify-content: center; gap: 0.25rem; padding: 0 1rem; }
+  .brand { max-width: 100%; }
+  .topbar nav { gap: 0.75rem; font-size: 0.9rem; }
+  .username { max-width: 5rem; }
+}
 
 /* ---------- Generic pieces ---------- */
 .card {
@@ -142,7 +169,7 @@ dd { margin: 0.2rem 0 0; }
 /* The week view stacks the whole plan; this bar stays at the top while scrolling. */
 .week-toolbar {
   position: sticky;
-  top: 0;
+  top: var(--topbar-height);
   z-index: 1;
   display: flex;
   align-items: center;
@@ -151,7 +178,7 @@ dd { margin: 0.2rem 0 0; }
   background: #f8f9fa;
 }
 .week-toolbar h1 { flex: 1; font-size: 1.3rem; font-weight: 400; margin: 0; }
-.plan-week { margin-bottom: 1.5rem; scroll-margin-top: 4.5rem; } /* clear the sticky toolbar */
+.plan-week { margin-bottom: 1.5rem; scroll-margin-top: calc(var(--topbar-height) + 4.5rem); } /* clear both sticky bars */
 .plan-week-header {
   display: flex;
   flex-wrap: wrap;
