@@ -361,8 +361,12 @@ def read_plan_form(form):
         if values[key] and not TIME_PATTERN.match(text):
             errors[EXPERIENCE].append(f"Write your {label} time as {TIME_FORMATS[key]}.")
 
-    if values["weekly_km"] is None or not 0 <= values["weekly_km"] <= 200:
-        errors[EXPERIENCE].append("Enter how many km you run per week now (0 if you don't run yet).")
+    if values["experience"] == "new":
+        # New runners aren't asked; 0 km makes the plan start at the
+        # beginner level (the lowest starting volume in plan.py).
+        values["weekly_km"] = 0.0
+    elif values["weekly_km"] is None or not 0 <= values["weekly_km"] <= 200:
+        errors[EXPERIENCE].append("Enter how many km you run per week now.")
     if len(values["run_days"]) < 3:
         errors[SCHEDULE].append("Pick at least 3 days you can run.")
     if values["long_day"] not in values["run_days"]:

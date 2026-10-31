@@ -45,9 +45,9 @@ there between restarts. Delete the `instance/` folder to start fresh.
 
 Weeks run Monday to Sunday. Week 1 is the week containing the start date.
 
-- **Weekly distance** starts from the km you run per week now, kept between
-  8 and 15 km for new runners and at least 12 km for people who have run
-  before. It grows 10% a week, capped at 30/45/55/70 km for 5K/10K/half/marathon.
+- **Weekly distance:** new runners aren't asked and start at the beginner level
+  (8 km a week). People who have run before start from the km they run per
+  week now, at least 12 km. It grows 10% a week, capped at 30/45/55/70 km for 5K/10K/half/marathon.
 - **Recent race times** don't change the plan (it has no paces). They're used
   on the summary page: the strongest recent race (the one predicting the fastest
   goal time) gives your current pace per km, and the Riegel formula
