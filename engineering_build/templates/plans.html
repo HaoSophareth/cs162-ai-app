@@ -44,7 +44,7 @@
           <button type="submit" class="button">Make active</button>
         </form>
       {% else %}
-        <a class="button" href="{{ url_for('main.week', start=plan.start_date.isoformat()) }}">Open calendar</a>
+        <a class="button" href="{{ url_for('main.week', _anchor='current') }}">Open calendar</a>
       {% endif %}
       <a class="button secondary" href="{{ url_for('main.plan_summary', plan_id=plan.id) }}">Summary</a>
       <a class="button secondary" href="{{ url_for('main.edit_plan', plan_id=plan.id) }}">Edit</a>

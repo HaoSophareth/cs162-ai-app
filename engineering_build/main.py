@@ -14,7 +14,6 @@ DISTANCES = {"5k": "5k", "10k": "10k", "half": "Half marathon", "marathon": "Mar
 BEST_TIME_FIELDS = {"best_5k": "5k", "best_10k": "10k", "best_half": "Half marathon", "best_full": "Marathon"}
 # Which race distance each best-time column is for (the marathon column is best_full).
 BEST_TIME_DISTANCE = {"best_5k": "5k", "best_10k": "10k", "best_half": "half", "best_full": "marathon"}
-WEEKS_SHOWN = 2
 # The plan form is split into three steps, in this order. Each one names the form
 # fields it asks for; errors are grouped by "key", so reordering only happens here.
 PLAN_STEPS = {
@@ -106,13 +105,24 @@ def plan_week_number(plan, week_start):
     return number if 1 <= number <= total_plan_weeks(plan) else None
 
 
-def build_week(plan, week_start):
+def week_anchor(day):
+    return f"week-{monday_of(day).isoformat()}"
+
+
+def week_view_url(anchor="current"):
+    # The week view is one long page; the #anchor scrolls it to the right week.
+    # "current" is the week the page itself picks to land on (normally this week).
+    return url_for("main.week", _anchor=anchor)
+
+
+def build_week(plan, week_start, plan_runs):
     week_end = week_start + timedelta(days=6)
-    runs = runs_between(plan, week_start, week_end)
+    runs = [r for r in plan_runs if week_start <= r.date <= week_end]
     days = [week_start + timedelta(days=i) for i in range(7)]
     return {
         "start": week_start,
         "end": week_end,
+        "anchor": week_anchor(week_start),
         "number": plan_week_number(plan, week_start),
         "columns": [{"date": d, "runs": [r for r in runs if r.date == d]} for d in days],
         "planned_km": sum(r.distance_km for r in runs),
@@ -168,7 +178,7 @@ def profile():
             db.session.commit()
             if onboarding:
                 flash("Welcome! Create a plan when you're ready.", "success")
-                return redirect(url_for("main.week"))
+                return redirect(week_view_url())
             flash("Profile saved.", "success")
             return redirect(url_for("main.profile"))
         for error in errors:
@@ -400,7 +410,7 @@ def activate_plan(plan_id):
     make_active(plan)
     db.session.commit()
     flash(f"{DISTANCES[plan.race_distance]} plan is now active.", "success")
-    return redirect(url_for("main.week", start=monday_of(plan.start_date).isoformat()))
+    return redirect(week_view_url())
 
 
 @main_bp.route("/plans/<int:plan_id>/delete", methods=["POST"])
@@ -424,19 +434,36 @@ def delete_plan(plan_id):
 @login_required
 def week():
     plan = get_active_plan()
-    week_start = monday_of(parse_date(request.args.get("start")) or date.today())
-    # Two weeks side by side in a horizontal scroller: the chosen week, then the next one.
-    weeks = [build_week(plan, week_start + timedelta(weeks=i)) for i in range(WEEKS_SHOWN)]
+    today = date.today()
+    this_monday = monday_of(today)
+
+    if plan:
+        runs = runs_between(plan, date.min, date.max)
+        # From the plan's first week to race week, stretched if a run was moved outside it.
+        first = monday_of(min([plan.start_date] + [r.date for r in runs]))
+        last = monday_of(max([plan.race_date] + [r.date for r in runs]))
+    else:
+        runs = []
+        first = last = this_monday
+
+    weeks = []
+    week_start = first
+    while week_start <= last:
+        weeks.append(build_week(plan, week_start, runs))
+        week_start += timedelta(days=7)
+
+    # Land on this week; before the plan starts that's week 1, after the race it's race week.
+    landing = min(max(this_monday, first), last)
 
     return render_template(
         "week.html",
         plan=plan,
         weeks=weeks,
-        today=date.today(),
+        landing=landing,
+        this_monday=this_monday,
+        today=today,
         total_weeks=total_plan_weeks(plan) if plan else None,
-        month=week_start.strftime("%Y-%m"),
-        prev_start=(week_start - timedelta(days=7)).isoformat(),
-        next_start=(week_start + timedelta(days=7)).isoformat(),
+        month=today.strftime("%Y-%m"),
         distances=DISTANCES,
     )
 
@@ -479,7 +506,7 @@ def month():
         done_km=sum(r.distance_km for r in month_runs if r.done),
         prev_month=(first - timedelta(days=1)).strftime("%Y-%m"),
         next_month=next_first.strftime("%Y-%m"),
-        week_link=monday_of(first).isoformat(),
+        week_link=week_view_url(week_anchor(first)),
         distances=DISTANCES,
     )
 
@@ -489,7 +516,7 @@ def month():
 def run_detail(run_id):
     run = get_user_run(run_id)
     return render_template("run.html", run=run, gcal_url=google_calendar_url(run),
-                           week_start=monday_of(run.date).isoformat())
+                           week_link=week_view_url(week_anchor(run.date)))
 
 
 @main_bp.route("/run/<int:run_id>/edit", methods=["GET", "POST"])

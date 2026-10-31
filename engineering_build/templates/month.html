@@ -9,7 +9,7 @@
     <h1>{{ first.strftime('%B %Y') }}</h1>
   </div>
   <div class="view-toggle">
-    <a href="{{ url_for('main.week', start=week_link) }}">Week</a>
+    <a href="{{ week_link }}">Week</a>
     <span class="active">Month</span>
   </div>
 </div>
@@ -39,7 +39,7 @@
 
   {% for row in rows %}
     {# The week number on the left opens that week in the week view. #}
-    <a class="month-week-number" href="{{ url_for('main.week', start=row.week_start.isoformat()) }}"
+    <a class="month-week-number" href="{{ url_for('main.week', _anchor='week-' ~ row.week_start.isoformat()) }}"
        title="Open this week">{% if row.week_number %}W{{ row.week_number }}{% endif %}</a>
     {% for day in row.days %}
       <div class="month-cell {% if day.date.month != first.month %}other-month{% endif %} {% if day.date == today %}today{% endif %}">

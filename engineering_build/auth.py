@@ -10,7 +10,7 @@ auth_bp = Blueprint("auth", __name__)
 @auth_bp.route("/signup", methods=["GET", "POST"])
 def signup():
     if current_user.is_authenticated:
-        return redirect(url_for("main.week"))
+        return redirect(url_for("main.week", _anchor="current"))
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
@@ -35,7 +35,7 @@ def signup():
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("main.week"))
+        return redirect(url_for("main.week", _anchor="current"))
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
@@ -45,7 +45,7 @@ def login():
         # Same message for both cases so the form doesn't reveal which usernames exist.
         if user and check_password_hash(user.password_hash, password):
             login_user(user)
-            return redirect(url_for("main.week"))
+            return redirect(url_for("main.week", _anchor="current"))
         flash("Wrong username or password.", "error")
 
     return render_template("login.html")

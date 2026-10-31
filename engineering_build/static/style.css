@@ -105,16 +105,13 @@ legend { font-weight: 600; padding: 0 0.3rem; }
 .week-header p { margin: 0; }
 .week-totals { display: flex; gap: 1.5rem; }
 
-/* Each week is a full-width panel; scroll-snap makes a sideways scroll land
-   cleanly on the next week instead of stopping halfway. */
-.week-scroller {
-  display: flex;
-  gap: 1.5rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding-bottom: 0.75rem;
-}
-.week-panel { flex: 0 0 100%; scroll-snap-align: start; }
+/* All weeks of the plan stacked; scroll down to move through the plan. */
+.week-list { display: flex; flex-direction: column; gap: 2rem; margin-top: 1rem; }
+/* A little space above a week when a #anchor jumps to it, so its header isn't flush with the edge. */
+.week-panel, .anchor-target { scroll-margin-top: 1rem; }
+.anchor-target { display: block; }
+.week-header h2 { display: flex; align-items: center; gap: 0.5rem; margin: 0; font-size: 1.15rem; }
+.week-panel.this-week .week-grid { border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
 
 .week-grid {
   display: grid;
@@ -124,7 +121,7 @@ legend { font-weight: 600; padding: 0 0.3rem; }
   border-radius: 8px;
   overflow: hidden;
 }
-.day-column { min-height: 320px; padding: 0.5rem; border-right: 1px solid #dadce0; }
+.day-column { min-height: 170px; padding: 0.5rem; border-right: 1px solid #dadce0; }
 .day-column:last-child { border-right: none; }
 .day-heading { display: flex; flex-direction: column; align-items: center; margin-bottom: 0.75rem; }
 .day-name { font-size: 0.75rem; text-transform: uppercase; color: #5f6368; }

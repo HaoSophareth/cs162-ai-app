@@ -8,10 +8,10 @@
 </head>
 <body>
   <nav class="topbar">
-    <a class="brand" href="{{ url_for('main.week') }}">Race Training <small>· Build 2 (engineering-wise)</small></a>
+    <a class="brand" href="{{ url_for('main.week', _anchor='current') }}">Race Training <small>· Build 2 (engineering-wise)</small></a>
     <div class="nav-links">
       {% if current_user.is_authenticated %}
-        <a href="{{ url_for('main.week') }}">Calendar</a>
+        <a href="{{ url_for('main.week', _anchor='current') }}">Calendar</a>
         <a href="{{ url_for('main.plans') }}">Plans</a>
         <a href="{{ url_for('main.profile') }}">Profile</a>
         <span class="muted">{{ current_user.username }}</span>

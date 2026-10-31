@@ -1,11 +1,14 @@
 {% extends "base.html" %}
-{% block title %}My week{% endblock %}
+{% block title %}Calendar{% endblock %}
 {% block content %}
 <div class="calendar-toolbar">
   <div class="week-nav">
-    <a class="button secondary" href="{{ url_for('main.week') }}">Today</a>
-    <a class="button secondary" href="{{ url_for('main.week', start=prev_start) }}" title="Previous week">&lsaquo;</a>
-    <a class="button secondary" href="{{ url_for('main.week', start=next_start) }}" title="Next week">&rsaquo;</a>
+    <a class="button secondary" href="{{ url_for('main.week', _anchor='current') }}">Today</a>
+    {% if plan %}
+      <span class="muted">
+        {{ distances[plan.race_distance] }} on {{ plan.race_date.strftime('%a %b') }} {{ plan.race_date.day }}, {{ plan.race_date.year }}
+      </span>
+    {% endif %}
   </div>
   <div class="view-toggle">
     <span class="active">Week</span>
@@ -13,29 +16,28 @@
   </div>
 </div>
 
-{% if plan %}
-  <p class="muted">
-    {{ distances[plan.race_distance] }} on {{ plan.race_date.strftime('%a %b') }} {{ plan.race_date.day }}, {{ plan.race_date.year }}
-    · <span class="scroll-hint">Scroll sideways to see next week &rarr;</span>
-  </p>
-{% else %}
+{% if not plan %}
   <div class="empty-plan">
     <span><strong>No active plan yet.</strong> Your calendar fills in once you create one.</span>
     <a class="button" href="{{ url_for('main.new_plan') }}">Create plan</a>
   </div>
 {% endif %}
 
-<div class="week-scroller">
+{# Every week of the plan, one below the other. Each has an id so links can jump to it,
+   and the week to land on (normally this week) also gets id="current". #}
+<div class="week-list">
   {% for week in weeks %}
-    <section class="week-panel">
+    <section class="week-panel {% if week.start == this_monday %}this-week{% endif %}" id="{{ week.anchor }}">
+      {% if week.start == landing %}<span id="current" class="anchor-target"></span>{% endif %}
       <div class="week-header">
-        <h1>
+        <h2>
           {{ week.start.strftime('%b') }} {{ week.start.day }} - {{ week.end.strftime('%b') }} {{ week.end.day }}
-          {% if week.number %}<span class="muted">· Week {{ week.number }} of {{ total_weeks }}</span>{% endif %}
-        </h1>
+          {% if week.number %}<span class="muted">· Week {{ week.number }}{% if week.number == total_weeks %} (race week){% endif %}</span>{% endif %}
+          {% if week.start == this_monday %}<span class="active-tag">This week</span>{% endif %}
+        </h2>
         <div class="week-totals">
           <span><strong>{{ '%g' % week.planned_km|round(1) }} km</strong> planned</span>
-          <span><strong>{{ '%g' % week.done_km|round(1) }} km</strong> completed</span>
+          <span><strong>{{ '%g' % week.done_km|round(1) }} km</strong> done</span>
         </div>
       </div>
 
@@ -48,9 +50,9 @@
             </div>
             {% for run in column.runs %}
               <div class="run-card run-{{ run.run_type }} {% if run.done %}done{% endif %}" id="run-{{ run.id }}">
-                {# The #run-id anchor brings you back to this card, even in the second week. #}
+                {# The #run-id anchor brings you back to this card after ticking it. #}
                 <form method="post" action="{{ url_for('main.toggle_done', run_id=run.id) }}">
-                  <input type="hidden" name="next" value="{{ request.full_path }}#run-{{ run.id }}">
+                  <input type="hidden" name="next" value="{{ url_for('main.week', _anchor='run-' ~ run.id) }}">
                   <button type="submit" class="checkbox {% if run.done %}checked{% endif %}" role="checkbox"
                           aria-checked="{{ 'true' if run.done else 'false' }}" aria-label="Done"
                           title="{{ 'Mark as not done' if run.done else 'Mark as done' }}"><span class="box"></span></button>

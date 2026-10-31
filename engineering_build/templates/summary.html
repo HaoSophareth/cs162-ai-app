@@ -10,7 +10,7 @@
       {% if plan.is_active %}<span class="active-tag">Active</span>{% endif %}
     </h1>
     {% if plan.is_active %}
-      <a class="button" href="{{ url_for('main.week', start=plan.start_date.isoformat()) }}">Go to calendar</a>
+      <a class="button" href="{{ url_for('main.week', _anchor='current') }}">Go to calendar</a>
     {% else %}
       <form method="post" action="{{ url_for('main.activate_plan', plan_id=plan.id) }}">
         <button type="submit" class="button">Make active and go to calendar</button>
