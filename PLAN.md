@@ -134,6 +134,13 @@ Runs
 
 Keep it to these features. Distances in km only.
 ```
+| 13 | Race times: Yes/No, then ticked distances | Done; 104s, 10,339 out | Re-prompt (UX) | |
+| 14 | All seven days on one line | Done; 34s, 2,482 out | Re-prompt (UX) | |
+| 15 | Summary link opens Experience step | Done; 75s, 6,960 out | Re-prompt (BUG, Build 1 only) | |
+| 16 | * on mandatory fields, no word optional | Done; 41s, 4,120 out | Re-prompt (UX) | |
+| 17 | Calendar and title do nothing on calendar; fixed top bar | Done; 134s, 8,113 out | Re-prompt (UX) | |
+| 18 | Running history on profile | Done; 77s, 7,652 out | Re-prompt (new scope) | |
+| 19 | Remove username from top bar | Done; 30s, 1,841 out | Re-prompt (UX) | |
 
 ### Build 2 (engineering-wise)
 
@@ -233,12 +240,21 @@ One row per prompt, filled in during each build.
 | 10 | Same as Build 1 | Done | Re-prompt (UX) | |
 | 11 | Same + CSS only | Done; 155s, 15,894 out | Re-prompt (UX) | |
 | 12 | Same minus emoji + keep rules in plan_generator.py | Done; added itself the same cap; no migration, app broke on old DB until a column was added by hand (data kept); 166s, 16,780 out | Re-prompt (mixed) | Long run made consistent across builds |
+| 13 | Race times: Yes/No, then ticked distances | Done; 98s, 10,539 out | Re-prompt (UX) | |
+| 14 | All seven days on one line | Done; 50s, 4,038 out | Re-prompt (UX) | |
+| 15 | * on mandatory fields, no word optional | Done; 53s, 5,202 out | Re-prompt (UX) | |
+| 16 | Calendar and title do nothing on calendar; fixed top bar | Done; 85s, 7,807 out | Re-prompt (UX) | |
+| 17 | Running history on profile | Done; 100s, 8,890 out | Re-prompt (new scope) | |
+| 18 | Remove username from top bar | Done; 23s, 993 out | Re-prompt (UX) | |
 
 ## Manual edits (not by the build sessions)
 
 - Both `templates/base.html`: added "· Build 1 (feature-wise)" / "· Build 2 (engineering-wise)" next to the header title and in the tab title, so the demo video shows which build is which. Edited by hand from the planning session, not an AI build prompt.
 
 ## Notes
+
+- Prompts 13 onward are one change per prompt, one commit per build. Build 1 total differs by one because the summary link bug only existed there.
+- Running both builds on 127.0.0.1 makes them overwrite each other's login cookie (same host, same cookie name). Use 127.0.0.1:5051 and localhost:5050.
 
 - Build 2 database: added `longest_run_km` by hand with ALTER TABLE after prompt 12 instead of recreating it. Local data only.
 - Build 1 still has a 3-line script in week.html (scroll to current week). Earlier note that it had no JS was wrong.
