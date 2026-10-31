@@ -1,23 +1,44 @@
 {% extends "base.html" %}
-{% block title %}Setup{% endblock %}
+{% block title %}{% if plan %}Edit plan{% else %}Create plan{% endif %}{% endblock %}
 {% block content %}
+<p><a href="{{ url_for('main.plans') }}">&larr; Back to plans</a></p>
+
 <div class="panel">
-  <h1>{% if plan %}Edit your setup{% else %}Set up your training{% endif %}</h1>
+  <h1>{% if plan %}Edit plan{% else %}Create a plan{% endif %}</h1>
 
   {% if plan %}
     <div class="flash flash-warning">
-      Saving will regenerate your whole plan. Any changes you made to runs
+      Saving will regenerate this whole plan. Any changes you made to its runs
       (dates, distances, notes, done) will be replaced.
     </div>
+  {% else %}
+    <p class="muted">The new plan becomes your active plan and shows on the calendar.</p>
   {% endif %}
 
-  <form method="post">
+  <form method="post" class="plan-form">
     <fieldset>
-      <legend>Experience</legend>
-      <label class="inline"><input type="radio" name="experience" value="new"
-        {% if form.experience == 'new' %}checked{% endif %}> New runner</label>
-      <label class="inline"><input type="radio" name="experience" value="experienced"
-        {% if form.experience == 'experienced' %}checked{% endif %}> I have run before</label>
+      <legend>Have you run before?</legend>
+      <label class="inline"><input type="radio" name="has_run_before" value="yes" required
+        {% if form.has_run_before == 'yes' %}checked{% endif %}> Yes</label>
+      <label class="inline"><input type="radio" name="has_run_before" value="no"
+        {% if form.has_run_before == 'no' %}checked{% endif %}> No, I'm new to running</label>
+
+      {# Hidden by CSS when "No" is picked; the server also ignores these for new runners. #}
+      <div class="best-times">
+        <p class="muted">Recent times (optional), as mm:ss or h:mm:ss</p>
+        <div class="time-grid">
+          {% for field, label in best_time_fields.items() %}
+            <label>{{ label }}
+              <input type="text" name="{{ field }}" value="{{ form[field] }}"
+                     placeholder="{{ '25:30' if field == 'best_5k' else '1:45:00' }}">
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <label>Current weekly distance (km)
+        <input type="number" name="weekly_km" value="{{ form.weekly_km }}" min="0" max="300" step="0.5" required>
+      </label>
     </fieldset>
 
     <fieldset>
@@ -50,7 +71,7 @@
       <label>Race date <input type="date" name="race_date" value="{{ form.race_date }}" required></label>
     </fieldset>
 
-    <button type="submit" class="button">{% if plan %}Save and regenerate plan{% else %}Create my plan{% endif %}</button>
+    <button type="submit" class="button">{% if plan %}Save and regenerate plan{% else %}Create plan{% endif %}</button>
   </form>
 </div>
 {% endblock %}

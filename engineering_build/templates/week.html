@@ -13,10 +13,17 @@
   </div>
 </div>
 
-<p class="muted">
-  {{ distances[plan.race_distance] }} on {{ plan.race_date.strftime('%a %b') }} {{ plan.race_date.day }}, {{ plan.race_date.year }}
-  · <span class="scroll-hint">Scroll sideways to see next week &rarr;</span>
-</p>
+{% if plan %}
+  <p class="muted">
+    {{ distances[plan.race_distance] }} on {{ plan.race_date.strftime('%a %b') }} {{ plan.race_date.day }}, {{ plan.race_date.year }}
+    · <span class="scroll-hint">Scroll sideways to see next week &rarr;</span>
+  </p>
+{% else %}
+  <div class="empty-plan">
+    <span><strong>No active plan yet.</strong> Your calendar fills in once you create one.</span>
+    <a class="button" href="{{ url_for('main.new_plan') }}">Create plan</a>
+  </div>
+{% endif %}
 
 <div class="week-scroller">
   {% for week in weeks %}

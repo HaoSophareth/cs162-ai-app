@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Plans{% endblock %}
+{% block content %}
+<div class="calendar-toolbar">
+  <h1>Your plans</h1>
+  <a class="button" href="{{ url_for('main.new_plan') }}">Create plan</a>
+</div>
+
+{% if not plans %}
+  <div class="panel empty-state">
+    <p>You don't have any plans yet.</p>
+    <a class="button" href="{{ url_for('main.new_plan') }}">Create plan</a>
+  </div>
+{% endif %}
+
+{% for plan in plans %}
+  <div class="panel plan-item {% if plan.is_active %}active{% endif %}">
+    <div class="plan-summary">
+      <h2>
+        {{ distances[plan.race_distance] }}
+        {% if plan.is_active %}<span class="active-tag">Active</span>{% endif %}
+      </h2>
+      <p>
+        {{ plan.start_date.strftime('%b') }} {{ plan.start_date.day }}, {{ plan.start_date.year }}
+        &rarr; race on {{ plan.race_date.strftime('%a %b') }} {{ plan.race_date.day }}, {{ plan.race_date.year }}
+      </p>
+      <p class="muted">
+        {{ plan.run_days.replace(',', ', ') }} · long run on {{ plan.long_run_day }}
+        · starting from {{ '%g' % plan.weekly_km }} km/week
+        · {% if plan.has_run_before %}has run before{% else %}new runner{% endif %}
+      </p>
+      {% if plan.best_5k or plan.best_10k or plan.best_half or plan.best_full %}
+        <p class="muted">Recent times:
+          {% for field, label in best_time_fields.items() if plan[field] %}
+            {{ label }} {{ plan[field]|duration }}{% if not loop.last %} ·{% endif %}
+          {% endfor %}
+        </p>
+      {% endif %}
+    </div>
+
+    <div class="actions">
+      {% if not plan.is_active %}
+        <form method="post" action="{{ url_for('main.activate_plan', plan_id=plan.id) }}">
+          <button type="submit" class="button">Make active</button>
+        </form>
+      {% else %}
+        <a class="button" href="{{ url_for('main.week', start=plan.start_date.isoformat()) }}">Open calendar</a>
+      {% endif %}
+      <a class="button secondary" href="{{ url_for('main.edit_plan', plan_id=plan.id) }}">Edit</a>
+      {# <details> asks "are you sure?" without JavaScript. #}
+      <details class="confirm-delete">
+        <summary class="button secondary danger">Delete</summary>
+        <form method="post" action="{{ url_for('main.delete_plan', plan_id=plan.id) }}">
+          <span>Delete this plan and all its runs?</span>
+          <button type="submit" class="button danger-solid">Yes, delete</button>
+        </form>
+      </details>
+    </div>
+  </div>
+{% endfor %}
+{% endblock %}

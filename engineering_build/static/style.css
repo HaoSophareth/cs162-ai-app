@@ -213,3 +213,36 @@ legend { font-weight: 600; padding: 0 0.3rem; }
 .details dd { margin: 0; white-space: pre-line; }
 .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .actions form { margin: 0; }
+
+/* Empty calendar: a clear call to create the first plan. */
+.empty-plan {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  margin: 0.75rem 0 1rem;
+  background: #e8f0fe;
+  border: 1px solid #c6dafc;
+  border-radius: 8px;
+}
+.empty-state { text-align: center; }
+
+/* Plan form: recent times only matter for people who have run before. */
+.best-times { margin: 0.5rem 0 1rem; }
+.best-times p { margin: 0 0 0.5rem; }
+.time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+.plan-form:has(input[name=has_run_before][value=no]:checked) .best-times { display: none; }
+
+/* Plans list */
+.plan-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+.plan-item.active { border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
+.plan-summary h2 { display: flex; align-items: center; gap: 0.6rem; margin: 0 0 0.4rem; font-size: 1.15rem; }
+.plan-summary p { margin: 0.2rem 0; }
+.active-tag { background: #e8f0fe; color: #1a73e8; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.8rem; }
+.button.danger { color: #c5221f; }
+.button.danger-solid { background: #c5221f; border-color: #c5221f; }
+.confirm-delete summary { list-style: none; }
+.confirm-delete summary::-webkit-details-marker { display: none; }
+.confirm-delete[open] form { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }

@@ -27,7 +27,7 @@ def signup():
             db.session.add(user)
             db.session.commit()
             login_user(user)
-            return redirect(url_for("main.setup"))
+            return redirect(url_for("main.profile"))
 
     return render_template("signup.html")
 

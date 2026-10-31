@@ -15,9 +15,16 @@
 </div>
 
 <div class="week-header">
-  <p class="muted">
-    {{ distances[plan.race_distance] }} on {{ plan.race_date.strftime('%a %b') }} {{ plan.race_date.day }}, {{ plan.race_date.year }}
-  </p>
+  {% if plan %}
+    <p class="muted">
+      {{ distances[plan.race_distance] }} on {{ plan.race_date.strftime('%a %b') }} {{ plan.race_date.day }}, {{ plan.race_date.year }}
+    </p>
+  {% else %}
+    <div class="empty-plan">
+      <span><strong>No active plan yet.</strong> Your calendar fills in once you create one.</span>
+      <a class="button" href="{{ url_for('main.new_plan') }}">Create plan</a>
+    </div>
+  {% endif %}
   <div class="week-totals">
     <span><strong>{{ '%g' % planned_km|round(1) }} km</strong> planned</span>
     <span><strong>{{ '%g' % done_km|round(1) }} km</strong> completed</span>
