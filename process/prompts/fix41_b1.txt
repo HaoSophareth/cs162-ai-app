@@ -1,0 +1,2 @@
+In Running history on the profile, Longest recent run should update itself: show the larger of what was entered and the user's longest completed run, and drop the 'Entered in your plans' label. Unticking a run updates it too. Don't change anything else.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are. Existing accounts and plans must keep working after a restart.
