@@ -275,7 +275,8 @@ def parse_plan_form(form, saved_start=None):
     longest_text = form["longest_run_km"] if has_run_before else ""
     longest_run_km = parse_number(longest_text) if longest_text else None
     run_days = [d for d in DAYS if d in form["run_days"]]
-    start_date = parse_date(form["start_date"])
+    # An empty start date box shows "Today" and means today.
+    start_date = date.today() if form["start_date"] == "" else parse_date(form["start_date"])
     race_date = parse_date(form["race_date"])
 
     if form["has_run_before"] not in ("yes", "no"):
@@ -386,7 +387,7 @@ def plans():
 def new_plan():
     answers = {"has_run_before": "", "weekly_km": "", "longest_run_km": "", "has_race_time": "", "race_time_distances": [],
                "run_days": [], "long_run_day": "Sun",
-               "race_distance": "5k", "start_date": date.today().isoformat(), "race_date": "",
+               "race_distance": "5k", "start_date": "", "race_date": "",
                **{box: "" for box in BEST_TIME_BOXES}}
     session["plan_form"] = {"plan_id": None, "answers": answers}
     return redirect(url_for("main.plan_step", step=1))

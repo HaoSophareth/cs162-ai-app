@@ -113,15 +113,14 @@
           {% endfor %}
         </select>
       </label>
-      <div class="field start-date">
+      <div class="field">
         <label class="field-label" for="start_date">Training start date <span class="required-mark">*</span></label>
-        {# When the date is today, show the word instead; the date box still submits it.
-           Clicking the word ticks the hidden checkbox, and CSS swaps in the date box. #}
-        {% if form.start_date == today %}
-          <input type="checkbox" id="start_date_change" class="date-toggle" aria-label="Today. Choose a different start date">
-          <label class="today-box" for="start_date_change">Today</label>
-        {% endif %}
-        <input type="date" id="start_date" name="start_date" value="{{ form.start_date }}" min="{{ min_start }}" required>
+        {# Left empty for today, and CSS shows "Today" over the empty box. "required" is only
+           there so CSS can detect empty; Next skips the browser's check and the server decides. #}
+        <div class="start-date">
+          <input type="date" id="start_date" name="start_date" value="{{ '' if form.start_date == today else form.start_date }}" min="{{ min_start }}" required>
+          <span class="today-word">Today</span>
+        </div>
       </div>
       <label class="field">
         <span class="field-label">Race date <span class="required-mark">*</span></span>
@@ -136,7 +135,7 @@
     {# Next comes first in the HTML so pressing Enter goes forward; CSS puts Back on the left.
        formnovalidate lets Back work even when this step's fields aren't filled in yet. #}
     <div class="form-actions step-buttons">
-      <button type="submit" name="action" value="next" class="button">
+      <button type="submit" name="action" value="next" class="button"{% if step_key == 'goal' %} formnovalidate{% endif %}>
         {% if step < last_step %}Next{% elif plan %}Save and regenerate plan{% else %}Create plan{% endif %}
       </button>
       <button type="submit" name="action" value="back" class="button secondary" formnovalidate>

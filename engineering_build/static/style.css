@@ -291,24 +291,13 @@ input[type=text], input[type=password], input[type=date], input[type=number], se
 .form-panel .option { display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; }
 .form-panel .option input { margin: 0; width: 1.05rem; height: 1.05rem; }
 
-/* Start date: "Today" until clicked, then the date box. */
-.form-panel .start-date { position: relative; }
-.form-panel .date-toggle { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; }
-.form-panel .today-box {
-  display: block;
-  clear: both;
-  height: 2.6rem;
-  line-height: 2.5rem;
-  padding: 0 0.7rem;
-  background: #fff;
-  border: 1px solid #dadce0;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.form-panel .date-toggle:focus-visible + .today-box { outline: 2px solid #1a73e8; outline-offset: 2px; }
-.form-panel .date-toggle + .today-box + input[type=date] { display: none; }
-.form-panel .date-toggle:checked + .today-box { display: none; }
-.form-panel .date-toggle:checked + .today-box + input[type=date] { display: block; }
+/* Start date: while the box is empty (invalid but not out of range) and not being
+   typed in, hide its date text and show "Today" in the same place. */
+.form-panel .start-date { position: relative; clear: both; }
+.form-panel .today-word { display: none; position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.form-panel .start-date input:invalid:not(:out-of-range):not(:focus) { color: transparent; }
+.form-panel .start-date input:invalid:not(:out-of-range):not(:focus)::-webkit-datetime-edit { color: transparent; }
+.form-panel .start-date input:invalid:not(:out-of-range):not(:focus) + .today-word { display: block; }
 
 .form-panel .race-time-rows { display: flex; flex-direction: column; gap: 0.6rem; }
 .form-panel .race-time-box { display: none; margin-top: 0.6rem; }
