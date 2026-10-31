@@ -262,7 +262,7 @@ def read_step_form(step):
     return answers
 
 
-def parse_plan_form(form):
+def parse_plan_form(form, saved_start=None):
     # Returns (values ready to set on a Plan, {step key: [error messages]}).
     errors = {info["key"]: [] for info in PLAN_STEPS.values()}
     has_run_before = form["has_run_before"] == "yes"
@@ -292,6 +292,9 @@ def parse_plan_form(form):
         errors["goal"].append("Enter both a start date and a race date.")
     elif race_date <= start_date:
         errors["goal"].append("The race date must be after the start date.")
+    # A plan already under way can keep its start date, even once that date has passed.
+    if start_date and start_date < date.today() and start_date != saved_start:
+        errors["goal"].append("The training start date can't be in the past.")
 
     # A time only counts if its box was showing: run before, "Yes" to having a race
     # time, and that distance ticked. Anything typed and then hidden is ignored.
@@ -415,7 +418,7 @@ def plan_step(step):
                 return redirect(url_for("main.plans"))
             return redirect(url_for("main.plan_step", step=step - 1))
 
-        values, errors = parse_plan_form(answers)
+        values, errors = parse_plan_form(answers, plan.start_date if plan else None)
         step_errors = errors[PLAN_STEPS[step]["key"]]
         if step_errors:
             for error in step_errors:
@@ -432,7 +435,10 @@ def plan_step(step):
                     return redirect(url_for("main.plan_step", step=earlier))
             return finish_plan(plan, values)
 
-    return render_template("setup.html", step=step, steps=PLAN_STEPS, last_step=LAST_STEP,
+    # The browser must still accept a saved start date that has passed; the server
+    # rejects any other past date.
+    min_start = min(date.today(), plan.start_date) if plan else date.today()
+    return render_template("setup.html", min_start=min_start.isoformat(), step=step, steps=PLAN_STEPS, last_step=LAST_STEP,
                            form=answers, plan=plan, days=DAYS, distances=DISTANCES,
                            recommended=RECOMMENDED_WEEKS, best_time_fields=BEST_TIME_FIELDS,
                            best_time_parts=BEST_TIME_PARTS)

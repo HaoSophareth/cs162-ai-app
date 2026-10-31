@@ -115,7 +115,7 @@
       </label>
       <label class="field">
         <span class="field-label">Training start date <span class="required-mark">*</span></span>
-        <input type="date" name="start_date" value="{{ form.start_date }}" required>
+        <input type="date" name="start_date" value="{{ form.start_date }}" min="{{ min_start }}" required>
       </label>
       <label class="field">
         <span class="field-label">Race date <span class="required-mark">*</span></span>
