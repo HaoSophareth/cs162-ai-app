@@ -75,8 +75,6 @@ input[type=text], input[type=password], input[type=date], input[type=number], se
   border: 1px solid #dadce0;
   border-radius: 4px;
 }
-fieldset { border: 1px solid #dadce0; border-radius: 6px; margin: 0 0 1rem; padding: 1rem; }
-legend { font-weight: 600; padding: 0 0.3rem; }
 
 .button {
   display: inline-block;
@@ -193,12 +191,6 @@ legend { font-weight: 600; padding: 0 0.3rem; }
 .no-plan { margin-top: 3rem; padding: 2.5rem 2rem; }
 .no-plan p { color: #5f6368; margin: 0 0 1.5rem; }
 
-/* Plan form: recent times only matter for people who have run before. */
-.best-times { margin: 0.5rem 0 1rem; }
-.best-times p { margin: 0 0 0.5rem; }
-.time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
-.plan-form:has(input[name=has_run_before][value=no]:checked) .best-times { display: none; }
-
 /* Plans list */
 .plan-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
 .plan-item.active { border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
@@ -212,15 +204,12 @@ legend { font-weight: 600; padding: 0 0.3rem; }
 .confirm-delete[open] form { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
 
 /* Plan form steps */
-.panel.wide-form { max-width: 640px; }
 .step-count { margin: 0 0 0.5rem; font-size: 0.85rem; font-weight: 600; color: #1a73e8; text-transform: uppercase; letter-spacing: 0.04em; }
 .steps { display: flex; gap: 0.5rem; padding: 0; margin: 0 0 1.25rem; list-style: none; counter-reset: step; }
 .steps li { flex: 1; padding-top: 0.5rem; border-top: 4px solid #dadce0; font-size: 0.85rem; color: #5f6368; counter-increment: step; }
 .steps li::before { content: counter(step) ". "; }
 .steps li.finished { border-color: #8ab4f8; }
 .steps li.current { border-color: #1a73e8; color: #202124; font-weight: 600; }
-/* row-reverse shows Back on the left even though Next comes first in the HTML. */
-.step-buttons { display: flex; flex-direction: row-reverse; justify-content: space-between; margin-top: 1.5rem; }
 
 /* Plan summary */
 .summary section { margin-top: 1.5rem; }
@@ -237,3 +226,45 @@ legend { font-weight: 600; padding: 0 0.3rem; }
 .simple-table { border-collapse: collapse; min-width: 320px; }
 .simple-table th, .simple-table td { text-align: left; padding: 0.4rem 1.5rem 0.4rem 0; border-bottom: 1px solid #dadce0; }
 .simple-table th { font-size: 0.8rem; text-transform: uppercase; color: #5f6368; }
+
+/* Profile and plan-step forms share one look: a label above every field, the same
+   width and spacing, and no boxes around question groups. Scoped to .form-panel so
+   the login and signup pages keep their own look. */
+.panel.form-panel { max-width: 560px; margin: 0 auto; }
+.form-panel fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.form-panel .field { display: block; margin: 0 0 1.4rem; }
+.form-panel .field-label {
+  display: block;
+  /* float + width lets a <legend> take margins like a normal label */
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin: 0 0 0.45rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.form-panel .field-label + * { clear: both; }
+.form-panel .optional { font-weight: 400; font-size: 0.85rem; color: #5f6368; margin-left: 0.3rem; }
+.form-panel .field-sublabel { display: block; margin-bottom: 0.3rem; font-size: 0.85rem; color: #5f6368; }
+.form-panel label { margin: 0; }
+.form-panel input[type=text], .form-panel input[type=number], .form-panel input[type=date], .form-panel select {
+  width: 100%;
+  height: 2.6rem;
+  margin: 0;
+  padding: 0 0.7rem;
+}
+
+/* Single- and multi-select answers: plain radio buttons / checkboxes in a row. */
+.form-panel .options { display: flex; flex-wrap: wrap; gap: 0.6rem 1.5rem; }
+.form-panel .option { display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; }
+.form-panel .option input { margin: 0; width: 1.05rem; height: 1.05rem; }
+
+.form-panel .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem 1rem; }
+
+/* Weekly distance and race times only appear once "Have you run before?" is "Yes". */
+.plan-form:not(:has(input[name=has_run_before][value=yes]:checked)) .if-run-before { display: none; }
+
+.form-panel .flash { margin-bottom: 1.4rem; }
+.form-actions { display: flex; gap: 0.75rem; margin-top: 1.75rem; }
+/* row-reverse shows Back on the left even though Next comes first in the HTML. */
+.form-actions.step-buttons { flex-direction: row-reverse; justify-content: space-between; }

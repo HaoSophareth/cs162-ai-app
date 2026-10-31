@@ -209,14 +209,16 @@ def parse_plan_form(form):
     # Returns (values ready to set on a Plan, {step key: [error messages]}).
     errors = {info["key"]: [] for info in PLAN_STEPS.values()}
     has_run_before = form["has_run_before"] == "yes"
-    weekly_km = parse_number(form["weekly_km"])
+    # New runners aren't asked for a weekly distance: 0 makes the plan start at the
+    # beginner floor in plan_generator. Anything typed before switching to "No" is ignored.
+    weekly_km = parse_number(form["weekly_km"]) if has_run_before else 0
     run_days = [d for d in DAYS if d in form["run_days"]]
     start_date = parse_date(form["start_date"])
     race_date = parse_date(form["race_date"])
 
     if form["has_run_before"] not in ("yes", "no"):
         errors["experience"].append("Say whether you have run before.")
-    if weekly_km is None or not 0 <= weekly_km <= 300:
+    if has_run_before and (weekly_km is None or not 0 <= weekly_km <= 300):
         errors["experience"].append("Current weekly distance must be a number of km between 0 and 300.")
     if len(run_days) < 3:
         errors["schedule"].append("Pick at least 3 days you can run.")
@@ -255,7 +257,7 @@ def parse_plan_form(form):
 def form_from_plan(plan):
     form = {
         "has_run_before": "yes" if plan.has_run_before else "no",
-        "weekly_km": f"{plan.weekly_km:g}",
+        "weekly_km": f"{plan.weekly_km:g}" if plan.has_run_before else "",
         "run_days": plan.run_days.split(","),
         "long_run_day": plan.long_run_day,
         "race_distance": plan.race_distance,

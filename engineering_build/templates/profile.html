@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Profile{% endblock %}
 {% block content %}
-<div class="panel narrow">
+<div class="panel form-panel">
   {% if onboarding %}
     <h1>A few quick questions</h1>
     <p class="muted">This is just your profile. It doesn't change your training plan, and you can edit it later.</p>
@@ -10,17 +10,30 @@
   {% endif %}
 
   <form method="post">
-    <fieldset>
-      <legend>Sex</legend>
-      <label class="inline"><input type="radio" name="sex" value="male" required
-        {% if form.sex == 'male' %}checked{% endif %}> Male</label>
-      <label class="inline"><input type="radio" name="sex" value="female"
-        {% if form.sex == 'female' %}checked{% endif %}> Female</label>
+    <fieldset class="field">
+      <legend class="field-label">Sex</legend>
+      <div class="options">
+        <label class="option"><input type="radio" name="sex" value="male" required
+          {% if form.sex == 'male' %}checked{% endif %}> Male</label>
+        <label class="option"><input type="radio" name="sex" value="female"
+          {% if form.sex == 'female' %}checked{% endif %}> Female</label>
+      </div>
     </fieldset>
-    <label>Age <input type="number" name="age" value="{{ form.age }}" min="10" max="100" step="1" required></label>
-    <label>Weight (kg) <input type="number" name="weight_kg" value="{{ form.weight_kg }}" min="25" max="300" step="0.1" required></label>
-    <label>Height (cm) <input type="number" name="height_cm" value="{{ form.height_cm }}" min="100" max="250" step="1" required></label>
-    <button type="submit" class="button">{% if onboarding %}Continue{% else %}Save profile{% endif %}</button>
+    <label class="field">
+      <span class="field-label">Age</span>
+      <input type="number" name="age" value="{{ form.age }}" min="10" max="100" step="1" required>
+    </label>
+    <label class="field">
+      <span class="field-label">Weight (kg)</span>
+      <input type="number" name="weight_kg" value="{{ form.weight_kg }}" min="25" max="300" step="0.1" required>
+    </label>
+    <label class="field">
+      <span class="field-label">Height (cm)</span>
+      <input type="number" name="height_cm" value="{{ form.height_cm }}" min="100" max="250" step="1" required>
+    </label>
+    <div class="form-actions">
+      <button type="submit" class="button">{% if onboarding %}Continue{% else %}Save profile{% endif %}</button>
+    </div>
   </form>
 </div>
 {% endblock %}

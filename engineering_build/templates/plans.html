@@ -26,8 +26,7 @@
       </p>
       <p class="muted">
         {{ plan.run_days.replace(',', ', ') }} · long run on {{ plan.long_run_day }}
-        · starting from {{ '%g' % plan.weekly_km }} km/week
-        · {% if plan.has_run_before %}has run before{% else %}new runner{% endif %}
+        · {% if plan.has_run_before %}has run before, starting from {{ '%g' % plan.weekly_km }} km/week{% else %}new runner, beginner start{% endif %}
       </p>
       {% if plan.best_5k or plan.best_10k or plan.best_half or plan.best_full %}
         <p class="muted">Recent times:

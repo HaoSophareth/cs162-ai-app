@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{% if plan %}Edit plan{% else %}Create plan{% endif %} · Step {{ step }} of {{ last_step }}{% endblock %}
 {% block content %}
-<div class="panel narrow wide-form">
+<div class="panel form-panel">
   <p class="step-count">Step {{ step }} of {{ last_step }}</p>
   <ol class="steps">
     {% for number, info in steps.items() %}
@@ -21,39 +21,51 @@
   <form method="post" class="plan-form">
     {% set step_key = steps[step].key %}
     {% if step_key == 'experience' %}
-      <fieldset>
-        <legend>Have you run before?</legend>
-        <label class="inline"><input type="radio" name="has_run_before" value="yes" required
-          {% if form.has_run_before == 'yes' %}checked{% endif %}> Yes</label>
-        <label class="inline"><input type="radio" name="has_run_before" value="no"
-          {% if form.has_run_before == 'no' %}checked{% endif %}> No, I'm new to running</label>
+      <fieldset class="field">
+        <legend class="field-label">Have you run before?</legend>
+        <div class="options">
+          <label class="option"><input type="radio" name="has_run_before" value="yes" required
+            {% if form.has_run_before == 'yes' %}checked{% endif %}> Yes</label>
+          <label class="option"><input type="radio" name="has_run_before" value="no"
+            {% if form.has_run_before == 'no' %}checked{% endif %}> No, I'm new to running</label>
+        </div>
+      </fieldset>
 
-        {# Hidden by CSS when "No" is picked; the server also ignores these for new runners. #}
-        <div class="best-times">
-          <p class="muted">Recent times (optional)</p>
+      {# Only shown by CSS once "Yes" is picked. New runners start from the beginner level,
+         so the server ignores these fields for them. Not marked required, because the
+         browser won't submit a form with a required field that is hidden. #}
+      <div class="if-run-before">
+        <label class="field">
+          <span class="field-label">Current weekly distance (km)</span>
+          <input type="number" name="weekly_km" value="{{ form.weekly_km }}" min="0" max="300" step="0.5">
+        </label>
+
+        <fieldset class="field">
+          <legend class="field-label">Recent race times <span class="optional">optional</span></legend>
           <div class="time-grid">
             {% for field, label in best_time_fields.items() %}
-              <label>{{ label }} <span class="muted">({{ best_time_format[field] }})</span>
+              <label>
+                <span class="field-sublabel">{{ label }} ({{ best_time_format[field] }})</span>
                 <input type="text" name="{{ field }}" value="{{ form[field] }}"
                        placeholder="{{ best_time_format[field] }}">
               </label>
             {% endfor %}
           </div>
-        </div>
-      </fieldset>
-      <label>Current weekly distance (km)
-        <input type="number" name="weekly_km" value="{{ form.weekly_km }}" min="0" max="300" step="0.5" required>
-      </label>
+        </fieldset>
+      </div>
 
     {% elif step_key == 'schedule' %}
-      <fieldset>
-        <legend>Days you can run (at least 3)</legend>
-        {% for day in days %}
-          <label class="inline"><input type="checkbox" name="run_days" value="{{ day }}"
-            {% if day in form.run_days %}checked{% endif %}> {{ day }}</label>
-        {% endfor %}
+      <fieldset class="field">
+        <legend class="field-label">Days you can run <span class="optional">at least 3</span></legend>
+        <div class="options">
+          {% for day in days %}
+            <label class="option"><input type="checkbox" name="run_days" value="{{ day }}"
+              {% if day in form.run_days %}checked{% endif %}> {{ day }}</label>
+          {% endfor %}
+        </div>
       </fieldset>
-      <label>Long-run day
+      <label class="field">
+        <span class="field-label">Long-run day</span>
         <select name="long_run_day">
           {% for day in days %}
             <option value="{{ day }}" {% if day == form.long_run_day %}selected{% endif %}>{{ day }}</option>
@@ -62,7 +74,8 @@
       </label>
 
     {% elif step_key == 'goal' %}
-      <label>Race distance
+      <label class="field">
+        <span class="field-label">Race distance</span>
         <select name="race_distance">
           {% for key, name in distances.items() %}
             <option value="{{ key }}" {% if key == form.race_distance %}selected{% endif %}>
@@ -71,8 +84,14 @@
           {% endfor %}
         </select>
       </label>
-      <label>Training start date <input type="date" name="start_date" value="{{ form.start_date }}" required></label>
-      <label>Race date <input type="date" name="race_date" value="{{ form.race_date }}" required></label>
+      <label class="field">
+        <span class="field-label">Training start date</span>
+        <input type="date" name="start_date" value="{{ form.start_date }}" required>
+      </label>
+      <label class="field">
+        <span class="field-label">Race date</span>
+        <input type="date" name="race_date" value="{{ form.race_date }}" required>
+      </label>
     {% endif %}
 
     {% if step == last_step and not plan %}
@@ -81,7 +100,7 @@
 
     {# Next comes first in the HTML so pressing Enter goes forward; CSS puts Back on the left.
        formnovalidate lets Back work even when this step's fields aren't filled in yet. #}
-    <div class="step-buttons">
+    <div class="form-actions step-buttons">
       <button type="submit" name="action" value="next" class="button">
         {% if step < last_step %}Next{% elif plan %}Save and regenerate plan{% else %}Create plan{% endif %}
       </button>
