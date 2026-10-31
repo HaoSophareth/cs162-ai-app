@@ -262,6 +262,7 @@ One row per prompt, filled in during each build.
 | 24 | 15K peak long run 16 km, not 12 | Done; 17s, 1,286 out | Correct | My 12 km in the prompt was wrong; both builds flagged it |
 | 25 | Too-short warning counts weeks like the summary | Done; 32s, 2,874 out | Re-prompt (BUG, Build 2 only) | Found by Build 2 itself |
 | 26 | Rename Calendar to Home in top bar | Done; 14s, 907 out | Re-prompt (UX) | |
+| 27 | Delete question below an even button row | Done; 54s, 4,835 out | Re-prompt (UI bug, Build 2 only) | CSS-only confirm stretched the buttons; Build 1 uses a JS confirm() |
 
 ## Manual edits (not by the build sessions)
 
@@ -349,7 +350,7 @@ Build 1 prompt 21 (balanced weeks) ended with "You've hit your 5-hour limit, res
 - Build 1 first build: 5m 10s, 31,708 out. Build 2: 4m 2s, 26,687 out. Later rounds: Build 2 is often faster and cheaper but NOT every time (forms 15,667 vs 15,894; stacked weeks 12,819 vs 12,894).
 - Bugs/incidents: Build 2 too-short warning off by one week (found by itself). Build 2 deleted the real database once while testing (no backup). Build 1 only: summary link went to the wrong step, top-bar duplicate. Build 2's new column broke the old database, fixed by hand with ALTER TABLE, backup kept; Build 1 migrates itself on start.
 - Both builds independently added a rule capping other runs at the long run, and found the 30% rule contradicts the peak distances.
-- JavaScript: Build 1 added calendar.js then removed it; still has a 3-line script in templates/week.html. Build 2 has none. Check against class-covered rule.
+- JavaScript: Build 1 added calendar.js then removed it; still has a 3-line script in templates/week.html and an inline confirm() on Delete (check for more before the zip). Build 2 has none. Check against class-covered rule.
 - Be honest in the report: some Build 1 re-prompts used engineering words (`instance/`, templates, Riegel formula); Build 2 saved a memory note Build 1 could see; prompts were refined with AI, not written alone; git history before de089b9..4b12ce3 rebuilt from transcripts; title labels are manual edits.
 - Free tier: user hit the 5-hour usage limit at 1:02 PM and the builds report $43.91 in total ($24.16 and $19.74), so tip 4 applies: list alternatives (Claude.ai free, Copilot via Education Pack, DeepSeek, Gemini free) and why not used.
 
