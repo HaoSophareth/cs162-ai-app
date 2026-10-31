@@ -64,7 +64,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem; }
   text-overflow: ellipsis;
 }
 .topbar nav { display: flex; flex-shrink: 0; gap: 1rem; align-items: center; }
-/* Calendar while on the calendar: looks like the other links but isn't clickable. */
+/* Home while on the calendar: looks like the other links but isn't clickable. */
 .topbar nav a.current { text-decoration: underline; }
 /* Narrow screens: title on one row, links on the next, still a fixed height. */
 @media (max-width: 700px) {

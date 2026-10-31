@@ -10,12 +10,12 @@
 <body>
   <header class="topbar">
     {% if session.user_id %}
-      {# The title and Calendar both lead to the calendar. On the calendar itself
+      {# The title and Home both lead to the calendar. On the calendar itself
          they have no href, so clicking them does nothing at all. #}
       {% set on_calendar = request.endpoint == "week" %}
       <a class="brand" {% if not on_calendar %}href="{{ url_for('week') }}"{% endif %}>Race Training Planner <small>· Build 1 (feature-wise)</small></a>
       <nav>
-        <a {% if not on_calendar %}href="{{ url_for('week') }}"{% else %}class="current"{% endif %}>Calendar</a>
+        <a {% if not on_calendar %}href="{{ url_for('week') }}"{% else %}class="current"{% endif %}>Home</a>
         <a href="{{ url_for('plans') }}">Plans</a>
         <a href="{{ url_for('profile') }}">Profile</a>
         <form method="post" action="{{ url_for('logout') }}" class="inline">
