@@ -12,7 +12,7 @@
 {% else %}
 <div class="calendar-toolbar">
   <div class="week-nav">
-    <a class="button secondary" href="{{ url_for('main.week', _anchor='current') }}">Today</a>
+    <a class="button secondary" href="{{ url_for('main.week', _anchor='current') }}">This week</a>
     <span class="muted">
       {{ distances[plan.race_distance] }} on {{ plan.race_date.strftime('%a %b') }} {{ plan.race_date.day }}, {{ plan.race_date.year }}
     </span>
