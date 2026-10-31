@@ -28,6 +28,6 @@ Data is stored in SQLite at `instance/running.db`, so it is kept between restart
 - `app.py` - creates the app, database and login manager
 - `models.py` - User, Plan and Run tables
 - `auth.py` - sign up, log in, log out
-- `main.py` - profile, plans (create/edit in 3 steps, summary, export, activate, delete), scrolling week view, run detail/edit/done
-- `plan_generator.py` - the plan rules, race-time estimates and .ics calendar text (plain Python, no Flask)
+- `main.py` - profile, plans (create/edit in 3 steps, summary, activate, delete), scrolling week view, run detail/edit/done
+- `plan_generator.py` - the plan rules and race-time estimates (plain Python, no Flask)
 - `templates/`, `static/style.css` - pages and styling

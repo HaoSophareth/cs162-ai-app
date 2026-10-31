@@ -208,9 +208,6 @@ input[type=text], input[type=password], input[type=date], input[type=number], se
 
 /* Plans list */
 .plan-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
-.plan-item .export-hint { flex-basis: 100%; font-size: 0.85rem; }
-.plan-item .export-hint p, .plan-item .export-hint ol { margin: 0 0 0.25rem; }
-.plan-item .export-hint ol { padding-left: 1.25rem; }
 .plan-item.active { border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
 .plan-summary h2 { display: flex; align-items: center; gap: 0.6rem; margin: 0 0 0.4rem; font-size: 1.15rem; }
 .plan-summary p { margin: 0.2rem 0; }

@@ -47,7 +47,6 @@
       {% endif %}
       <a class="button secondary" href="{{ url_for('main.plan_summary', plan_id=plan.id) }}">Summary</a>
       <a class="button secondary" href="{{ url_for('main.edit_plan', plan_id=plan.id) }}">Edit</a>
-      <a class="button secondary" href="{{ url_for('main.export_plan', plan_id=plan.id) }}">Export plan</a>
       {# <details> asks "are you sure?" without JavaScript. #}
       <details class="confirm-delete">
         <summary class="button secondary danger">Delete</summary>
@@ -56,14 +55,6 @@
           <button type="submit" class="button danger-solid">Yes, delete</button>
         </form>
       </details>
-    </div>
-    <div class="muted export-hint">
-      <p>To import the exported file into its own calendar, which you can tick on or off:</p>
-      <ol>
-        <li>In Google Calendar, go to Settings &gt; Add calendar &gt; Create new calendar, and name it &ldquo;{{ plan|plan_name }}&rdquo;.</li>
-        <li>Go to Settings &gt; Import &amp; export, choose the exported file, and pick that new calendar under &ldquo;Add to calendar&rdquo;.</li>
-      </ol>
-      <p>To remove the plan later, delete that calendar.</p>
     </div>
   </div>
 {% endfor %}
