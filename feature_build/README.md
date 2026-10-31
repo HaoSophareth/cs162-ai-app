@@ -38,6 +38,7 @@ there between restarts. Delete the `instance/` folder to start fresh.
 - `app.py` - web routes: accounts, profile, plans, week view, runs; database access
 - `plan.py` - the plan generator (pure rules, no web or database code)
 - `estimates.py` - paces and finish-time estimates for the plan summary
+- `calendar_export.py` - writes a plan's runs as a calendar file (.ics)
 - `templates/` - HTML pages
 - `static/style.css` - styling, run-type colours and page transitions
 

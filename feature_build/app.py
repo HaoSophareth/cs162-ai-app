@@ -8,9 +8,10 @@ from datetime import date, timedelta
 from functools import wraps
 from urllib.parse import urlencode
 
-from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for
+from flask import Flask, Response, abort, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
+import calendar_export
 import estimates
 import plan
 
@@ -212,14 +213,22 @@ def parse_number(text):
         return None
 
 
+def run_event_text(run):
+    """A run's calendar title and details, for the Google link and the plan export."""
+    title = f"{RUN_TYPES[run['type']]} - {run['distance_km']:g} km"
+    details = run["description"] + (f"\n\nNotes: {run['notes']}" if run["notes"] else "")
+    return title, details
+
+
 def google_calendar_link(run):
     day = date.fromisoformat(run["date"])
+    title, details = run_event_text(run)
     params = {
         "action": "TEMPLATE",
-        "text": f"{RUN_TYPES[run['type']]} - {run['distance_km']:g} km",
+        "text": title,
         # All-day event: the end date is exclusive, so it's the next day.
         "dates": f"{day:%Y%m%d}/{day + timedelta(days=1):%Y%m%d}",
-        "details": run["description"] + (f"\n\nNotes: {run['notes']}" if run["notes"] else ""),
+        "details": details,
     }
     return "https://calendar.google.com/calendar/render?" + urlencode(params)
 
@@ -571,6 +580,24 @@ def plan_summary(plan_id):
         estimate=estimates.finish_estimate(best, goal_km) if best else None,
         is_active=get_user()["active_plan_id"] == plan_id,
     )
+
+
+@app.route("/plans/<int:plan_id>/export")
+@login_required
+def export_plan(plan_id):
+    p = get_own_plan(plan_id)
+    runs = get_db().execute("SELECT * FROM runs WHERE plan_id = ? AND user_id = ? ORDER BY date, id",
+                            (plan_id, session["user_id"])).fetchall()
+    events = []
+    for run in runs:
+        title, details = run_event_text(run)
+        events.append({"uid": f"run-{run['id']}@race-training-planner", "date": date.fromisoformat(run["date"]),
+                       "title": title, "details": details})
+    race = plan.DISTANCES[p["distance"]][0]
+    text = calendar_export.build_calendar(f"{race} training plan", events)
+    filename = f"{race.lower().replace(' ', '-')}-plan-{p['race_date']}.ics"
+    return Response(text, mimetype="text/calendar",
+                    headers={"Content-Disposition": f'attachment; filename="{filename}"'})
 
 
 @app.route("/plans/<int:plan_id>/edit", methods=["GET", "POST"])

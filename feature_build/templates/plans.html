@@ -32,11 +32,13 @@
         {% endif %}
         <a class="button" href="{{ url_for('plan_summary', plan_id=p.id) }}">Summary</a>
         <a class="button" href="{{ url_for('edit_plan', plan_id=p.id) }}">Edit</a>
+        <a class="button" href="{{ url_for('export_plan', plan_id=p.id) }}" download>Export plan</a>
         <form method="post" action="{{ url_for('delete_plan', plan_id=p.id) }}" class="inline"
               onsubmit="return confirm('Delete this plan and all its runs? This cannot be undone.')">
           <button class="danger">Delete</button>
         </form>
       </div>
+      <p class="muted export-hint">To import: Google Calendar &gt; Settings &gt; Import &amp; export, then choose the file.</p>
     </section>
   {% endfor %}
 </div>
