@@ -55,6 +55,14 @@ Same feature list for both builds. Build 1 gets only this; Build 2 gets this plu
 - Drag and drop (maybe later, if time).
 - Google Calendar API / sync; .ics export (maybe later, if time).
 
+## Spec change (31 Oct, after the first build)
+
+Sent to both builds as one re-prompt (logged as "spec change"):
+- Onboarding after signup is a quick profile only: sex, age, weight (kg), height (cm). Profile only, it does not change the plan.
+- Then the dashboard, with a "Create plan" button. Plan questions are asked only when creating a plan: run before? (if yes, optional recent 5k/10k/half/full times), current weekly distance (km), run days (at least 3) + long-run day, race distance, start date, race date.
+- A user can have several plans, one active at a time. The calendar shows the active plan; a plans list lets you switch, edit or delete.
+- Plan uses current weekly distance (and experience) for its starting point. km only.
+
 ## Engineering notes (Build 2 only)
 
 To be turned into the Build 2 prompt: Flask app, Jinja templates + plain CSS, Flask-SQLAlchemy + SQLite, Flask-Login + Werkzeug password hashing, requirements.txt. Data model roughly User, Plan (setup answers), Run (date, type, distance, notes, done). Plan generator as one plain function in its own file. File layout to decide when writing the prompt.
@@ -198,6 +206,9 @@ One row per prompt, filled in during each build.
 |---|---|---|---|---|
 | 1 | Full spec (feature-wise) | Flask + raw sqlite3 + Flask session login; 2 .py files (app.py 371 lines, plan.py 185); self-tested | TBD after review | |
 | 2 | "Page blinks on every click, make it smoother" | Added CSS view transitions + html background (no JS), 19s, 1,611 out tokens | Re-prompt (UX preference, not a bug) | Full page reload on every click because no JS |
+| 3 | "Add month view; week view scrollable to next week" (new scope) | Month view + swipe/arrow keys between weeks; added static/calendar.js (~60 lines JS) without being asked; read "scrollable" as sideways swipe; tested on a copy of the DB; 136s, 14,291 out tokens | Accept | First JS in Build 1 (no constraint in feature prompt) |
+| 4 | "Done should be a checkbox, crossed out + faded; remove color legend" | Real checkbox (shared template piece), 40% opacity; 120s, 10,660 out tokens | Re-prompt (UI preference) | |
+| 5 | Spec change: quick profile onboarding, plan questions only when creating a plan, multiple plans (one active) | Done; new DB file planner.db (old one left); race times saved but unused; 302s, 32,585 out tokens | Re-prompt (spec change) | |
 
 ### Build 2
 
@@ -205,10 +216,18 @@ One row per prompt, filled in during each build.
 |---|---|---|---|---|
 | 1 | Full spec + how to build | Followed stack/files exactly; 5 .py files (440 lines); self-tested | TBD after review | |
 | 2 | Same + "without adding JavaScript" | Same CSS fix as Build 1, 17s, 1,310 out tokens | Re-prompt (UX preference, not a bug) | Same cause |
+| 3 | Same + "same stack and file layout, no JavaScript" (new scope) | Month view + two weeks side by side with CSS scroll-snap; refactored week logic into helpers; DELETED the real app database while testing (user data lost, no backup); 100s, 11,147 out tokens | Accept code; incident logged | Data loss = AI test habit; saved a "never delete the DB" memory that Build 1 can also see (shared memory per repo) |
+| 4 | Same as Build 1 + "no JavaScript" | Button styled as checkbox (no JS), 45% opacity; 74s, 8,190 out tokens | Re-prompt (UI preference) | |
+| 5 | Same spec change + data model/files/routes | Done; profile gate on every page; times hide with CSS only; 207s, 24,728 out tokens | Re-prompt (spec change) | |
 
 ## Manual edits (not by the build sessions)
 
 - Both `templates/base.html`: added "· Build 1 (feature-wise)" / "· Build 2 (engineering-wise)" next to the header title and in the tab title, so the demo video shows which build is which. Edited by hand from the planning session, not an AI build prompt.
+
+## Notes
+
+- Blink fix (row 2) didn't seem to work in Arc (default browser); likely needs Chrome 126+/Safari 18.2+. Check in Chrome before counting it as failed.
+- Git history rebuilt from transcripts after the fact: one commit per prompt/manual edit (de089b9..4b12ce3).
 
 ## Times
 
