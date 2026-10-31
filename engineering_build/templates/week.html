@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}My week{% endblock %}
+{% block content %}
+<div class="week-header">
+  <div class="week-nav">
+    <a class="button secondary" href="{{ url_for('main.week') }}">Today</a>
+    <a class="button secondary" href="{{ url_for('main.week', start=prev_start) }}" title="Previous week">&lsaquo;</a>
+    <a class="button secondary" href="{{ url_for('main.week', start=next_start) }}" title="Next week">&rsaquo;</a>
+    <h1>
+      {{ week_start.strftime('%b') }} {{ week_start.day }} - {{ week_end.strftime('%b') }} {{ week_end.day }}
+      {% if week_number %}<span class="muted">· Week {{ week_number }} of {{ total_weeks }}</span>{% endif %}
+    </h1>
+  </div>
+  <div class="week-totals">
+    <span><strong>{{ '%g' % planned_km|round(1) }} km</strong> planned</span>
+    <span><strong>{{ '%g' % done_km|round(1) }} km</strong> completed</span>
+  </div>
+</div>
+
+<p class="muted">
+  {{ distances[plan.race_distance] }} on {{ plan.race_date.strftime('%a %b') }} {{ plan.race_date.day }}, {{ plan.race_date.year }}
+</p>
+
+<div class="week-grid">
+  {% for column in columns %}
+    <div class="day-column {% if column.date == today %}today{% endif %}">
+      <div class="day-heading">
+        <span class="day-name">{{ column.date.strftime('%a') }}</span>
+        <span class="day-number">{{ column.date.day }}</span>
+      </div>
+      {% for run in column.runs %}
+        <a class="run-card run-{{ run.run_type }} {% if run.done %}done{% endif %}"
+           href="{{ url_for('main.run_detail', run_id=run.id) }}">
+          <span class="run-type">{{ run.run_type|capitalize }}</span>
+          <span class="run-distance">{{ '%g' % run.distance_km }} km</span>
+          {% if run.done %}<span class="run-done">✓ Done</span>{% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  {% endfor %}
+</div>
+
+<div class="legend">
+  {% for type in ['easy', 'long', 'tempo', 'intervals', 'race'] %}
+    <span class="legend-item run-{{ type }}">{{ type|capitalize }}</span>
+  {% endfor %}
+</div>
+{% endblock %}

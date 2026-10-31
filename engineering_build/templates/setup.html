@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Setup{% endblock %}
+{% block content %}
+<div class="panel">
+  <h1>{% if plan %}Edit your setup{% else %}Set up your training{% endif %}</h1>
+
+  {% if plan %}
+    <div class="flash flash-warning">
+      Saving will regenerate your whole plan. Any changes you made to runs
+      (dates, distances, notes, done) will be replaced.
+    </div>
+  {% endif %}
+
+  <form method="post">
+    <fieldset>
+      <legend>Experience</legend>
+      <label class="inline"><input type="radio" name="experience" value="new"
+        {% if form.experience == 'new' %}checked{% endif %}> New runner</label>
+      <label class="inline"><input type="radio" name="experience" value="experienced"
+        {% if form.experience == 'experienced' %}checked{% endif %}> I have run before</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Days you can run (at least 3)</legend>
+      {% for day in days %}
+        <label class="inline"><input type="checkbox" name="run_days" value="{{ day }}"
+          {% if day in form.run_days %}checked{% endif %}> {{ day }}</label>
+      {% endfor %}
+      <label>Long-run day
+        <select name="long_run_day">
+          {% for day in days %}
+            <option value="{{ day }}" {% if day == form.long_run_day %}selected{% endif %}>{{ day }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Goal</legend>
+      <label>Race distance
+        <select name="race_distance">
+          {% for key, name in distances.items() %}
+            <option value="{{ key }}" {% if key == form.race_distance %}selected{% endif %}>
+              {{ name }} (at least {{ recommended[key] }} weeks recommended)
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Training start date <input type="date" name="start_date" value="{{ form.start_date }}" required></label>
+      <label>Race date <input type="date" name="race_date" value="{{ form.race_date }}" required></label>
+    </fieldset>
+
+    <button type="submit" class="button">{% if plan %}Save and regenerate plan{% else %}Create my plan{% endif %}</button>
+  </form>
+</div>
+{% endblock %}

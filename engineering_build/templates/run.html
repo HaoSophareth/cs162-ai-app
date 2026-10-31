@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ run.run_type|capitalize }} run{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('main.week', start=week_start) }}">&larr; Back to week</a></p>
+
+<div class="panel">
+  <div class="run-title run-{{ run.run_type }}">
+    <h1>{{ run.run_type|capitalize }} run</h1>
+    {% if run.done %}<span class="badge">✓ Done</span>{% endif %}
+  </div>
+
+  <dl class="details">
+    <dt>Date</dt><dd>{{ run.date.strftime('%A, %b') }} {{ run.date.day }}, {{ run.date.year }}</dd>
+    <dt>Distance</dt><dd>{{ '%g' % run.distance_km }} km</dd>
+    <dt>Workout</dt><dd>{{ run.description }}</dd>
+    <dt>Notes</dt><dd>{% if run.notes %}{{ run.notes }}{% else %}<span class="muted">No notes yet.</span>{% endif %}</dd>
+  </dl>
+
+  <div class="actions">
+    <form method="post" action="{{ url_for('main.toggle_done', run_id=run.id) }}">
+      <button type="submit" class="button">{% if run.done %}Mark as not done{% else %}Mark as done{% endif %}</button>
+    </form>
+    <a class="button secondary" href="{{ url_for('main.edit_run', run_id=run.id) }}">Edit run</a>
+    <a class="button secondary" href="{{ gcal_url }}" target="_blank" rel="noopener">Add to Google Calendar</a>
+  </div>
+</div>
+{% endblock %}
