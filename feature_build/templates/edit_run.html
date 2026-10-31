@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Edit run{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>Edit {{ RUN_TYPES[run.type]|lower }}</h1>
+  <form method="post">
+    <label>Date (change it to move the run to another day)
+      <input type="date" name="date" required value="{{ request.form.date or run.date }}">
+    </label>
+    <label>Distance (km)
+      <input type="number" name="distance_km" step="0.1" min="0.1" max="100" required
+             value="{{ request.form.distance_km or '%g'|format(run.distance_km) }}">
+    </label>
+    <label>Notes
+      <textarea name="notes" rows="4">{{ request.form.notes or run.notes }}</textarea>
+    </label>
+    <button class="primary">Save</button>
+    <a href="{{ url_for('run_detail', run_id=run.id) }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

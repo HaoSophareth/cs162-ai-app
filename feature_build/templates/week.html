@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Week view{% endblock %}
+{% block content %}
+<div class="week-header">
+  <div class="week-nav">
+    <a class="button" href="{{ url_for('week') }}">Today</a>
+    <a class="button" href="{{ url_for('week', week=prev_week) }}" title="Previous week">‹</a>
+    <a class="button" href="{{ url_for('week', week=next_week) }}" title="Next week">›</a>
+    <h1>
+      {{ monday.strftime('%b') }} {{ monday.day }} - {{ sunday.strftime('%b') }} {{ sunday.day }}
+      {% if week_number %}· Week {{ week_number }}{% endif %}
+    </h1>
+  </div>
+  <div class="week-totals">
+    <span><strong>{{ "%g"|format(planned_km|round(1)) }}</strong> km planned</span>
+    <span><strong>{{ "%g"|format(done_km|round(1)) }}</strong> km done</span>
+  </div>
+</div>
+
+<div class="legend">
+  {% for key, label in RUN_TYPES.items() %}<span class="tag type-{{ key }}">{{ label }}</span>{% endfor %}
+</div>
+
+<div class="week-grid">
+  {% for day in days %}
+    <section class="day {% if day.date == today %}today{% endif %}">
+      <header>
+        <span class="weekday">{{ day.date.strftime('%a') }}</span>
+        <span class="daynum">{{ day.date.day }}</span>
+      </header>
+      {% for run in day.runs %}
+        <div class="run-card type-{{ run.type }} {% if run.done %}done{% endif %}">
+          <a href="{{ url_for('run_detail', run_id=run.id) }}">
+            <span class="run-type">{{ RUN_TYPES[run.type] }}</span>
+            <span class="run-km">{{ "%g"|format(run.distance_km) }} km</span>
+          </a>
+          <form method="post" action="{{ url_for('toggle_done', run_id=run.id) }}">
+            <input type="hidden" name="next" value="week">
+            <button class="check" title="{{ 'Mark not done' if run.done else 'Mark done' }}">
+              {{ "✓ Done" if run.done else "Mark done" }}
+            </button>
+          </form>
+        </div>
+      {% endfor %}
+    </section>
+  {% endfor %}
+</div>
+
+<p class="muted">
+  Training for a {{ DISTANCES[setup.distance][0] }} on {{ setup.race_date|nice_date }}.
+</p>
+{% endblock %}

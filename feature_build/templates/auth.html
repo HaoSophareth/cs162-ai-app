@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ "Sign up" if mode == "signup" else "Log in" }}{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>{{ "Create an account" if mode == "signup" else "Log in" }}</h1>
+  <form method="post">
+    <label>Username
+      <input name="username" required autofocus value="{{ request.form.username }}">
+    </label>
+    <label>Password
+      <input name="password" type="password" required
+             {% if mode == "signup" %}minlength="6"{% endif %}>
+    </label>
+    <button class="primary">{{ "Sign up" if mode == "signup" else "Log in" }}</button>
+  </form>
+  {% if mode == "signup" %}
+    <p>Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+  {% else %}
+    <p>New here? <a href="{{ url_for('signup') }}">Create an account</a></p>
+  {% endif %}
+</div>
+{% endblock %}
