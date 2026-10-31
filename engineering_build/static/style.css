@@ -91,13 +91,10 @@ legend { font-weight: 600; padding: 0 0.3rem; }
 }
 .button.secondary { color: #1a73e8; background: #fff; border-color: #dadce0; }
 
-/* Calendar toolbar (shared by week and month views) */
+/* Calendar toolbar */
 .calendar-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
 .week-nav { display: flex; align-items: center; gap: 0.5rem; }
 .week-nav h1 { margin: 0 0 0 0.5rem; }
-.view-toggle { display: flex; border: 1px solid #dadce0; border-radius: 4px; overflow: hidden; }
-.view-toggle a, .view-toggle span { padding: 0.5rem 1rem; text-decoration: none; }
-.view-toggle .active { background: #e8f0fe; color: #1a73e8; font-weight: 600; }
 
 /* Week view */
 .week-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.75rem; }
@@ -180,26 +177,6 @@ legend { font-weight: 600; padding: 0 0.3rem; }
 .checkbox.checked .box::after { content: "✓"; font-weight: 700; }
 .checkbox:focus-visible .box { outline: 2px solid #1a73e8; outline-offset: 2px; }
 .checkbox.labeled { font-weight: 600; }
-
-/* Month view: a narrow week-number column, then 7 day columns. */
-.month-grid {
-  display: grid;
-  grid-template-columns: 2.5rem repeat(7, 1fr);
-  background: #fff;
-  border: 1px solid #dadce0;
-  border-radius: 8px;
-  overflow: hidden;
-}
-.month-day-name { padding: 0.5rem; font-size: 0.75rem; text-transform: uppercase; color: #5f6368; text-align: center; border-bottom: 1px solid #dadce0; }
-.month-week-number { display: flex; justify-content: center; padding-top: 0.6rem; font-size: 0.75rem; color: #5f6368; text-decoration: none; border-top: 1px solid #dadce0; }
-.month-week-number:hover { background: #f1f3f4; }
-.month-cell { min-height: 110px; padding: 0.3rem; border-top: 1px solid #dadce0; border-left: 1px solid #dadce0; }
-.month-cell .day-number { display: block; font-size: 0.85rem; width: 1.6rem; height: 1.6rem; line-height: 1.6rem; margin: 0 auto 0.3rem; }
-.month-cell.other-month { background: #f8f9fa; }
-.month-cell.other-month .day-number { color: #9aa0a6; }
-.run-card.compact { align-items: center; gap: 0.3rem; padding: 0.15rem 0.35rem; margin-bottom: 0.25rem; font-size: 0.75rem; }
-.run-card.compact .run-link { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.run-card.compact .checkbox .box { width: 0.8rem; height: 0.8rem; font-size: 0.6rem; line-height: 0.65rem; }
 
 /* Run detail */
 .run-title { display: flex; align-items: center; gap: 1rem; border-left: 6px solid var(--run-color); padding-left: 0.75rem; margin-bottom: 1rem; }

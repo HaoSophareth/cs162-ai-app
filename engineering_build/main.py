@@ -12,6 +12,8 @@ main_bp = Blueprint("main", __name__)
 
 DISTANCES = {"5k": "5k", "10k": "10k", "half": "Half marathon", "marathon": "Marathon"}
 BEST_TIME_FIELDS = {"best_5k": "5k", "best_10k": "10k", "best_half": "Half marathon", "best_full": "Marathon"}
+# Format hint shown in each time box. Either format is accepted in any box.
+BEST_TIME_FORMAT = {"best_5k": "mm:ss", "best_10k": "mm:ss", "best_half": "h:mm:ss", "best_full": "h:mm:ss"}
 # Which race distance each best-time column is for (the marathon column is best_full).
 BEST_TIME_DISTANCE = {"best_5k": "5k", "best_10k": "10k", "best_half": "half", "best_full": "marathon"}
 # The plan form is split into three steps, in this order. Each one names the form
@@ -56,7 +58,7 @@ def parse_number(text, kind=float):
 
 
 def parse_duration(text):
-    # "25:30" (mm:ss) or "1:45:00" (h:mm:ss) -> seconds. Raises ValueError if malformed.
+    # "mm:ss" or "h:mm:ss" -> seconds. Raises ValueError if malformed.
     parts = text.split(":")
     if len(parts) not in (2, 3) or not all(p.isdigit() for p in parts):
         raise ValueError
@@ -235,7 +237,7 @@ def parse_plan_form(form):
             try:
                 best_times[field] = parse_duration(form[field])
             except ValueError:
-                errors["experience"].append(f"{label} time should look like 25:30 or 1:45:00.")
+                errors["experience"].append(f"Write your {label} time as mm:ss or h:mm:ss.")
 
     values = {
         "has_run_before": has_run_before,
@@ -351,7 +353,8 @@ def plan_step(step):
 
     return render_template("setup.html", step=step, steps=PLAN_STEPS, last_step=LAST_STEP,
                            form=answers, plan=plan, days=DAYS, distances=DISTANCES,
-                           recommended=RECOMMENDED_WEEKS, best_time_fields=BEST_TIME_FIELDS)
+                           recommended=RECOMMENDED_WEEKS, best_time_fields=BEST_TIME_FIELDS,
+                           best_time_format=BEST_TIME_FORMAT)
 
 
 def finish_plan(plan, values):
@@ -463,50 +466,6 @@ def week():
         this_monday=this_monday,
         today=today,
         total_weeks=total_plan_weeks(plan) if plan else None,
-        month=today.strftime("%Y-%m"),
-        distances=DISTANCES,
-    )
-
-
-@main_bp.route("/month")
-@login_required
-def month():
-    plan = get_active_plan()
-    today = date.today()
-    first = parse_date((request.args.get("month") or "") + "-01") or today.replace(day=1)
-    next_first = (first + timedelta(days=32)).replace(day=1)
-    last = next_first - timedelta(days=1)
-
-    # The grid starts on the Monday before the 1st and ends on the Sunday after
-    # the last day, so every row is a full week like in Google Calendar.
-    grid_start = monday_of(first)
-    grid_end = monday_of(last) + timedelta(days=6)
-    runs = runs_between(plan, grid_start, grid_end)
-
-    rows = []
-    week_start = grid_start
-    while week_start <= grid_end:
-        days = [week_start + timedelta(days=i) for i in range(7)]
-        rows.append({
-            "week_start": week_start,
-            "week_number": plan_week_number(plan, week_start),
-            "days": [{"date": d, "runs": [r for r in runs if r.date == d]} for d in days],
-        })
-        week_start += timedelta(days=7)
-
-    # Totals only count runs inside this month, not the grey days from next to it.
-    month_runs = [r for r in runs if first <= r.date <= last]
-    return render_template(
-        "month.html",
-        plan=plan,
-        rows=rows,
-        first=first,
-        today=today,
-        planned_km=sum(r.distance_km for r in month_runs),
-        done_km=sum(r.distance_km for r in month_runs if r.done),
-        prev_month=(first - timedelta(days=1)).strftime("%Y-%m"),
-        next_month=next_first.strftime("%Y-%m"),
-        week_link=week_view_url(week_anchor(first)),
         distances=DISTANCES,
     )
 

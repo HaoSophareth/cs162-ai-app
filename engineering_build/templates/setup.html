@@ -30,12 +30,12 @@
 
         {# Hidden by CSS when "No" is picked; the server also ignores these for new runners. #}
         <div class="best-times">
-          <p class="muted">Recent times (optional), as mm:ss or h:mm:ss</p>
+          <p class="muted">Recent times (optional)</p>
           <div class="time-grid">
             {% for field, label in best_time_fields.items() %}
-              <label>{{ label }}
+              <label>{{ label }} <span class="muted">({{ best_time_format[field] }})</span>
                 <input type="text" name="{{ field }}" value="{{ form[field] }}"
-                       placeholder="{{ '25:30' if field == 'best_5k' else '1:45:00' }}">
+                       placeholder="{{ best_time_format[field] }}">
               </label>
             {% endfor %}
           </div>
