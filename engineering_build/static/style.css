@@ -119,6 +119,12 @@ input[type=text], input[type=password], input[type=date], input[type=number], se
 .week-list { display: flex; flex-direction: column; gap: 2rem; margin-top: 1rem; }
 /* A little space above a week when a #anchor jumps to it, so its header isn't flush with the edge. */
 .week-panel, .anchor-target { scroll-margin-top: 1rem; }
+/* --runs is the most runs on one day that week. The frame scrolls inside itself if text wraps more than expected. */
+.week-frame { display: block; width: 100%; border: 0; height: max(14rem, calc(7.5rem + var(--runs) * 3.75rem)); }
+.week-frame-body { padding: 2px; background: #f8f9fa; }
+@media (max-width: 700px) {
+  .week-frame { height: max(17rem, calc(10.5rem + var(--runs) * 4.75rem)); }
+}
 .anchor-target { display: block; }
 .week-header h2 { display: flex; align-items: center; gap: 0.5rem; margin: 0; font-size: 1.15rem; }
 .week-panel.this-week .week-grid { border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
@@ -147,8 +153,6 @@ input[type=text], input[type=password], input[type=date], input[type=number], se
   border-left: 4px solid var(--run-color);
   border-radius: 4px;
   background: var(--run-bg);
-  /* Leaves room above the card when a checkbox click brings you back to it. */
-  scroll-margin-top: 10rem;
 }
 .run-card:hover { filter: brightness(0.96); }
 .run-card form { margin: 0; }

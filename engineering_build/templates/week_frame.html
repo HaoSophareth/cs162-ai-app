@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Week</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="week-frame-body">
+  <div class="{% if week.start == this_monday %}this-week{% endif %}">
+    <div class="week-header">
+      <h2>
+        {{ week.start.strftime('%b') }} {{ week.start.day }} - {{ week.end.strftime('%b') }} {{ week.end.day }}
+        {% if week.number %}<span class="muted">· Week {{ week.number }}{% if week.number == total_weeks %} (race week){% endif %}</span>{% endif %}
+        {% if week.start == this_monday %}<span class="active-tag">This week</span>{% endif %}
+      </h2>
+      <div class="week-totals">
+        <span><strong>{{ '%g' % week.planned_km|round(1) }} km</strong> planned</span>
+        <span><strong>{{ '%g' % week.done_km|round(1) }} km</strong> done</span>
+      </div>
+    </div>
+
+    <div class="week-grid">
+      {% for column in week.columns %}
+        <div class="day-column {% if column.date == today %}today{% endif %}">
+          <div class="day-heading">
+            <span class="day-name">{{ column.date.strftime('%a') }}</span>
+            <span class="day-number">{{ column.date.day }}</span>
+          </div>
+          {% for run in column.runs %}
+            <div class="run-card run-{{ run.run_type }} {% if run.done %}done{% endif %}">
+              <form method="post">
+                <input type="hidden" name="run_id" value="{{ run.id }}">
+                <button type="submit" class="checkbox {% if run.done %}checked{% endif %}" role="checkbox"
+                        aria-checked="{{ 'true' if run.done else 'false' }}" aria-label="Done"
+                        title="{{ 'Mark as not done' if run.done else 'Mark as done' }}"><span class="box"></span></button>
+              </form>
+              {# _top opens the run in the whole window, not inside this frame. #}
+              <a class="run-link" target="_top" href="{{ url_for('main.run_detail', run_id=run.id) }}">
+                <span class="run-type">{{ run.run_type|capitalize }}</span>
+                <span class="run-distance">{{ '%g' % run.distance_km }} km</span>
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</body>
+</html>

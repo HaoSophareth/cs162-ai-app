@@ -23,45 +23,14 @@
    and the week to land on (normally this week) also gets id="current". #}
 <div class="week-list">
   {% for week in weeks %}
-    <section class="week-panel {% if week.start == this_monday %}this-week{% endif %}" id="{{ week.anchor }}">
+    <section class="week-panel" id="{{ week.anchor }}">
       {% if week.start == landing %}<span id="current" class="anchor-target"></span>{% endif %}
-      <div class="week-header">
-        <h2>
-          {{ week.start.strftime('%b') }} {{ week.start.day }} - {{ week.end.strftime('%b') }} {{ week.end.day }}
-          {% if week.number %}<span class="muted">· Week {{ week.number }}{% if week.number == total_weeks %} (race week){% endif %}</span>{% endif %}
-          {% if week.start == this_monday %}<span class="active-tag">This week</span>{% endif %}
-        </h2>
-        <div class="week-totals">
-          <span><strong>{{ '%g' % week.planned_km|round(1) }} km</strong> planned</span>
-          <span><strong>{{ '%g' % week.done_km|round(1) }} km</strong> done</span>
-        </div>
-      </div>
-
-      <div class="week-grid">
-        {% for column in week.columns %}
-          <div class="day-column {% if column.date == today %}today{% endif %}">
-            <div class="day-heading">
-              <span class="day-name">{{ column.date.strftime('%a') }}</span>
-              <span class="day-number">{{ column.date.day }}</span>
-            </div>
-            {% for run in column.runs %}
-              <div class="run-card run-{{ run.run_type }} {% if run.done %}done{% endif %}" id="run-{{ run.id }}">
-                {# The #run-id anchor brings you back to this card after ticking it. #}
-                <form method="post" action="{{ url_for('main.toggle_done', run_id=run.id) }}">
-                  <input type="hidden" name="next" value="{{ url_for('main.week', _anchor='run-' ~ run.id) }}">
-                  <button type="submit" class="checkbox {% if run.done %}checked{% endif %}" role="checkbox"
-                          aria-checked="{{ 'true' if run.done else 'false' }}" aria-label="Done"
-                          title="{{ 'Mark as not done' if run.done else 'Mark as done' }}"><span class="box"></span></button>
-                </form>
-                <a class="run-link" href="{{ url_for('main.run_detail', run_id=run.id) }}">
-                  <span class="run-type">{{ run.run_type|capitalize }}</span>
-                  <span class="run-distance">{{ '%g' % run.distance_km }} km</span>
-                </a>
-              </div>
-            {% endfor %}
-          </div>
-        {% endfor %}
-      </div>
+      {# Each week is its own small page. Ticking a run reloads only that week, so this
+         page never navigates and can't scroll. A frame can't size itself without
+         JavaScript, so its height comes from the most runs on one day. #}
+      <iframe class="week-frame" title="Week of {{ week.start.strftime('%b') }} {{ week.start.day }}" loading="lazy"
+              style="--runs: {{ week.columns|map(attribute='runs')|map('length')|max }}"
+              src="{{ url_for('main.week_frame', start=week.start.isoformat()) }}"></iframe>
     </section>
   {% endfor %}
 </div>

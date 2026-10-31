@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 from urllib.parse import urlencode
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, logout_user
 from sqlalchemy import func
 
@@ -547,6 +547,30 @@ def week():
         today=today,
         total_weeks=total_plan_weeks(plan),
         distances=DISTANCES,
+    )
+
+
+@main_bp.route("/week/<start>", methods=["GET", "POST"])
+@login_required
+def week_frame(start):
+    plan = get_active_plan()
+    week_start = parse_date(start)
+    if plan is None or week_start is None:
+        abort(404)
+    if request.method == "POST":
+        run = get_user_run(request.form.get("run_id", type=int))
+        run.done = not run.done
+        db.session.commit()
+        return redirect(url_for("main.week_frame", start=start))
+
+    week_start = monday_of(week_start)
+    week_end = week_start + timedelta(days=6)
+    return render_template(
+        "week_frame.html",
+        week=build_week(plan, week_start, runs_between(plan, week_start, week_end)),
+        today=date.today(),
+        this_monday=monday_of(date.today()),
+        total_weeks=total_plan_weeks(plan),
     )
 
 
