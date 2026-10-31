@@ -254,6 +254,7 @@ One row per prompt, filled in during each build.
 ## Manual edits (not by the build sessions)
 
 - Both `templates/base.html`: added "· Build 1 (feature-wise)" / "· Build 2 (engineering-wise)" next to the header title and in the tab title, so the demo video shows which build is which. Edited by hand from the planning session, not an AI build prompt.
+- Both `app.py`: gave each build its own session cookie name (SESSION_COOKIE_NAME), because running both on one computer logged the user out of the other. Edited by hand from the planning session, not an AI build prompt.
 
 ## Notes
 
@@ -296,7 +297,7 @@ If a new session picks this up: read this section, then the logs above. `process
 ### Local running
 - Build 1: http://127.0.0.1:5051 (`cd feature_build && venv/bin/flask --app app run --port 5051`). Data in instance/planner.db.
 - Build 2: http://localhost:5050 (`cd engineering_build && venv/bin/flask --app app run --port 5050`). Data in instance/running.db.
-- Use these exact addresses. On the same host the builds overwrite each other's login cookie and kick the user to login.
+- Each build now has its own login cookie name, so any address works.
 - Port 5001 is skills_marketplace, don't use it.
 - Test account phareth / 123456 on both. Login form is prefilled by local-only edits to feature_build/templates/auth.html and engineering_build/templates/login.html, hidden from git with skip-worktree. Git won't notice changes there, so check them before commits. Zip from git so the prefill is left out.
 
