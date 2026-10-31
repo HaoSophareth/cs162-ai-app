@@ -10,6 +10,7 @@ DISTANCES = {
     # key: (label, peak long run km, recommended minimum weeks)
     "5k": ("5K", 8, 8),
     "10k": ("10K", 14, 10),
+    "15k": ("15K", 12, 10),
     "half": ("Half marathon", 18, 12),
     "marathon": ("Marathon", 32, 16),
 }
@@ -20,9 +21,9 @@ DISTANCES = {
 START_KM_LIMITS = {"new": (8, 15), "experienced": (12, 70)}
 
 # Weekly volume stops growing here, so short races don't balloon.
-MAX_WEEKLY_KM = {"5k": 30, "10k": 45, "half": 55, "marathon": 70}
+MAX_WEEKLY_KM = {"5k": 30, "10k": 45, "15k": 50, "half": 55, "marathon": 70}
 
-RACE_KM = {"5k": 5, "10k": 10, "half": 21.1, "marathon": 42.2}
+RACE_KM = {"5k": 5, "10k": 10, "15k": 15, "half": 21.1, "marathon": 42.2}
 
 # Shortest runs the plan will schedule. Kept small so a brand-new runner's
 # first weeks stay close to their (low) starting volume.
@@ -89,7 +90,7 @@ def long_run_targets(weeks, distance, longest_km=None):
 
     Starts from the runner's longest recent run if given, otherwise 30% of
     week 1. Then it builds evenly each build week to the distance's peak
-    (8/14/18/32 km) by the last build week, even when that's more than 30% of
+    (8/14/12/18/32 km) by the last build week, even when that's more than 30% of
     the week. It never adds more than MAX_LONG_RUN_STEP_KM a week, so a plan
     with too few weeks stops short of the peak.
     """

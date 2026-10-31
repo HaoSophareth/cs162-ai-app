@@ -1,6 +1,6 @@
 # Race Training Planner
 
-A small web app that builds training plans for a 5K, 10K, half marathon or
+A small web app that builds training plans for a 5K, 10K, 15K, half marathon or
 marathon, and lets you track your runs in a calendar-style week view. It shows
 the whole plan, one week below the other from the first week to race week,
 and opens on the current week.
@@ -47,7 +47,7 @@ Weeks run Monday to Sunday. Week 1 is the week containing the start date.
 
 - **Weekly distance:** new runners aren't asked and start at the beginner level
   (8 km a week). People who have run before start from the km they run per
-  week now, at least 12 km. It grows 10% a week, capped at 30/45/55/70 km for 5K/10K/half/marathon.
+  week now, at least 12 km. It grows 10% a week, capped at 30/45/50/55/70 km for 5K/10K/15K/half/marathon.
 - **Recent race times** don't change the plan (it has no paces). They're used
   on the summary page: the strongest recent race (the one predicting the fastest
   goal time) gives your current pace per km, and the Riegel formula
@@ -59,7 +59,7 @@ Weeks run Monday to Sunday. Week 1 is the week containing the start date.
   8+ weeks); race week has a few short easy runs, none the day before the race.
 - **Long run** on the chosen day. It starts from your longest recent run if you
   gave one (otherwise 30% of the first week) and builds evenly to a peak of
-  8/14/18/32 km, even when that's more than 30% of the week. It adds at most
+  8/14/12/18/32 km (5K/10K/15K/half/marathon), even when that's more than 30% of the week. It adds at most
   3 km a week, so a plan with too few weeks stops short of the peak. Other runs
   aren't longer than the week's long run, so with few run days a week the week's
   total can come in under its target.
@@ -70,5 +70,5 @@ Weeks run Monday to Sunday. Week 1 is the week containing the start date.
 - **One quality run a week**, alternating tempo and intervals, placed away
   from the long run. The other days are easy runs.
 - **Race day** is its own run on the race date.
-- **Too-short plans** (fewer than 8/10/12/16 weeks) get a warning before saving
+- **Too-short plans** (fewer than 8/10/10/12/16 weeks) get a warning before saving
   but are still allowed.
