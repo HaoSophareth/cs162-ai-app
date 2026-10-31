@@ -1,6 +1,6 @@
 # Race Training Planner
 
-A small Flask app that generates a training plan for a 5k, 10k, half marathon or marathon and lets you track your runs in a calendar-style week view. Runs locally, no API keys.
+A small Flask app that generates a training plan for a 5K, 10K, 15K, half marathon or marathon and lets you track your runs in a calendar-style week view. Runs locally, no API keys.
 
 ## Setup
 

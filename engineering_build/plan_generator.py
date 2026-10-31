@@ -3,9 +3,9 @@ from datetime import timedelta
 
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-RACE_KM = {"5k": 5.0, "10k": 10.0, "half": 21.1, "marathon": 42.2}
-PEAK_LONG_RUN_KM = {"5k": 8, "10k": 14, "half": 18, "marathon": 32}
-RECOMMENDED_WEEKS = {"5k": 8, "10k": 10, "half": 12, "marathon": 18}
+RACE_KM = {"5k": 5.0, "10k": 10.0, "15k": 15.0, "half": 21.1, "marathon": 42.2}
+PEAK_LONG_RUN_KM = {"5k": 8, "10k": 14, "15k": 12, "half": 18, "marathon": 32}
+RECOMMENDED_WEEKS = {"5k": 8, "10k": 10, "15k": 10, "half": 12, "marathon": 18}
 # The plan starts from the runner's current weekly km, but never below this floor,
 # so someone starting from zero still gets real runs. The floor is lower for new runners.
 MIN_START_KM = {False: 8, True: 12}
@@ -142,8 +142,8 @@ def generate_plan(has_run_before, weekly_km, longest_run_km, run_days, long_run_
     return runs
 
 
-# Race estimates. best_times maps a race distance key ("5k", "10k", "half",
-# "marathon") to a recent finish time in seconds.
+# Race estimates. best_times maps the distance of a recent race ("5k", "10k", "half",
+# "marathon") to its finish time in seconds. The goal race can be any RACE_KM distance.
 RIEGEL_EXPONENT = 1.06
 TRAINING_GAIN = 0.03  # the fast end of the estimate assumes training makes you 3% faster
 

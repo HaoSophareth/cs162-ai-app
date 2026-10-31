@@ -11,7 +11,7 @@ from plan_generator import (DAYS, RECOMMENDED_WEEKS, current_paces, estimate_fin
 
 main_bp = Blueprint("main", __name__)
 
-DISTANCES = {"5k": "5K", "10k": "10K", "half": "Half marathon", "marathon": "Marathon"}
+DISTANCES = {"5k": "5K", "10k": "10K", "15k": "15K", "half": "Half marathon", "marathon": "Marathon"}
 BEST_TIME_FIELDS = {"best_5k": "5K", "best_10k": "10K", "best_half": "Half marathon", "best_full": "Marathon"}
 # Format hint shown in each time box. Either format is accepted in any box.
 BEST_TIME_FORMAT = {"best_5k": "mm:ss", "best_10k": "mm:ss", "best_half": "h:mm:ss", "best_full": "h:mm:ss"}
