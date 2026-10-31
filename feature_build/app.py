@@ -283,6 +283,30 @@ def logout():
 
 # ---------- Profile ----------
 
+def running_history(user_id):
+    """Read-only summary for the profile page, from all the user's plans and runs
+    (active or not). Returns None when there is nothing to show yet."""
+    db = get_db()
+    plan_rows = db.execute("SELECT * FROM plans WHERE user_id = ?", (user_id,)).fetchall()
+
+    # Compared as durations: as text, "1:00:00" would count as faster than "59:00".
+    best_times = []
+    for key, label in RACE_TIMES:
+        seconds = [estimates.parse_time(p[key]) for p in plan_rows if p[key]]
+        seconds = [s for s in seconds if s > 0]
+        best_times.append({"label": label, "time": estimates.format_time(min(seconds)) if seconds else None})
+
+    longest_entered = max((p["longest_km"] for p in plan_rows if p["longest_km"]), default=None)
+    done = db.execute(
+        "SELECT COUNT(*) AS count, COALESCE(SUM(distance_km), 0) AS total, MAX(distance_km) AS longest"
+        " FROM runs WHERE user_id = ? AND done", (user_id,),
+    ).fetchone()
+
+    if not (longest_entered or done["count"] or any(b["time"] for b in best_times)):
+        return None
+    return {"best_times": best_times, "longest_entered": longest_entered, "done": done}
+
+
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
@@ -315,9 +339,11 @@ def profile():
             return redirect(url_for("week"))
         for error in errors:
             flash(error, "error")
-        return render_template("profile.html", values=request.form, first_time=first_time)
+        return render_template("profile.html", values=request.form, first_time=first_time,
+                               history=running_history(user["id"]))
 
-    return render_template("profile.html", values=user, first_time=first_time)
+    return render_template("profile.html", values=user, first_time=first_time,
+                           history=running_history(user["id"]))
 
 
 def profile_required(view):
