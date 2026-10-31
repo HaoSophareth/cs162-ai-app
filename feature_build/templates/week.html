@@ -4,7 +4,7 @@
 {% block content %}
 {# Stays at the top of the screen while you scroll through the weeks. #}
 <div class="week-toolbar">
-  <a class="button" href="{{ url_for('week') }}">Today</a>
+  <a class="button" href="{{ url_for('week') }}">This week</a>
   <h1>{{ DISTANCES[active.distance][0] }} · {{ active.race_date|nice_date }}</h1>
 </div>
 
