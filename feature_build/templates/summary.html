@@ -81,6 +81,7 @@
         <button class="primary">Make active and go to calendar</button>
       </form>
     {% endif %}
+    <a class="button" href="{{ url_for('edit_plan', plan_id=p.id) }}">Edit plan</a>
   </div>
 </div>
 {% endblock %}
