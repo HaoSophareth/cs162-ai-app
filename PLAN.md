@@ -196,15 +196,26 @@ One row per prompt, filled in during each build.
 
 | # | Prompt (short) | Result | Accept / correct / re-prompt | Why |
 |---|---|---|---|---|
+| 1 | Full spec (feature-wise) | Flask + raw sqlite3 + Flask session login; 2 .py files (app.py 371 lines, plan.py 185); self-tested | TBD after review | |
+| 2 | "Page blinks on every click, make it smoother" | Added CSS view transitions + html background (no JS), 19s, 1,611 out tokens | Re-prompt (UX preference, not a bug) | Full page reload on every click because no JS |
 
 ### Build 2
 
 | # | Prompt (short) | Result | Accept / correct / re-prompt | Why |
 |---|---|---|---|---|
+| 1 | Full spec + how to build | Followed stack/files exactly; 5 .py files (440 lines); self-tested | TBD after review | |
+| 2 | Same + "without adding JavaScript" | Same CSS fix as Build 1, 17s, 1,310 out tokens | Re-prompt (UX preference, not a bug) | Same cause |
+
+## Manual edits (not by the build sessions)
+
+- Both `templates/base.html`: added "· Build 1 (feature-wise)" / "· Build 2 (engineering-wise)" next to the header title and in the tab title, so the demo video shows which build is which. Edited by hand from the planning session, not an AI build prompt.
 
 ## Times
 
+Both run as headless `claude -p` sessions (Opus 5.5) started from the planning session, at the same time. Tokens (from result JSON): Build 1 = 40 in, 67,702 cache write, 1,160,446 cache read, 31,708 out, 33 turns. Build 2 = 36 in, 61,449 cache write, 1,019,169 cache read, 26,687 out, 33 turns.
+
+
 | Build | Start | End | Session id |
 |---|---|---|---|
-| 1 | | | |
-| 2 | | | |
+| 1 | 15:08:11 UTC | 15:13:21 UTC (5m 10s) | af4e88fc-883e-4236-bb50-a4ab62fc1759 |
+| 2 | 15:08:11 UTC | 15:12:13 UTC (4m 2s) | 23c947a3-0d0d-4733-b9a1-52de17b00f2f |
