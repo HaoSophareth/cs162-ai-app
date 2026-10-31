@@ -1,0 +1,2 @@
+Ticking or unticking a run's done checkbox in the calendar shouldn't move the page. Right now it jumps so that run's week is at the top. The page should stay exactly where it was, with only that run and its week's done km changing. Don't change anything else.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.

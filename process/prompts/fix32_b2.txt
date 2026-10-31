@@ -1,0 +1,2 @@
+Ticking or unticking a run's done checkbox in the calendar shouldn't move the page. Right now it jumps so that run's week is at the top. The page should stay exactly where it was, with only that run and its week's done km changing. Don't change anything else.
+Test only on a copy of the project, not the real database in instance/. Don't change the login or signup templates. Same stack and file layout, no JavaScript. If staying exactly in place isn't possible without JavaScript, get as close as you can and tell me plainly what still moves.
