@@ -18,9 +18,9 @@
     <div class="nav-links">
       {% if current_user.is_authenticated %}
         {% if on_calendar %}
-          <span class="nav-current" aria-current="page">Calendar</span>
+          <span class="nav-current" aria-current="page">Home</span>
         {% else %}
-          <a href="{{ url_for('main.week', _anchor='current') }}">Calendar</a>
+          <a href="{{ url_for('main.week', _anchor='current') }}">Home</a>
         {% endif %}
         <a href="{{ url_for('main.plans') }}">Plans</a>
         <a href="{{ url_for('main.profile') }}">Profile</a>
