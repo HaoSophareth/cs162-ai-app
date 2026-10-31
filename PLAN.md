@@ -241,6 +241,7 @@ One row per prompt, filled in during each build.
 | 35 | training start date defaults to Today | Done; 121s, 11,823 out | Re-prompt (UX) | |
 | 36 | week checkbox marks all its runs done | Done; 93s, 9,619 out | Re-prompt (UX) | |
 | 37 | remove the back link from the plan summary | Done; 22s, 1,523 out | Re-prompt (UX) | |
+| 38 | archive checkbox on the plans page | Done; 112s, 11,030 out | Re-prompt (UX) | |
 
 ### Build 2
 
@@ -284,6 +285,7 @@ One row per prompt, filled in during each build.
 | 36 | week checkbox marks all its runs done | Done; 88s, 8,410 out | Re-prompt (UX) | |
 | 37 | Start date is one field showing Today | Done; 107s, 10,011 out | Re-prompt (UX, Build 2 only) | No-JS version took two clicks |
 | 38 | remove the back link from the plan summary | Done; 20s, 1,138 out | Re-prompt (UX) | |
+| 39 | archive checkbox on the plans page | Done; 88s, 9,418 out | Re-prompt (UX) | |
 
 ## Manual edits (not by the build sessions)
 
