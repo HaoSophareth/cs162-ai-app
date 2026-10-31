@@ -38,7 +38,13 @@
           <button class="danger">Delete</button>
         </form>
       </div>
-      <p class="muted export-hint">To import: Google Calendar &gt; Settings &gt; Import &amp; export, then choose the file.</p>
+      <div class="muted export-hint">
+        <ol>
+          <li>In Google Calendar, go to Settings, Add calendar, Create new calendar, and name it after the plan.</li>
+          <li>Go to Settings, Import &amp; export, choose the exported file, and pick that new calendar under "Add to calendar".</li>
+        </ol>
+        <p>To remove the plan later, delete that calendar.</p>
+      </div>
     </section>
   {% endfor %}
 </div>

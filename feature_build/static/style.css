@@ -319,3 +319,4 @@ button.danger:hover { background: #fce8e6; }
 .history h3 { font-size: 1rem; margin: 0.5rem 0; }
 .history p { margin: 0; }
 .plan-item .export-hint { flex-basis: 100%; font-size: 0.85rem; }
+.export-hint ol { margin: 0 0 0.25rem; padding-left: 1.25rem; }

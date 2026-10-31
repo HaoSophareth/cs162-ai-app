@@ -594,7 +594,8 @@ def export_plan(plan_id):
         events.append({"uid": f"run-{run['id']}@race-training-planner", "date": date.fromisoformat(run["date"]),
                        "title": title, "details": details})
     race = plan.DISTANCES[p["distance"]][0]
-    text = calendar_export.build_calendar(f"{race} training plan", events)
+    # The same name the plan has on the plans page.
+    text = calendar_export.build_calendar(f"{race} on {nice_date(p['race_date'])}", events)
     filename = f"{race.lower().replace(' ', '-')}-plan-{p['race_date']}.ics"
     return Response(text, mimetype="text/calendar",
                     headers={"Content-Disposition": f'attachment; filename="{filename}"'})
