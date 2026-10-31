@@ -4,7 +4,7 @@ from datetime import timedelta
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 RACE_KM = {"5k": 5.0, "10k": 10.0, "15k": 15.0, "half": 21.1, "marathon": 42.2}
-PEAK_LONG_RUN_KM = {"5k": 8, "10k": 14, "15k": 12, "half": 18, "marathon": 32}
+PEAK_LONG_RUN_KM = {"5k": 8, "10k": 14, "15k": 16, "half": 18, "marathon": 32}
 RECOMMENDED_WEEKS = {"5k": 8, "10k": 10, "15k": 10, "half": 12, "marathon": 18}
 # The plan starts from the runner's current weekly km, but never below this floor,
 # so someone starting from zero still gets real runs. The floor is lower for new runners.
