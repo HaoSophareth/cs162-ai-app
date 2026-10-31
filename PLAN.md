@@ -397,3 +397,14 @@ Build 1 prompt 21 (balanced weeks) ended with "You've hit your 5-hour limit, res
 
 ### Status at freeze
 Features frozen and tracking stopped at the user's request. NOT in git: the four transcripts (paths above, needed for the zip), databases in instance/, and the prefilled login edits.
+
+### Chat transcripts: not on GitHub, on purpose
+- Claude Code's permission check blocked copying them from its private session folder into this repo and pushing them. It treats that as moving private session data to an outside service. It isn't a git or GitHub problem.
+- The assignment only needs them in the zip. Add them when making the zip.
+- They record whole sessions, including file contents and command output. The planning ones also hold saved memory notes and pasted screenshots. Read them for private or unrelated content before submitting; this hasn't been done yet.
+- Where they are:
+  - Build 1: ~/.claude/projects/-Users-phareth-cs162-ai-app-feature-build/af4e88fc-883e-4236-bb50-a4ab62fc1759.jsonl
+  - Build 2: ~/.claude/projects/-Users-phareth-cs162-ai-app-engineering-build/23c947a3-0d0d-4733-b9a1-52de17b00f2f.jsonl
+  - Planning 1: ~/.claude/projects/-Users-phareth/fe516120-6d09-4de9-9340-e5dc9592ac73.jsonl
+  - Planning 2: ~/.claude/projects/-Users-phareth/b9a683cc-477c-490d-b231-9af0804c8368.jsonl
+- To push them anyway, the user copies them into process/transcripts/ and runs git add, commit and push (or asks, though the check may block it again).
