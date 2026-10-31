@@ -1,0 +1,2 @@
+Add a checkbox next to each week's heading in the calendar that marks all of that week's runs done in one click. It shows ticked when all the week's runs are done. Unticking it marks them all not done. The page must not move, and the runs and the week's done km update. Single-run checkboxes keep working, and a week with no runs has no checkbox. Don't change anything else.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.

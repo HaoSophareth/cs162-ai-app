@@ -239,6 +239,7 @@ One row per prompt, filled in during each build.
 | 33 | Top bar marks the current page | Done; 47s, 3,940 out | Re-prompt (UX) | No signal of current page; smooth page changes work in Chrome, not Arc |
 | 34 | training start date can't be in the past | Done; 68s, 6,617 out | Re-prompt (UX) | |
 | 35 | training start date defaults to Today | Done; 121s, 11,823 out | Re-prompt (UX) | |
+| 36 | week checkbox marks all its runs done | Done; 93s, 9,619 out | Re-prompt (UX) | |
 
 ### Build 2
 
@@ -279,6 +280,7 @@ One row per prompt, filled in during each build.
 | 33 | Top bar marks the current page | Done; 52s, 4,884 out | Re-prompt (UX) | No signal of current page; smooth page changes work in Chrome, not Arc |
 | 34 | training start date can't be in the past | Done; 59s, 5,410 out | Re-prompt (UX) | |
 | 35 | training start date defaults to Today | Done; 88s, 8,197 out | Re-prompt (UX) | |
+| 36 | week checkbox marks all its runs done | Done; 88s, 8,410 out | Re-prompt (UX) | |
 
 ## Manual edits (not by the build sessions)
 
