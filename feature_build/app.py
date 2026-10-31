@@ -250,11 +250,14 @@ def signup():
         elif db.execute("SELECT 1 FROM users WHERE username = ?", (username,)).fetchone():
             flash("That username is taken.", "error")
         else:
-            cursor = db.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)",
-                                (username, generate_password_hash(password)))
+            # A random id, because SQLite can reuse a deleted account's number: a
+            # browser still logged in to that account would become the new user.
+            user_id = secrets.randbits(53)
+            db.execute("INSERT INTO users (id, username, password_hash) VALUES (?, ?, ?)",
+                       (user_id, username, generate_password_hash(password)))
             db.commit()
             session.clear()
-            session["user_id"] = cursor.lastrowid
+            session["user_id"] = user_id
             return redirect(url_for("profile"))
     return render_template("auth.html", mode="signup")
 
@@ -276,6 +279,23 @@ def login():
 @app.route("/logout", methods=["POST"])
 def logout():
     session.clear()
+    return redirect(url_for("login"))
+
+
+@app.route("/account/delete", methods=["POST"])
+@login_required
+def delete_account():
+    user = get_user()
+    if request.form.get("username", "").strip() != user["username"]:
+        flash("That username doesn't match. Nothing was deleted.", "error")
+        return redirect(url_for("profile"))
+    db = get_db()
+    db.execute("DELETE FROM runs WHERE user_id = ?", (user["id"],))
+    db.execute("DELETE FROM plans WHERE user_id = ?", (user["id"],))
+    db.execute("DELETE FROM users WHERE id = ?", (user["id"],))
+    db.commit()  # one commit, so an account is never half-deleted
+    session.clear()
+    flash("Your account was deleted.", "success")
     return redirect(url_for("login"))
 
 

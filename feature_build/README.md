@@ -11,6 +11,7 @@ create a plan in three short steps: goal, experience, schedule. A summary
 page follows (also reachable from the Plans page) with the plan at a glance
 and, if you gave a recent race time, an estimated finish time. You can have several plans; the calendar shows the active
 one, and the Plans page lets you switch, edit (regenerates) or delete them.
+The Profile page shows your running history and lets you delete your account.
 
 Runs entirely on your computer: Python + Flask, data in a local SQLite file.
 No API keys, no paid services.
