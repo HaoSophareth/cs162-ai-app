@@ -5,7 +5,23 @@
 .run-intervals { --run-color: #8e24aa; --run-bg: #f3e5f5; }
 .run-race      { --run-color: #e53935; --run-bg: #ffebee; }
 
+/* Cross-fade between pages instead of a blank flash. Pure CSS, ignored by browsers without support. */
+@view-transition { navigation: auto; }
+
+/* The top bar is the same on every page, so keep it still while the content fades. */
+.topbar { view-transition-name: topbar; }
+
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 150ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+}
+
 * { box-sizing: border-box; }
+
+/* Matching the page background here stops a white flash before the body paints. */
+html { background: #f8f9fa; }
 
 body {
   margin: 0;
