@@ -25,10 +25,10 @@ cd feature_build
 python3 -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-python app.py
+flask --app app run --port 5051
 ```
 
-Then open http://127.0.0.1:5000 and sign up.
+Then open http://127.0.0.1:5051 and sign up.
 
 Data (accounts, plans, runs) is stored in `instance/planner.db`, which stays
 there between restarts. Delete the `instance/` folder to start fresh.
