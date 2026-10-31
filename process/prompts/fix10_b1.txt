@@ -1,0 +1,6 @@
+Form design changes for the profile and create/edit plan steps:
+1) Only show the recent race time fields after the user picks 'Yes' to 'Have you run before?'. Before they pick anything, and when they pick 'No', hide them.
+2) If they pick 'No' (new runner), don't ask for current weekly distance either; treat it as a new runner starting from the beginner level.
+3) Remove the bordered box around question groups (Have you run before, Days you can run, Sex, etc.). Keep the forms simple: just a label above each field, and use plain fill-in fields, dropdowns, or single/multi select options.
+4) Make all forms consistent: same field width, padding, spacing between questions, and label style on every step and on the profile page.
+Don't run tests against the real database in instance/, use a copy. Don't change the login or signup templates.

@@ -1,0 +1,2 @@
+Remove the username from the top bar.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.

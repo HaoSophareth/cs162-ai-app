@@ -1,0 +1,2 @@
+Add an 'Export plan' button for each plan on the plans page. It downloads the plan's runs as a calendar file (.ics) that can be imported into Google Calendar, with each run as an all-day event on its date, using the same title and details as that run's Add to Google Calendar link. Put one short line next to or under the button saying how to import it into Google Calendar. No Google account connection and no extra libraries. A user can only export their own plans.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.

@@ -1,0 +1,2 @@
+On the plan summary, the link that says to add a recent race time goes to the Goal step of editing the plan. It should open the Experience step, where race times are entered, and the rest of the edit flow should still work from there.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.

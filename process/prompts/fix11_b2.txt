@@ -1,0 +1,6 @@
+A few changes:
+1) Rename the 'Today' button on the week view to 'This week', since it jumps to the current week.
+2) In the experience step, when the user picks 'Yes' to having run before, also ask for their longest recent run in km (optional). Use it as the starting point for the plan's long run when given. New runners don't get this question.
+3) The long run should always build up steadily to the peak for the race distance (about 8 km for 5k, 14 km for 10k, 18 km for half, 32 km for marathon), even if that makes it more than 30% of that week's distance. If the plan has too few weeks to build up safely, it can stop short of the peak.
+Show the longest recent run wherever the plan's other experience answers are shown.
+Test only on a copy of the project, not the real database in instance/. Don't change the login or signup templates. Same stack and file layout, no JavaScript. Keep the plan rules in plan_generator.py. If the new column means the existing database has to be recreated, tell me; don't delete it yourself.

@@ -1,0 +1,1 @@
+When the user has no active plan yet, don't show an empty week calendar. Show a simple page that prompts them to create a plan, with the Create plan button, instead. Don't run tests against the real database in instance/, use a copy. Don't change the login or signup templates.

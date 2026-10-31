@@ -1,0 +1,35 @@
+Build me a web app for planning and tracking training for a running race. It must run on my own computer with no API keys or paid services, keep data saved between restarts, and the code should be simple and readable.
+
+Accounts
+- Users sign up and log in with a username and password, and can log out.
+- Each user only sees their own plan and runs.
+
+Setup (one page right after signup, can be edited later)
+- Experience: new runner, or have run before.
+- Which days of the week they can run (at least 3), and which of those is the long-run day.
+- Goal: race distance (5k, 10k, half marathon, marathon), training start date, race date.
+- If the time between start and race is shorter than recommended for that distance, show a warning but still allow it.
+- Saving the setup generates the plan. Editing the setup later regenerates the plan, with a warning that changes made to runs will be replaced.
+
+How the plan is generated (fixed rules, no AI)
+- Weekly distance starts low (lower for new runners) and grows about 10% a week.
+- Every 4th week is a lighter cutback week.
+- The last 1-2 weeks taper down before the race.
+- The long run is on the chosen day, about 30% of the week's distance, building up to a peak of about 8 km (5k), 14 km (10k), 18 km (half) or 32 km (marathon).
+- One tempo or interval run a week, alternating; the other days are easy runs.
+- Race day is in the plan as its own run.
+
+Dashboard (a week view, like Google Calendar's week view)
+- 7 day columns, no times of day.
+- A header like "Oct 19 - Oct 25 · Week 4" (week number of the plan).
+- Previous week, next week and a Today button.
+- The week's planned km and completed km.
+- Run cards color-coded by type: easy, long, tempo, intervals, race.
+
+Runs
+- Click a run to see its details: type, distance, date, a short description of the workout, and notes.
+- Edit a run: change its date (this is how you move it to another day), distance and notes.
+- Mark a run as done or not done.
+- Each run has an "Add to Google Calendar" link (just a link, no connecting a Google account).
+
+Keep it to these features. Distances in km only.

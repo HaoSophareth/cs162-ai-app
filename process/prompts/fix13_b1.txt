@@ -1,0 +1,2 @@
+The 'Days you can run' options wrap onto two lines, with Sun alone on the second. Keep all seven days on one line.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.

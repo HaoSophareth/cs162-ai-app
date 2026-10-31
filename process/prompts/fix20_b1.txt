@@ -1,0 +1,2 @@
+Make the weeks more balanced: the long run should never be more than about half of that week's total distance. When the long run grows past that, raise that week's total so the other runs stay useful, even if the week grows more than 10%. Cutback and taper weeks still drop as they do now. Everything else about the plan stays the same.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.

@@ -1,0 +1,18 @@
+I want to change how onboarding and plans work:
+
+Onboarding
+- Right after signup, ask only quick profile questions: sex (male/female), age, weight (kg) and height (cm). The profile can be edited later. It's profile info only and doesn't change the plan.
+- After that, the user lands on the calendar, which is empty until they create a plan, with a clear "Create plan" button.
+
+Creating a plan (questions asked only here, every time a plan is created)
+- Have you run before? If yes, optional recent times for 5k, 10k, half marathon and marathon.
+- Current weekly distance in km. Use this (with experience) as the plan's starting point.
+- Which days of the week they can run (at least 3) and which of those is the long-run day.
+- Race distance (5k, 10k, half marathon, marathon), training start date and race date.
+- Keep the existing warning for a too-short plan and the existing plan rules.
+
+Multiple plans
+- A user can have several plans, but only one is active at a time. The calendar shows the active plan.
+- A plans page lists their plans, where they can switch the active plan, edit a plan (regenerates it, with the existing warning) or delete it.
+
+Keep everything else working as it is. Don't run tests against the real database in instance/, use a copy. It is fine if existing accounts and plans have to be created again after this change; tell me if so.

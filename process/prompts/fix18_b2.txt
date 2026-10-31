@@ -1,0 +1,2 @@
+Remove the username from the top bar.
+Test only on a copy of the project, not the real database in instance/. Don't change the login or signup templates. Same stack and file layout, no JavaScript.

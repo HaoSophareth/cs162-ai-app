@@ -1,0 +1,2 @@
+In the profile and create/edit plan forms, mark every mandatory field's label with a * and leave optional fields unmarked. Remove the word 'optional' from all labels and hints. Fields that are only mandatory after a certain answer, like weekly distance after Yes, also get the *.
+Test only on a copy of the project, not the real database in instance/. Don't change the login or signup templates. Same stack and file layout, no JavaScript.

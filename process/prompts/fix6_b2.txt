@@ -1,0 +1,19 @@
+A few changes:
+
+1. Change the order of the create/edit plan steps to: 1) Goal, 2) Experience, 3) Schedule (days and long-run day).
+
+2. After the last step, show a plan summary page before going to the calendar, with a button to go to the calendar. The summary shows:
+- the goal: race distance, race date, number of weeks, start date
+- the schedule: run days and long-run day
+- the plan at a glance: starting weekly km, peak weekly km, longest run, total km
+- their speed now, if they entered any recent race times: the pace per km of their best time
+- an estimated finish time for the race as a range, plus the target pace per km for race day. Base it on their recent race times using the Riegel formula (time2 = time1 x (distance2 / distance1)^1.06). The slow end of the range is what they could run today, the fast end assumes training makes them a few percent faster.
+- if they gave no race times, say an estimate needs a recent race time, instead of guessing.
+The summary should also be reachable later from the plans page.
+
+Don't run tests against the real database in instance/, use a copy.
+
+How to build it
+- Same stack and file layout, no JavaScript.
+- Put the estimate and pace calculations as plain functions in plan_generator.py (no Flask or database code); the summary numbers come from the plan's saved runs.
+- New route in main.py and a new template summary.html.

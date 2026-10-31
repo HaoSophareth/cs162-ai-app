@@ -223,6 +223,8 @@ One row per prompt, filled in during each build.
 | 17 | Calendar and title do nothing on calendar; fixed top bar | Done; 134s, 8,113 out | Re-prompt (UX) | |
 | 18 | Running history on profile | Done; 77s, 7,652 out | Re-prompt (new scope) | |
 | 19 | Remove username from top bar | Done; 30s, 1,841 out | Re-prompt (UX) | |
+| 20 | Export plan button (.ics file) | Done; download checked with curl, Google import not tried yet; 96s, 10,449 out | Re-prompt (new scope) | One link can only add one event |
+| 21 | Long run at most about half the week; weekly total may rise past 10% | RUNNING when this was written; check results/build1_fix20.json | Re-prompt (plan logic) | |
 
 ### Build 2
 
@@ -246,6 +248,8 @@ One row per prompt, filled in during each build.
 | 16 | Calendar and title do nothing on calendar; fixed top bar | Done; 85s, 7,807 out | Re-prompt (UX) | |
 | 17 | Running history on profile | Done; 100s, 8,890 out | Re-prompt (new scope) | |
 | 18 | Remove username from top bar | Done; 23s, 993 out | Re-prompt (UX) | |
+| 19 | Export plan button (.ics file) | Done; download checked with curl, Google import not tried yet; 78s, 8,371 out | Re-prompt (new scope) | One link can only add one event |
+| 20 | Long run at most about half the week; weekly total may rise past 10% | RUNNING when this was written; check results/build2_fix20.json | Re-prompt (plan logic) | |
 
 ## Manual edits (not by the build sessions)
 
@@ -273,3 +277,71 @@ Both run as headless `claude -p` sessions (Opus 5.5) started from the planning s
 |---|---|---|---|
 | 1 | 15:08:11 UTC | 15:13:21 UTC (5m 10s) | af4e88fc-883e-4236-bb50-a4ab62fc1759 |
 | 2 | 15:08:11 UTC | 15:12:13 UTC (4m 2s) | 23c947a3-0d0d-4733-b9a1-52de17b00f2f |
+
+## Handoff: where things stand (saved 31 Oct, about 13:35 local)
+
+If a new session picks this up: read this section, then the logs above. `process/prompts/` has every prompt sent after the first build's planning, `process/results/` has every result JSON (tokens, time, the build's own summary).
+
+### How we run builds
+- Each build is one resumed headless session, run from its own folder:
+  `claude -p "$(cat prompt)" --resume <session_id> --model claude-opus-5-5 --output-format json --permission-mode acceptEdits --allowedTools "Bash Read Write Edit Glob Grep" > result.json 2>&1 < /dev/null`
+- Build 1 session af4e88fc-883e-4236-bb50-a4ab62fc1759, Build 2 session 23c947a3-0d0d-4733-b9a1-52de17b00f2f. Never start fresh sessions for them.
+- One change per prompt. One commit per build per prompt, Build 1 and Build 2 separately. Commit message style: `Build 1: ... (re-prompt)`. Commits under the user's name only, no Co-Authored-By. Push to HaoSophareth/cs162-ai-app main (HaoSophareth account only, never shao@better.com).
+- Same feature wording for both builds. Build 2 also gets the how: same stack and file layout, no JavaScript. Fix something in only one build if only that build has the problem.
+- Build 1 prompts stay plain: "my data", "login pages", not `instance/` or "templates".
+- Each prompt ends with: test on a copy, don't touch the login and signup pages.
+- A build can only take one prompt at a time. Queue the rest.
+- After every prompt: read the result, commit, restart both servers, then push and log. Servers crash on pages whose template changed before Python restarted (seen once on Plans), so restart when a prompt finishes.
+
+### Local running
+- Build 1: http://127.0.0.1:5051 (`cd feature_build && venv/bin/flask --app app run --port 5051`). Data in instance/planner.db.
+- Build 2: http://localhost:5050 (`cd engineering_build && venv/bin/flask --app app run --port 5050`). Data in instance/running.db.
+- Use these exact addresses. On the same host the builds overwrite each other's login cookie and kick the user to login.
+- Port 5001 is skills_marketplace, don't use it.
+- Test account phareth / 123456 on both. Login form is prefilled by local-only edits to feature_build/templates/auth.html and engineering_build/templates/login.html, hidden from git with skip-worktree. Git won't notice changes there, so check them before commits. Zip from git so the prefill is left out.
+
+### In progress when saved
+- Prompt fix20 (long run at most about half the week, weekly total may rise past 10%) was sent to both builds and may be running or finished. Its uncommitted changes must be read, committed per build, servers restarted, pushed, and log rows 21 (Build 1) and 20 (Build 2) filled in. If a result file in the old scratchpad is newer, copy it into process/results/: /private/tmp/claude-501/-Users-phareth/fe516120-6d09-4de9-9340-e5dc9592ac73/scratchpad
+
+### User decisions so far
+- Blink: better now, accepted.
+- Long run consistent in both: builds to the race peak, may exceed 30%. Weekly total may rise so the long run stays about half the week or less.
+- Longest recent run: added, optional, after Yes.
+- 🏃 emoji removed from Build 1. Username removed from top bars.
+- Top-left title and Calendar both go to the calendar; do nothing when already there; top bar always fixed.
+- Race times: Yes/No first, then ticked distances, then only those boxes.
+- `*` on mandatory fields, never the word optional.
+- Running history on profile is read-only, derived from existing data. No time recorded per run.
+- Export plan downloads .ics. Per-run Add to Google Calendar link stays (user first asked to remove it, then changed their mind).
+- User rejected cheap models: builds use Claude Opus 5.5.
+
+### Token and time totals so far (from process/results, fix20 not included if unfinished)
+| | Build 1 | Build 2 |
+|---|---|---|
+| Result files | 20 | 19 |
+| Time in sessions | 41 min | 31 min |
+| Input | 366 | 294 |
+| Cache write | 892,508 | 743,851 |
+| Cache read | 47,125,959 | 33,881,820 |
+| Output | 238,492 | 202,797 |
+
+Result usage may repeat across resumes only if a result reports cumulative numbers: check against the transcripts before quoting in the report. Transcripts: ~/.claude/projects/-Users-phareth-cs162-ai-app-feature-build/af4e88fc-*.jsonl, ~/.claude/projects/-Users-phareth-cs162-ai-app-engineering-build/23c947a3-*.jsonl. Planning transcripts: ~/.claude/projects/-Users-phareth/fe516120-6d09-4de9-9340-e5dc9592ac73.jsonl and b9a683cc-477c-490d-b231-9af0804c8368.jsonl.
+
+### Report points
+- Build 1: Flask, raw sqlite3, Flask sessions, split on its own into app.py, plan.py, estimates.py, calendar_export.py; still long app.py. Structure from AI defaults. Build 2: app.py, models.py, auth.py, main.py, plan_generator.py from the prompt.
+- Build 1 first build: 5m 10s, 31,708 out. Build 2: 4m 2s, 26,687 out. Later rounds: Build 2 is often faster and cheaper but NOT every time (forms 15,667 vs 15,894; stacked weeks 12,819 vs 12,894).
+- Bugs/incidents: Build 2 deleted the real database once while testing (no backup). Build 1 only: summary link went to the wrong step, top-bar duplicate. Build 2's new column broke the old database, fixed by hand with ALTER TABLE, backup kept; Build 1 migrates itself on start.
+- Both builds independently added a rule capping other runs at the long run, and found the 30% rule contradicts the peak distances.
+- JavaScript: Build 1 added calendar.js then removed it; still has a 3-line script in templates/week.html. Build 2 has none. Check against class-covered rule.
+- Be honest in the report: some Build 1 re-prompts used engineering words (`instance/`, templates, Riegel formula); Build 2 saved a memory note Build 1 could see; prompts were refined with AI, not written alone; git history before de089b9..4b12ce3 rebuilt from transcripts; title labels are manual edits.
+- Free tier: user hit the 5-hour usage limit at 1:02 PM and one Build 1 result shows about $7.44, so tip 4 applies: list alternatives (Claude.ai free, Copilot via Education Pack, DeepSeek, Gemini free) and why not used.
+
+### Remaining work
+1. Finish fix20 as above. Try a real .ics import in Google Calendar.
+2. Fill "TBD after review" in row 1 of both logs.
+3. Decide on Build 1's week.html script. Name a public plan source in both READMEs (spec asked for one, e.g. Hal Higdon, never prompted). Confirm no test files in build folders.
+4. Separation-of-concerns map, one line per file, for both.
+5. Heuristics counts with numbers for the report.
+6. PDF report, 800 words max: cost/time, separation of concerns, conclusion on which is better to build, maintain, run; model details.
+7. Zip from git: both apps with only needed files, run instructions, all transcripts (both builds + planning sessions). Remove DEV ONLY login prefill by zipping from git.
+8. Demo video of both apps showing all features, using the two addresses above.
