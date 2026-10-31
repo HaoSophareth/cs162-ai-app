@@ -228,6 +228,7 @@ One row per prompt, filled in during each build.
 | 22 | Finish the cut-off balanced-weeks prompt | No code change, edits were complete; all 9 of its test suites pass on copies; 49s, 4,978 out | Re-prompt (usage limit) | Limit error did not block this retry |
 | 23 | Import hint: own Google calendar, file named after plan | Done; 30s, 2,788 out | Re-prompt (UX) | Google adds imported events to the chosen calendar; a separate calendar gives tick and whole-plan removal |
 | 24 | Remove Export plan completely; keep per-run link | Done; 47s, 4,291 out | Re-prompt (scope cut) | One link can't add a whole plan; import steps too complicated for the user |
+| 25 | Add 15K race distance | Done; 66s, 6,692 out | Re-prompt (new scope) | Custom distance rejected as too many special cases |
 
 ### Build 2
 
@@ -255,6 +256,7 @@ One row per prompt, filled in during each build.
 | 20 | Long run at most about half the week; weekly total may rise past 10% | Done; 79s, 7,241 out | Re-prompt (plan logic) | |
 | 21 | Import hint: own Google calendar, file named after plan | Done; 41s, 3,835 out | Re-prompt (UX) | Google adds imported events to the chosen calendar; a separate calendar gives tick and whole-plan removal |
 | 22 | Remove Export plan completely; keep per-run link | Done; 36s, 3,721 out | Re-prompt (scope cut) | One link can't add a whole plan; import steps too complicated for the user |
+| 23 | Add 15K race distance | Done; 69s, 7,338 out | Re-prompt (new scope) | Custom distance rejected as too many special cases |
 
 ## Manual edits (not by the build sessions)
 
@@ -318,7 +320,7 @@ If a new session picks this up: read this section, then the logs above. `process
 - Export plan was built, then removed at the user's request (import too complicated, one link can't add a whole plan). Per-run Add to Google Calendar link stays.
 - User rejected cheap models: builds use Claude Opus 5.5.
 
-Totals table below stops before Build 1 prompt 23 and Build 2 prompt 21; recompute from process/results before the report. Latest reported cost: Build 1 $23.04, Build 2 $18.18.
+Totals table below stops before Build 1 prompt 23 and Build 2 prompt 21; recompute from process/results before the report. Latest reported cost: Build 1 $23.78, Build 2 $18.97.
 
 ### Token and time totals (verified)
 Summed from every result file and matched exactly against each build's transcript (per API call, deduplicated by message id). Result usage is per prompt, not cumulative. `total_cost_usd` IS cumulative per session, so the final value is the total; the earlier $7.44 figure was only a midpoint.

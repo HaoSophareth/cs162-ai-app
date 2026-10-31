@@ -1,0 +1,2 @@
+Add 15K as a race distance, between 10K and half marathon. Its peak long run is about 12 km, and its recommended training length is 10 weeks or more. Update anywhere the distances are listed so 15K appears as a goal, including the recommended lengths hint, the plan rules, the race day run, the finish estimate and the summary. Don't add 15K to the recent race times question or the running history, those stay as they are.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.
