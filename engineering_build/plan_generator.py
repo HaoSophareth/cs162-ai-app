@@ -9,6 +9,7 @@ RECOMMENDED_WEEKS = {"5k": 8, "10k": 10, "half": 12, "marathon": 18}
 # The plan starts from the runner's current weekly km, but never below this floor,
 # so someone starting from zero still gets real runs. The floor is lower for new runners.
 MIN_START_KM = {False: 8, True: 12}
+MAX_LONG_RUN_STEP_KM = 3
 
 DESCRIPTIONS = {
     "easy": "Easy run at a relaxed pace where you could hold a conversation.",
@@ -28,11 +29,15 @@ def monday_of(day):
     return day - timedelta(days=day.weekday())
 
 
+def taper_factors(num_weeks):
+    return [0.7, 0.4] if num_weeks >= 6 else [0.4]
+
+
 def weekly_volumes(has_run_before, weekly_km, race_distance, num_weeks):
     # Peak week is the one where the long run (30%) reaches its peak distance.
     peak = PEAK_LONG_RUN_KM[race_distance] / 0.3
     base = min(max(weekly_km, MIN_START_KM[has_run_before]), peak)
-    taper = [0.7, 0.4] if num_weeks >= 6 else [0.4]
+    taper = taper_factors(num_weeks)
     build_weeks = max(num_weeks - len(taper), 0)
 
     volumes = []
@@ -49,13 +54,39 @@ def weekly_volumes(has_run_before, weekly_km, race_distance, num_weeks):
     return volumes
 
 
-def generate_plan(has_run_before, weekly_km, run_days, long_run_day, race_distance, start_date, race_date):
+def long_run_distances(start_km, race_distance, num_weeks):
+    # The long run has its own progression: even steps from its start up to the peak,
+    # so it can pass 30% of the week. Each step is capped to keep the build safe, which
+    # is why a plan with too few weeks stops short of the peak.
+    peak = PEAK_LONG_RUN_KM[race_distance]
+    max_step = min(MAX_LONG_RUN_STEP_KM, peak / 5)
+    level = min(start_km, peak)
+    taper = taper_factors(num_weeks)
+    build_weeks = max(num_weeks - len(taper), 0)
+    steps_left = sum(1 for week in range(2, build_weeks + 1) if week % 4 != 0)
+
+    distances = []
+    for week in range(1, build_weeks + 1):
+        if week % 4 == 0:
+            distances.append(level * 0.75)
+        else:
+            if week > 1:
+                level += min((peak - level) / steps_left, max_step)
+                steps_left -= 1
+            distances.append(level)
+    for factor in taper:
+        distances.append(level * factor)
+    return distances
+
+
+def generate_plan(has_run_before, weekly_km, longest_run_km, run_days, long_run_day, race_distance, start_date, race_date):
     """Return a list of runs (dicts with date, run_type, distance_km, description)."""
     first_monday = monday_of(start_date)
     num_weeks = (monday_of(race_date) - first_monday).days // 7 + 1
     volumes = weekly_volumes(has_run_before, weekly_km, race_distance, num_weeks)
     # With only 3 days, 30% would make the long run shorter than the other runs.
     long_share = 0.4 if len(run_days) == 3 else 0.3
+    long_runs = long_run_distances(longest_run_km or volumes[0] * long_share, race_distance, num_weeks)
 
     runs = []
     for week_index, volume in enumerate(volumes):
@@ -72,10 +103,14 @@ def generate_plan(has_run_before, weekly_km, run_days, long_run_day, race_distan
         long_day = None
         if not is_race_week:
             long_day = next((d for d in days if DAYS[d.weekday()] == long_run_day), None)
-        long_km = min(volume * long_share, PEAK_LONG_RUN_KM[race_distance]) if long_day else 0
+        long_km = long_runs[week_index]
         other_days = [d for d in days if d != long_day]
         # Split by the full week's day count so a partial first week is just shorter.
-        other_km = (volume - long_km) / (len(run_days) - 1)
+        if is_race_week:
+            other_km = volume / (len(run_days) - 1)
+        else:
+            # The other runs share what the long run leaves, and never out-distance it.
+            other_km = min(max(volume - long_km, 0) / (len(run_days) - 1), long_km)
 
         for day in days:
             if day == long_day:

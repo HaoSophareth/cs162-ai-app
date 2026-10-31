@@ -48,6 +48,13 @@
     </div>
   </section>
 
+  {% if plan.longest_run_km %}
+    <section>
+      <h2>Your longest recent run</h2>
+      <p>{{ '%g' % plan.longest_run_km }} km, used as the starting point for the long run.</p>
+    </section>
+  {% endif %}
+
   {% if best_times %}
     <section>
       <h2>Your speed now</h2>

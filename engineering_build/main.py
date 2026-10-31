@@ -20,7 +20,7 @@ BEST_TIME_DISTANCE = {"best_5k": "5k", "best_10k": "10k", "best_half": "half", "
 # fields it asks for; errors are grouped by "key", so reordering only happens here.
 PLAN_STEPS = {
     1: {"key": "goal", "title": "Goal", "fields": ["race_distance", "start_date", "race_date"]},
-    2: {"key": "experience", "title": "Experience", "fields": ["has_run_before", *BEST_TIME_FIELDS, "weekly_km"]},
+    2: {"key": "experience", "title": "Experience", "fields": ["has_run_before", *BEST_TIME_FIELDS, "weekly_km", "longest_run_km"]},
     3: {"key": "schedule", "title": "Schedule", "fields": ["run_days", "long_run_day"]},
 }
 LAST_STEP = len(PLAN_STEPS)
@@ -212,6 +212,9 @@ def parse_plan_form(form):
     # New runners aren't asked for a weekly distance: 0 makes the plan start at the
     # beginner floor in plan_generator. Anything typed before switching to "No" is ignored.
     weekly_km = parse_number(form["weekly_km"]) if has_run_before else 0
+    # Optional, and only asked of people who have run before.
+    longest_text = form["longest_run_km"] if has_run_before else ""
+    longest_run_km = parse_number(longest_text) if longest_text else None
     run_days = [d for d in DAYS if d in form["run_days"]]
     start_date = parse_date(form["start_date"])
     race_date = parse_date(form["race_date"])
@@ -220,6 +223,8 @@ def parse_plan_form(form):
         errors["experience"].append("Say whether you have run before.")
     if has_run_before and (weekly_km is None or not 0 <= weekly_km <= 300):
         errors["experience"].append("Current weekly distance must be a number of km between 0 and 300.")
+    if longest_text and (longest_run_km is None or not 0 < longest_run_km <= 100):
+        errors["experience"].append("Longest recent run must be a number of km above 0 and up to 100.")
     if len(run_days) < 3:
         errors["schedule"].append("Pick at least 3 days you can run.")
     if form["long_run_day"] not in run_days:
@@ -244,6 +249,7 @@ def parse_plan_form(form):
     values = {
         "has_run_before": has_run_before,
         "weekly_km": round(weekly_km, 1) if weekly_km is not None else None,
+        "longest_run_km": round(longest_run_km, 1) if longest_run_km is not None else None,
         "run_days": ",".join(run_days),
         "long_run_day": form["long_run_day"],
         "race_distance": form["race_distance"],
@@ -258,6 +264,7 @@ def form_from_plan(plan):
     form = {
         "has_run_before": "yes" if plan.has_run_before else "no",
         "weekly_km": f"{plan.weekly_km:g}" if plan.has_run_before else "",
+        "longest_run_km": "" if plan.longest_run_km is None else f"{plan.longest_run_km:g}",
         "run_days": plan.run_days.split(","),
         "long_run_day": plan.long_run_day,
         "race_distance": plan.race_distance,
@@ -272,7 +279,7 @@ def form_from_plan(plan):
 def save_plan(plan, values):
     for key, value in values.items():
         setattr(plan, key, value)
-    new_runs = generate_plan(plan.has_run_before, plan.weekly_km, plan.run_days.split(","),
+    new_runs = generate_plan(plan.has_run_before, plan.weekly_km, plan.longest_run_km, plan.run_days.split(","),
                              plan.long_run_day, plan.race_distance, plan.start_date, plan.race_date)
     # Replacing the list deletes the old runs (delete-orphan), and the single
     # commit means we never end up with a plan that has half its runs.
@@ -301,7 +308,7 @@ def plans():
 @main_bp.route("/plans/new")
 @login_required
 def new_plan():
-    answers = {"has_run_before": "", "weekly_km": "", "run_days": [], "long_run_day": "Sun",
+    answers = {"has_run_before": "", "weekly_km": "", "longest_run_km": "", "run_days": [], "long_run_day": "Sun",
                "race_distance": "5k", "start_date": date.today().isoformat(), "race_date": "",
                **{field: "" for field in BEST_TIME_FIELDS}}
     session["plan_form"] = {"plan_id": None, "answers": answers}

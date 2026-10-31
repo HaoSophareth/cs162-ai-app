@@ -26,6 +26,7 @@ class Plan(db.Model):
     is_active = db.Column(db.Boolean, nullable=False, default=False)
     has_run_before = db.Column(db.Boolean, nullable=False)
     weekly_km = db.Column(db.Float, nullable=False)
+    longest_run_km = db.Column(db.Float)  # optional; None for new runners
     run_days = db.Column(db.String(30), nullable=False)
     long_run_day = db.Column(db.String(3), nullable=False)
     race_distance = db.Column(db.String(20), nullable=False)
