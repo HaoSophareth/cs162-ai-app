@@ -5,10 +5,10 @@
   <h1>{{ "A few quick questions" if first_time else "Your profile" }}</h1>
   <p class="muted">This is just your profile. It doesn't change your training plans.</p>
 
-  {# Same form layout as the plan steps (see "Forms" in style.css). #}
+  {# Same form layout as the plan steps (see "Forms" in style.css). A * marks a mandatory field. #}
   <form method="post" class="form">
     <div class="field" role="group" aria-labelledby="sex-label">
-      <span class="field-label" id="sex-label">Sex</span>
+      <span class="field-label" id="sex-label">Sex *</span>
       <div class="options">
         <label class="option"><input type="radio" name="sex" value="male" required
           {% if values.sex == "male" %}checked{% endif %}> Male</label>
@@ -18,18 +18,18 @@
     </div>
 
     <div class="field">
-      <label class="field-label" for="age">Age</label>
+      <label class="field-label" for="age">Age *</label>
       <input id="age" type="number" name="age" min="10" max="100" step="1" required value="{{ values.age or '' }}">
     </div>
 
     <div class="field">
-      <label class="field-label" for="weight_kg">Weight (kg)</label>
+      <label class="field-label" for="weight_kg">Weight (kg) *</label>
       <input id="weight_kg" type="number" name="weight_kg" min="25" max="250" step="0.1" required
              value="{{ '%g'|format(values.weight_kg|float) if values.weight_kg else '' }}">
     </div>
 
     <div class="field">
-      <label class="field-label" for="height_cm">Height (cm)</label>
+      <label class="field-label" for="height_cm">Height (cm) *</label>
       <input id="height_cm" type="number" name="height_cm" min="100" max="250" step="0.1" required
              value="{{ '%g'|format(values.height_cm|float) if values.height_cm else '' }}">
     </div>
