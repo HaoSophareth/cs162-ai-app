@@ -24,7 +24,6 @@
         {% endif %}
         <a href="{{ url_for('main.plans') }}">Plans</a>
         <a href="{{ url_for('main.profile') }}">Profile</a>
-        <span class="muted">{{ current_user.username }}</span>
         <a href="{{ url_for('auth.logout') }}">Log out</a>
       {% else %}
         <a href="{{ url_for('auth.login') }}">Log in</a>
