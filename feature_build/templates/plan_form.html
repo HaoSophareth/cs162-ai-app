@@ -133,7 +133,7 @@
     {% if step == 3 %}
       <div class="field" role="group" aria-labelledby="days-label">
         <span class="field-label" id="days-label">Days you can run (at least 3)</span>
-        <div class="options">
+        <div class="options days">
           {% for name in WEEKDAYS %}
             <label class="option"><input type="checkbox" name="run_days" value="{{ loop.index0 }}"
               {% if loop.index0 in values.run_days %}checked{% endif %}> {{ name }}</label>
