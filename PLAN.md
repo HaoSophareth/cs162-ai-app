@@ -225,6 +225,7 @@ One row per prompt, filled in during each build.
 | 19 | Remove username from top bar | Done; 30s, 1,841 out | Re-prompt (UX) | |
 | 20 | Export plan button (.ics file) | Done; download checked with curl, Google import not tried yet; 96s, 10,449 out | Re-prompt (new scope) | One link can only add one event |
 | 21 | Long run at most about half the week; weekly total may rise past 10% | Session hit the usage limit before finishing or reporting (result is_error); code and README edits were complete and committed; I checked plan shares by running it myself; the build's own tests not confirmed; 79s, 7,605 out | Re-prompt (plan logic) | |
+| 22 | Finish the cut-off balanced-weeks prompt | No code change, edits were complete; all 9 of its test suites pass on copies; 49s, 4,978 out | Re-prompt (usage limit) | Limit error did not block this retry |
 
 ### Build 2
 
@@ -318,20 +319,20 @@ Summed from every result file and matched exactly against each build's transcrip
 
 | | Build 1 | Build 2 | Build 2 vs Build 1 |
 |---|---|---|---|
-| Prompts | 21 | 20 | -1 |
-| API calls | 184 | 150 | -18% |
-| AI working time | 42m 19s | 33m 10s | -22% |
-| Input | 368 | 300 | |
-| Cache write | 898,585 | 761,500 | -15% |
-| Cache read | 47,661,463 | 35,273,133 | -26% |
-| Output | 246,097 | 210,038 | -15% |
-| All tokens | 48,806,513 | 36,244,971 | -26% |
-| Reported cost | $21.64 | $17.35 | -20% |
+| Prompts | 22 | 20 | -2 |
+| API calls | 187 (from result turns) | 150 | |
+| AI working time | 43m 07s | 33m 10s | -23% |
+| Input | 374 | 300 | |
+| Cache write | 921,300 | 761,500 | -17% |
+| Cache read | 49,322,958 | 35,273,133 | -28% |
+| Output | 251,075 | 210,038 | -16% |
+| All tokens | 50,495,707 | 36,244,971 | -28% |
+| Reported cost | $22.26 | $17.35 | -22% |
 
-Both builds together: 85,051,484 tokens, $38.99 equivalent. Excludes the planning sessions. Start to finish on the clock was 83 minutes for both, because they ran side by side while the user tested. The 21st prompt is the Build 1-only link bug, so most of the gap is not that one prompt.
+Both builds together: 86,740,678 tokens, $39.61 equivalent. Excludes the planning sessions. Start to finish on the clock was 83 minutes for both, because they ran side by side while the user tested. Build 1's two extra prompts are the link bug and the retry after the usage limit, so most of the gap is not those two prompts.
 
 ### Interrupted prompt
-Build 1 prompt 21 (balanced weeks) ended with "You've hit your 5-hour limit, resets 6pm". Commit b3ca87b holds its edits. Resuming costs one more Build 1 prompt, so only do it if something is wrong.
+Build 1 prompt 21 (balanced weeks) ended with "You've hit your 5-hour limit, resets 6pm". Commit b3ca87b holds its edits. Retried as prompt 22 at about 14:02, which was not blocked; it confirmed the edits were complete and tests pass.
 
 ### Report points
 - Build 1: Flask, raw sqlite3, Flask sessions, split on its own into app.py, plan.py, estimates.py, calendar_export.py; still long app.py. Structure from AI defaults. Build 2: app.py, models.py, auth.py, main.py, plan_generator.py from the prompt.
@@ -340,7 +341,7 @@ Build 1 prompt 21 (balanced weeks) ended with "You've hit your 5-hour limit, res
 - Both builds independently added a rule capping other runs at the long run, and found the 30% rule contradicts the peak distances.
 - JavaScript: Build 1 added calendar.js then removed it; still has a 3-line script in templates/week.html. Build 2 has none. Check against class-covered rule.
 - Be honest in the report: some Build 1 re-prompts used engineering words (`instance/`, templates, Riegel formula); Build 2 saved a memory note Build 1 could see; prompts were refined with AI, not written alone; git history before de089b9..4b12ce3 rebuilt from transcripts; title labels are manual edits.
-- Free tier: user hit the 5-hour usage limit at 1:02 PM and the builds report $38.99 in total ($21.64 and $17.35), so tip 4 applies: list alternatives (Claude.ai free, Copilot via Education Pack, DeepSeek, Gemini free) and why not used.
+- Free tier: user hit the 5-hour usage limit at 1:02 PM and the builds report $39.61 in total ($22.26 and $17.35), so tip 4 applies: list alternatives (Claude.ai free, Copilot via Education Pack, DeepSeek, Gemini free) and why not used.
 
 ### Remaining work
 1. Try a real .ics import in Google Calendar.
