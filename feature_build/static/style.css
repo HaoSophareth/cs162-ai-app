@@ -12,6 +12,18 @@
 
 * { box-sizing: border-box; }
 
+/* Smooth page changes: the browser cross-fades from the old page to the new
+   one instead of flashing blank. Browsers without support just load normally. */
+@view-transition { navigation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 150ms; }
+
+/* The top bar is identical on every page, so keep it still while the rest fades. */
+.topbar { view-transition-name: topbar; }
+
+/* Same colour on <html> as <body>, so there's no white flash between pages. */
+html { background: #f8f9fa; }
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
