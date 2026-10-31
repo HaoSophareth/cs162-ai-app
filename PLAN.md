@@ -294,6 +294,9 @@ One row per prompt, filled in during each build.
 
 ## Notes
 
+- Build 2 database: added `is_archived` by hand with ALTER TABLE after the archive prompt (backup first). Build 1 adds its column itself on start. Second time this differed.
+- A finish-time and race-day archive prompt was sent and stopped by the user while the builds were still reading code (no changes, no log row; empty or partial turn in both transcripts). Only the simple Archive checkbox was built.
+
 - The first week-checkbox send was stopped by the user at once. It left an empty turn in both transcripts and is not counted as a prompt or log row. A stopped send of the one-field date fix left one more empty turn in Build 2 only. So transcripts show 38 and 40 user turns, against 37 and 38 counted prompts. Row 35 is the Today default, row 36 the week checkbox.
 
 - Blink: smooth page changes work in Chrome, not Arc (user confirmed). Use Chrome for the demo.
