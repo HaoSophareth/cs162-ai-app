@@ -12,6 +12,8 @@ def create_app():
     app = Flask(__name__)
     # Fine for running locally; set SECRET_KEY in the environment for anything else.
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+    # Own cookie name, so another app on this computer can't overwrite this login.
+    app.config["SESSION_COOKIE_NAME"] = "race_training_session"
     # A relative SQLite path is stored in Flask's instance/ folder.
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///running.db"
 
