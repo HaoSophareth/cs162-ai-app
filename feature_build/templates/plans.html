@@ -11,7 +11,11 @@
     <p class="muted">You don't have any plans yet.</p>
   {% endif %}
 
+  {# Archived plans come last, so the heading goes before the first of them. #}
   {% for p in plans %}
+    {% if p.archived and (loop.first or not loop.previtem.archived) %}
+      <h2 class="archived-heading">Archived</h2>
+    {% endif %}
     <section class="plan-item {% if p.id == active_id %}active{% endif %}">
       <div>
         <h2>
@@ -25,16 +29,23 @@
         </p>
       </div>
       <div class="actions">
-        {% if p.id != active_id %}
+        {% if p.id != active_id and not p.archived %}
           <form method="post" action="{{ url_for('activate_plan', plan_id=p.id) }}" class="inline">
             <button class="primary">Make active</button>
           </form>
         {% endif %}
         <a class="button" href="{{ url_for('plan_summary', plan_id=p.id) }}">Summary</a>
-        <a class="button" href="{{ url_for('edit_plan', plan_id=p.id) }}">Edit</a>
+        {% if not p.archived %}
+          <a class="button" href="{{ url_for('edit_plan', plan_id=p.id) }}">Edit</a>
+        {% endif %}
         <form method="post" action="{{ url_for('delete_plan', plan_id=p.id) }}" class="inline"
               onsubmit="return confirm('Delete this plan and all its runs? This cannot be undone.')">
           <button class="danger">Delete</button>
+        </form>
+        <form method="post" action="{{ url_for('archive_plan', plan_id=p.id) }}" class="inline">
+          <label class="archive-box"><input type="checkbox" name="archived" value="1" autocomplete="off"
+            {% if p.archived %}checked{% endif %} onchange="this.form.submit()"> Archive</label>
+          <noscript><button>Save</button></noscript>
         </form>
       </div>
     </section>

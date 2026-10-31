@@ -288,7 +288,7 @@ a.button.primary:hover { background: #1765cc; }
 }
 .plan-item h2 { font-size: 1.05rem; margin: 0 0 0.3rem; }
 .plan-item p { margin: 0; }
-.plan-item .actions { margin-top: 0; }
+.plan-item .actions { margin-top: 0; align-items: center; }
 .active-badge {
   display: inline-block;
   margin-left: 0.4rem;
@@ -333,3 +333,9 @@ button.danger:hover { background: #fce8e6; }
 /* ---------- Delete account (profile page) ---------- */
 .delete-account h2 { font-size: 1.4rem; margin: 0 0 0.75rem; }
 .delete-account .flash { margin: 0; }
+
+/* ---------- Archived plans ---------- */
+.archived-heading { font-size: 1.15rem; margin: 1.5rem 0 0.5rem; }
+.archive-box { display: inline-flex; align-items: center; gap: 0.4rem; margin: 0 0 0 0.25rem; cursor: pointer; }
+.archive-box input { width: auto; margin: 0; }
+.archived-badge { background: #f1f3f4; color: var(--muted); }

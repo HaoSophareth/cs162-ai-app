@@ -5,6 +5,7 @@
   <h1>
     Your {{ DISTANCES[p.distance][0] }} plan
     {% if is_active %}<span class="active-badge">Active</span>{% endif %}
+    {% if p.archived %}<span class="active-badge archived-badge">Archived</span>{% endif %}
   </h1>
 
   <section>
@@ -67,11 +68,15 @@
       </p>
     {% else %}
       <p>An estimated finish time needs a recent race time.
-        <a href="{{ url_for('edit_plan', plan_id=p.id, step=2) }}">Add one by editing the plan</a>
-        (this regenerates it).</p>
+        {% if not p.archived %}
+          <a href="{{ url_for('edit_plan', plan_id=p.id, step=2) }}">Add one by editing the plan</a>
+          (this regenerates it).
+        {% endif %}</p>
     {% endif %}
   </section>
 
+  {# An archived plan can't be made active or edited until Archive is unticked on the Plans page. #}
+  {% if not p.archived %}
   <div class="actions">
     {% if is_active %}
       <a class="button primary" href="{{ url_for('week') }}">Go to calendar</a>
@@ -82,5 +87,6 @@
     {% endif %}
     <a class="button" href="{{ url_for('edit_plan', plan_id=p.id) }}">Edit plan</a>
   </div>
+  {% endif %}
 </div>
 {% endblock %}

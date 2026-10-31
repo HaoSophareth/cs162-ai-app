@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS plans (
     time_marathon TEXT,
     weekly_km REAL NOT NULL,     -- weekly distance when the plan was made
     longest_km REAL,             -- optional longest recent run
+    archived INTEGER NOT NULL DEFAULT 0,
     run_days TEXT NOT NULL,      -- weekday numbers, e.g. "0,2,5" (Monday = 0)
     long_day INTEGER NOT NULL,
     distance TEXT NOT NULL,
@@ -109,6 +110,8 @@ def init_db():
         columns = [row[1] for row in db.execute("PRAGMA table_info(plans)")]
         if "longest_km" not in columns:
             db.execute("ALTER TABLE plans ADD COLUMN longest_km REAL")
+        if "archived" not in columns:
+            db.execute("ALTER TABLE plans ADD COLUMN archived INTEGER NOT NULL DEFAULT 0")
 
 
 def get_user():
@@ -588,7 +591,7 @@ def plans():
         "SELECT plans.*,"
         " (SELECT COUNT(*) FROM runs WHERE runs.plan_id = plans.id) AS run_count,"
         " (SELECT COUNT(*) FROM runs WHERE runs.plan_id = plans.id AND done) AS done_count"
-        " FROM plans WHERE user_id = ? ORDER BY race_date",
+        " FROM plans WHERE user_id = ? ORDER BY archived, race_date",
         (session["user_id"],),
     ).fetchall()
     weeks = {p["id"]: plan.count_weeks(date.fromisoformat(p["start_date"]), date.fromisoformat(p["race_date"]))
@@ -648,18 +651,40 @@ def plan_summary(plan_id):
 @app.route("/plans/<int:plan_id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_plan(plan_id):
-    return handle_plan_form(get_own_plan(plan_id))
+    p = get_own_plan(plan_id)
+    # Editing regenerates the runs, and an archived plan keeps its runs unchanged.
+    if p["archived"]:
+        flash("Untick Archive to edit this plan.", "error")
+        return redirect(url_for("plan_summary", plan_id=plan_id))
+    return handle_plan_form(p)
 
 
 @app.route("/plans/<int:plan_id>/activate", methods=["POST"])
 @login_required
 def activate_plan(plan_id):
-    get_own_plan(plan_id)
+    if get_own_plan(plan_id)["archived"]:
+        flash("Untick Archive to make this plan active.", "error")
+        return redirect(url_for("plans"))
     db = get_db()
     db.execute("UPDATE users SET active_plan_id = ? WHERE id = ?", (plan_id, session["user_id"]))
     db.commit()
     flash("Active plan switched.", "success")
     return redirect(url_for("week"))
+
+
+@app.route("/plans/<int:plan_id>/archive", methods=["POST"])
+@login_required
+def archive_plan(plan_id):
+    get_own_plan(plan_id)
+    # The form sends the checkbox's new state; an unticked box sends nothing.
+    archived = 1 if request.form.get("archived") else 0
+    db = get_db()
+    db.execute("UPDATE plans SET archived = ? WHERE id = ? AND user_id = ?", (archived, plan_id, session["user_id"]))
+    if archived:
+        db.execute("UPDATE users SET active_plan_id = NULL WHERE id = ? AND active_plan_id = ?",
+                   (session["user_id"], plan_id))
+    db.commit()
+    return redirect(url_for("plans"))
 
 
 @app.route("/plans/<int:plan_id>/delete", methods=["POST"])
@@ -672,7 +697,7 @@ def delete_plan(plan_id):
     db.execute("DELETE FROM plans WHERE id = ? AND user_id = ?", (plan_id, user_id))
     if get_user()["active_plan_id"] == plan_id:
         # The active plan is gone: fall back to the most recently created one, if any.
-        latest = db.execute("SELECT id FROM plans WHERE user_id = ? ORDER BY id DESC LIMIT 1",
+        latest = db.execute("SELECT id FROM plans WHERE user_id = ? AND NOT archived ORDER BY id DESC LIMIT 1",
                             (user_id,)).fetchone()
         db.execute("UPDATE users SET active_plan_id = ? WHERE id = ?",
                    (latest["id"] if latest else None, user_id))
