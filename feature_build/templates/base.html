@@ -13,11 +13,15 @@
       {# The title and Home both lead to the calendar. On the calendar itself
          they have no href, so clicking them does nothing at all. #}
       {% set on_calendar = request.endpoint == "week" %}
+      {# Which top bar item the current page belongs to. #}
+      {% set section = {"week": "home", "run_detail": "home", "edit_run": "home",
+                        "plans": "plans", "new_plan": "plans", "edit_plan": "plans", "plan_summary": "plans",
+                        "profile": "profile"}.get(request.endpoint) %}
       <a class="brand" {% if not on_calendar %}href="{{ url_for('week') }}"{% endif %}>Race Training Planner <small>· Build 1 (feature-wise)</small></a>
       <nav>
-        <a {% if not on_calendar %}href="{{ url_for('week') }}"{% else %}class="current"{% endif %}>Home</a>
-        <a href="{{ url_for('plans') }}">Plans</a>
-        <a href="{{ url_for('profile') }}">Profile</a>
+        <a {% if not on_calendar %}href="{{ url_for('week') }}"{% endif %} {% if section == "home" %}class="current" aria-current="page"{% endif %}>Home</a>
+        <a href="{{ url_for('plans') }}" {% if section == "plans" %}class="current" aria-current="page"{% endif %}>Plans</a>
+        <a href="{{ url_for('profile') }}" {% if section == "profile" %}class="current" aria-current="page"{% endif %}>Profile</a>
         <form method="post" action="{{ url_for('logout') }}" class="inline">
           <button class="link-button">Log out</button>
         </form>

@@ -64,8 +64,8 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem; }
   text-overflow: ellipsis;
 }
 .topbar nav { display: flex; flex-shrink: 0; gap: 1rem; align-items: center; }
-/* Home while on the calendar: looks like the other links but isn't clickable. */
-.topbar nav a.current { text-decoration: underline; }
+/* The section you are on: bold and dark, no underline. */
+.topbar nav a.current { font-weight: 600; color: var(--text); text-decoration: none; }
 /* Narrow screens: title on one row, links on the next, still a fixed height. */
 @media (max-width: 700px) {
   :root { --topbar-height: 4.75rem; }
