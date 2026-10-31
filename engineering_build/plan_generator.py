@@ -33,27 +33,6 @@ def taper_factors(num_weeks):
     return [0.7, 0.4] if num_weeks >= 6 else [0.4]
 
 
-def weekly_volumes(has_run_before, weekly_km, race_distance, num_weeks):
-    # Peak week is the one where the long run (30%) reaches its peak distance.
-    peak = PEAK_LONG_RUN_KM[race_distance] / 0.3
-    base = min(max(weekly_km, MIN_START_KM[has_run_before]), peak)
-    taper = taper_factors(num_weeks)
-    build_weeks = max(num_weeks - len(taper), 0)
-
-    volumes = []
-    for week in range(1, build_weeks + 1):
-        if week % 4 == 0:
-            # Cutback week: lighter, and the next week grows from the level before it.
-            volumes.append(base * 0.75)
-        else:
-            if week > 1:
-                base = min(base * 1.1, peak)
-            volumes.append(base)
-    for factor in taper:
-        volumes.append(base * factor)
-    return volumes
-
-
 def long_run_distances(start_km, race_distance, num_weeks):
     # The long run has its own progression: even steps from its start up to the peak,
     # so it can pass 30% of the week. Each step is capped to keep the build safe, which
@@ -79,14 +58,42 @@ def long_run_distances(start_km, race_distance, num_weeks):
     return distances
 
 
+def weekly_volumes(start_km, long_runs, race_distance, num_weeks):
+    # Grows about 10% a week, up to the week where a 30% long run would reach its peak.
+    peak = PEAK_LONG_RUN_KM[race_distance] / 0.3
+    base = min(start_km, peak)
+    taper = taper_factors(num_weeks)
+    build_weeks = max(num_weeks - len(taper), 0)
+
+    volumes = []
+    week_km = base
+    for week in range(1, build_weeks + 1):
+        if week % 4 == 0:
+            # Cutback week: lighter, and the next week grows from the level before it.
+            volumes.append(week_km * 0.75)
+        else:
+            if week > 1:
+                base = min(base * 1.1, peak)
+            # Keeps the long run to about half the week, even past 10% growth. Only this
+            # week is raised: base keeps its own 10% curve, or the raises would compound.
+            # Cutback and taper weeks scale the long run by the same factor, so they stay balanced.
+            week_km = max(base, long_runs[week - 1] * 2)
+            volumes.append(week_km)
+    for factor in taper:
+        volumes.append(week_km * factor)
+    return volumes
+
+
 def generate_plan(has_run_before, weekly_km, longest_run_km, run_days, long_run_day, race_distance, start_date, race_date):
     """Return a list of runs (dicts with date, run_type, distance_km, description)."""
     first_monday = monday_of(start_date)
     num_weeks = (monday_of(race_date) - first_monday).days // 7 + 1
-    volumes = weekly_volumes(has_run_before, weekly_km, race_distance, num_weeks)
+    start_km = max(weekly_km, MIN_START_KM[has_run_before])
     # With only 3 days, 30% would make the long run shorter than the other runs.
     long_share = 0.4 if len(run_days) == 3 else 0.3
-    long_runs = long_run_distances(longest_run_km or volumes[0] * long_share, race_distance, num_weeks)
+    first_long_km = min(start_km, PEAK_LONG_RUN_KM[race_distance] / 0.3) * long_share
+    long_runs = long_run_distances(longest_run_km or first_long_km, race_distance, num_weeks)
+    volumes = weekly_volumes(start_km, long_runs, race_distance, num_weeks)
 
     runs = []
     for week_index, volume in enumerate(volumes):
