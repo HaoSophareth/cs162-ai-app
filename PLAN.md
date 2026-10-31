@@ -236,6 +236,7 @@ One row per prompt, filled in during each build.
 | 30 | Race times: separate boxes with the colon shown | Done; 168s, 18,027 out | Re-prompt (UX) | Auto-inserting a colon while typing needs JavaScript |
 | 31 | Edit plan button on the summary page | Done; 32s, 2,136 out | Re-prompt (UX) | User wants to change the plan straight after seeing its stats |
 | 32 | Ticking done keeps the page in place | Done; 79s, 6,925 out | Re-prompt (UX) | Page jumped to the ticked week |
+| 33 | Top bar marks the current page | Done; 47s, 3,940 out | Re-prompt (UX) | No signal of current page; smooth page changes work in Chrome, not Arc |
 
 ### Build 2
 
@@ -273,6 +274,7 @@ One row per prompt, filled in during each build.
 | 30 | Race times: separate boxes with the colon shown | Done; 144s, 14,699 out | Re-prompt (UX) | Auto-inserting a colon while typing needs JavaScript |
 | 31 | Edit plan button on the summary page | Done; 37s, 3,124 out | Re-prompt (UX) | User wants to change the plan straight after seeing its stats |
 | 32 | Ticking done keeps the page in place | Done; 209s, 16,658 out | Re-prompt (UX) | Page jumped to the ticked week |
+| 33 | Top bar marks the current page | Done; 52s, 4,884 out | Re-prompt (UX) | No signal of current page; smooth page changes work in Chrome, not Arc |
 
 ## Manual edits (not by the build sessions)
 

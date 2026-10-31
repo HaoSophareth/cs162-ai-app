@@ -1,0 +1,2 @@
+Make it clear in the top bar which page I'm on. The current page's item (Home, Plans or Profile) is bold and dark with no underline, and the others stay as normal links. Pages that belong to a section count as that section: plan summary and create/edit plan count as Plans, and a run's detail and edit pages count as Home. Don't change anything else.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.
