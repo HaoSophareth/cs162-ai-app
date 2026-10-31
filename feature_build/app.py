@@ -361,11 +361,23 @@ def read_plan_form(form):
     if values["experience"] not in plan.START_KM_LIMITS:
         errors[EXPERIENCE].append("Tell us whether you have run before.")
 
-    # Race times only make sense for people who have run before; blank is fine.
+    # Race times are asked of people who have run before, in two parts: do you
+    # have one, then which distances. Only a ticked distance after a "yes" counts,
+    # so anything typed and then hidden is ignored.
+    ran_before = values["experience"] == "experienced"
+    values["has_times"] = form.get("has_times") if ran_before else None
+    ticked = form.getlist("time_distances") if values["has_times"] == "yes" else []
+    values["time_distances"] = ticked
+    if ran_before and values["has_times"] not in ("yes", "no"):
+        errors[EXPERIENCE].append("Tell us whether you have a recent race time.")
+    if values["has_times"] == "yes" and not any(key in ticked for key, _ in RACE_TIMES):
+        errors[EXPERIENCE].append("Tick the distance of your race time, or answer No.")
     for key, label in RACE_TIMES:
         text = form.get(key, "").strip()
-        values[key] = text if values["experience"] == "experienced" and text else None
-        if values[key] and not TIME_PATTERN.match(text):
+        values[key] = text if key in ticked and text else None
+        if key in ticked and not text:
+            errors[EXPERIENCE].append(f"Enter your {label} time, or untick it.")
+        elif values[key] and not TIME_PATTERN.match(text):
             errors[EXPERIENCE].append(f"Write your {label} time as {TIME_FORMATS[key]}.")
 
     if values["experience"] == "new":
@@ -412,8 +424,13 @@ def handle_plan_form(existing=None):
         if existing:
             values = dict(existing)
             values["run_days"] = [int(d) for d in existing["run_days"].split(",")]
+            # The race time answers aren't stored; they follow from the saved times.
+            values["time_distances"] = [key for key, _ in RACE_TIMES if existing[key]]
+            if existing["experience"] == "experienced":
+                values["has_times"] = "yes" if values["time_distances"] else "no"
         else:
-            values = {"experience": "", "weekly_km": None, "longest_km": None, "run_days": [1, 3, 5], "long_day": 5,
+            values = {"experience": "", "weekly_km": None, "longest_km": None, "has_times": None,
+                      "time_distances": [], "run_days": [1, 3, 5], "long_day": 5,
                       "distance": "5k", "start_date": date.today(),
                       "race_date": date.today() + timedelta(weeks=10)}
         return show(1, values)

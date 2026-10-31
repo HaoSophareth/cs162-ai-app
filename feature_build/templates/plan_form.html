@@ -75,7 +75,7 @@
 
       {# Only shown once "Yes" is picked (see .if-ran-before in style.css). These
          fields aren't marked required, so hiding them never blocks the form;
-         the server checks weekly km for people who answered Yes. #}
+         the server checks the answers that count. #}
       <div class="if-ran-before">
         <div class="field">
           <label class="field-label" for="weekly_km">How many km do you run per week now?</label>
@@ -89,16 +89,41 @@
           <p class="field-hint">Your plan's long run starts from here.</p>
         </div>
 
-        {% for key, label in RACE_TIMES %}
-          <div class="field">
-            <label class="field-label" for="{{ key }}">Recent {{ label }} time (optional)</label>
-            <input id="{{ key }}" name="{{ key }}" placeholder="{{ TIME_FORMATS[key] }}" value="{{ values[key] or '' }}">
-            {% if loop.last %}<p class="field-hint">Race times are used to estimate your finish time.</p>{% endif %}
+        <div class="field" role="group" aria-labelledby="has-times-label">
+          <span class="field-label" id="has-times-label">Do you have a recent race time?</span>
+          <div class="options">
+            <label class="option"><input type="radio" name="has_times" value="yes" id="has-times"
+              {% if values.has_times == "yes" %}checked{% endif %}> Yes</label>
+            <label class="option"><input type="radio" name="has_times" value="no"
+              {% if values.has_times == "no" %}checked{% endif %}> No</label>
           </div>
-        {% endfor %}
+          <p class="field-hint">Race times are used to estimate your finish time.</p>
+        </div>
+
+        {# Shown after that "Yes"; each time box appears when its distance is ticked. #}
+        <div class="if-has-times">
+          <div class="field" role="group" aria-labelledby="time-distances-label">
+            <span class="field-label" id="time-distances-label">Which distances?</span>
+            <div class="options">
+              {% for key, label in RACE_TIMES %}
+                <label class="option"><input type="checkbox" name="time_distances" value="{{ key }}" id="tick-{{ key }}"
+                  {% if key in values.time_distances %}checked{% endif %}> {{ label }}</label>
+              {% endfor %}
+            </div>
+          </div>
+
+          {% for key, label in RACE_TIMES %}
+            <div class="field time-field" id="field-{{ key }}">
+              <label class="field-label" for="{{ key }}">{{ label }} time</label>
+              <input id="{{ key }}" name="{{ key }}" placeholder="{{ TIME_FORMATS[key] }}" value="{{ values[key] or '' }}">
+            </div>
+          {% endfor %}
+        </div>
       </div>
     {% else %}
       <input type="hidden" name="experience" value="{{ values.experience or '' }}">
+      <input type="hidden" name="has_times" value="{{ values.has_times or '' }}">
+      {% for key in values.time_distances %}<input type="hidden" name="time_distances" value="{{ key }}">{% endfor %}
       {% for key, _ in RACE_TIMES %}<input type="hidden" name="{{ key }}" value="{{ values[key] or '' }}">{% endfor %}
       <input type="hidden" name="weekly_km" value="{{ weekly_km }}">
       <input type="hidden" name="longest_km" value="{{ longest_km }}">
