@@ -1,0 +1,2 @@
+On the goal step of a new plan, the training start date defaults to today and shows the word 'Today' instead of the date. Clicking it lets them choose a date with the same date picker as before, with the same rule: today or later. If they don't change it, the plan starts today. When editing a plan, show its saved start date as now, or 'Today' if that is today. Don't change anything else.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.

@@ -238,6 +238,7 @@ One row per prompt, filled in during each build.
 | 32 | Ticking done keeps the page in place | Done; 79s, 6,925 out | Re-prompt (UX) | Page jumped to the ticked week |
 | 33 | Top bar marks the current page | Done; 47s, 3,940 out | Re-prompt (UX) | No signal of current page; smooth page changes work in Chrome, not Arc |
 | 34 | training start date can't be in the past | Done; 68s, 6,617 out | Re-prompt (UX) | |
+| 35 | training start date defaults to Today | Done; 121s, 11,823 out | Re-prompt (UX) | |
 
 ### Build 2
 
@@ -277,6 +278,7 @@ One row per prompt, filled in during each build.
 | 32 | Ticking done keeps the page in place | Done; 209s, 16,658 out | Re-prompt (UX) | Page jumped to the ticked week |
 | 33 | Top bar marks the current page | Done; 52s, 4,884 out | Re-prompt (UX) | No signal of current page; smooth page changes work in Chrome, not Arc |
 | 34 | training start date can't be in the past | Done; 59s, 5,410 out | Re-prompt (UX) | |
+| 35 | training start date defaults to Today | Done; 88s, 8,197 out | Re-prompt (UX) | |
 
 ## Manual edits (not by the build sessions)
 
