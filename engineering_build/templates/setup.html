@@ -19,7 +19,8 @@
   {% endif %}
 
   <form method="post" class="plan-form">
-    {% if step == 1 %}
+    {% set step_key = steps[step].key %}
+    {% if step_key == 'experience' %}
       <fieldset>
         <legend>Have you run before?</legend>
         <label class="inline"><input type="radio" name="has_run_before" value="yes" required
@@ -44,7 +45,7 @@
         <input type="number" name="weekly_km" value="{{ form.weekly_km }}" min="0" max="300" step="0.5" required>
       </label>
 
-    {% elif step == 2 %}
+    {% elif step_key == 'schedule' %}
       <fieldset>
         <legend>Days you can run (at least 3)</legend>
         {% for day in days %}
@@ -60,7 +61,7 @@
         </select>
       </label>
 
-    {% else %}
+    {% elif step_key == 'goal' %}
       <label>Race distance
         <select name="race_distance">
           {% for key, name in distances.items() %}
@@ -72,9 +73,10 @@
       </label>
       <label>Training start date <input type="date" name="start_date" value="{{ form.start_date }}" required></label>
       <label>Race date <input type="date" name="race_date" value="{{ form.race_date }}" required></label>
-      {% if not plan %}
-        <p class="muted">The new plan becomes your active plan and shows on the calendar.</p>
-      {% endif %}
+    {% endif %}
+
+    {% if step == last_step and not plan %}
+      <p class="muted">The new plan becomes your active plan and shows on the calendar.</p>
     {% endif %}
 
     {# Next comes first in the HTML so pressing Enter goes forward; CSS puts Back on the left.

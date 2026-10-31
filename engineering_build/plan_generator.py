@@ -1,3 +1,4 @@
+import math
 from datetime import timedelta
 
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -97,3 +98,43 @@ def generate_plan(has_run_before, weekly_km, run_days, long_run_day, race_distan
         "description": DESCRIPTIONS["race"],
     })
     return runs
+
+
+# Race estimates. best_times maps a race distance key ("5k", "10k", "half",
+# "marathon") to a recent finish time in seconds.
+RIEGEL_EXPONENT = 1.06
+TRAINING_GAIN = 0.03  # the fast end of the estimate assumes training makes you 3% faster
+
+
+def pace_per_km(seconds, km):
+    return round(seconds / km)
+
+
+def riegel(time1, km1, km2):
+    # Riegel formula: time2 = time1 x (distance2 / distance1) ^ 1.06
+    return time1 * (km2 / km1) ** RIEGEL_EXPONENT
+
+
+def current_paces(best_times):
+    return {distance: pace_per_km(seconds, RACE_KM[distance]) for distance, seconds in best_times.items()}
+
+
+def estimate_finish(best_times, race_distance):
+    """Return the estimated finish range and paces for the race, or None without times."""
+    if not best_times:
+        return None
+    race_km = RACE_KM[race_distance]
+    # Riegel is most accurate between similar distances, so use the recent time whose
+    # distance is closest to the race (compared as a ratio, so 5k->10k beats 10k->marathon).
+    source = min(best_times, key=lambda d: abs(math.log(RACE_KM[d] / race_km)))
+    today = riegel(best_times[source], RACE_KM[source], race_km)
+    trained = today * (1 - TRAINING_GAIN)
+    return {
+        "based_on": source,
+        "slow": round(today),
+        "fast": round(trained),
+        "slow_pace": pace_per_km(today, race_km),
+        "fast_pace": pace_per_km(trained, race_km),
+        # Aim for the middle of the range on race day.
+        "target_pace": pace_per_km((today + trained) / 2, race_km),
+    }

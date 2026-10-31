@@ -46,6 +46,7 @@
       {% else %}
         <a class="button" href="{{ url_for('main.week', start=plan.start_date.isoformat()) }}">Open calendar</a>
       {% endif %}
+      <a class="button secondary" href="{{ url_for('main.plan_summary', plan_id=plan.id) }}">Summary</a>
       <a class="button secondary" href="{{ url_for('main.edit_plan', plan_id=plan.id) }}">Edit</a>
       {# <details> asks "are you sure?" without JavaScript. #}
       <details class="confirm-delete">

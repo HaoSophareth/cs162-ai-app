@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Plan summary{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('main.plans') }}">&larr; Back to plans</a></p>
+
+<div class="panel summary">
+  <div class="summary-header">
+    <h1>
+      Your {{ distances[plan.race_distance] }} plan
+      {% if plan.is_active %}<span class="active-tag">Active</span>{% endif %}
+    </h1>
+    {% if plan.is_active %}
+      <a class="button" href="{{ url_for('main.week', start=plan.start_date.isoformat()) }}">Go to calendar</a>
+    {% else %}
+      <form method="post" action="{{ url_for('main.activate_plan', plan_id=plan.id) }}">
+        <button type="submit" class="button">Make active and go to calendar</button>
+      </form>
+    {% endif %}
+  </div>
+
+  <div class="summary-grid">
+    <section>
+      <h2>Goal</h2>
+      <dl class="details">
+        <dt>Race</dt><dd>{{ distances[plan.race_distance] }}</dd>
+        <dt>Race date</dt><dd>{{ plan.race_date.strftime('%A, %b') }} {{ plan.race_date.day }}, {{ plan.race_date.year }}</dd>
+        <dt>Training</dt><dd>{{ total_weeks }} weeks</dd>
+        <dt>Starts</dt><dd>{{ plan.start_date.strftime('%A, %b') }} {{ plan.start_date.day }}, {{ plan.start_date.year }}</dd>
+      </dl>
+    </section>
+
+    <section>
+      <h2>Schedule</h2>
+      <dl class="details">
+        <dt>Run days</dt><dd>{{ plan.run_days.replace(',', ', ') }}</dd>
+        <dt>Long run</dt><dd>{{ plan.long_run_day }}</dd>
+      </dl>
+    </section>
+  </div>
+
+  <section>
+    <h2>Plan at a glance</h2>
+    <div class="stat-row">
+      <div class="stat"><span class="stat-value">{{ '%g' % stats.start_km|round(1) }} km</span><span class="stat-label">first week</span></div>
+      <div class="stat"><span class="stat-value">{{ '%g' % stats.peak_km|round(1) }} km</span><span class="stat-label">peak week</span></div>
+      <div class="stat"><span class="stat-value">{{ '%g' % stats.longest_run_km|round(1) }} km</span><span class="stat-label">longest training run</span></div>
+      <div class="stat"><span class="stat-value">{{ '%g' % stats.total_km|round(1) }} km</span><span class="stat-label">total, including the race</span></div>
+    </div>
+  </section>
+
+  {% if best_times %}
+    <section>
+      <h2>Your speed now</h2>
+      <table class="simple-table">
+        <tr><th>Recent race</th><th>Time</th><th>Pace</th></tr>
+        {% for distance, seconds in best_times.items() %}
+          <tr>
+            <td>{{ distances[distance] }}</td>
+            <td>{{ seconds|duration }}</td>
+            <td>{{ paces[distance]|duration }} /km</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </section>
+  {% endif %}
+
+  <section>
+    <h2>Race day estimate</h2>
+    {% if estimate %}
+      <div class="stat-row">
+        <div class="stat">
+          <span class="stat-value">{{ estimate.fast|duration }} – {{ estimate.slow|duration }}</span>
+          <span class="stat-label">estimated finish time</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ estimate.target_pace|duration }} /km</span>
+          <span class="stat-label">target race pace</span>
+        </div>
+      </div>
+      <p class="muted">
+        Based on your {{ distances[estimate.based_on] }} time, using the Riegel formula
+        (time₂ = time₁ × (distance₂ / distance₁)<sup>1.06</sup>).
+        {{ estimate.slow|duration }} ({{ estimate.slow_pace|duration }} /km) is what you could run today;
+        {{ estimate.fast|duration }} ({{ estimate.fast_pace|duration }} /km) assumes training makes you about 3% faster.
+      </p>
+    {% else %}
+      <p class="muted">
+        An estimate needs a recent race time. Add one by editing the plan
+        (step 2, Experience) and the estimate will show here.
+      </p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

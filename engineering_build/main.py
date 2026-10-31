@@ -5,18 +5,22 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 from flask_login import current_user, login_required
 
 from models import Plan, Run, db
-from plan_generator import DAYS, RECOMMENDED_WEEKS, generate_plan, monday_of
+from plan_generator import (DAYS, RECOMMENDED_WEEKS, current_paces, estimate_finish,
+                            generate_plan, monday_of)
 
 main_bp = Blueprint("main", __name__)
 
 DISTANCES = {"5k": "5k", "10k": "10k", "half": "Half marathon", "marathon": "Marathon"}
 BEST_TIME_FIELDS = {"best_5k": "5k", "best_10k": "10k", "best_half": "Half marathon", "best_full": "Marathon"}
+# Which race distance each best-time column is for (the marathon column is best_full).
+BEST_TIME_DISTANCE = {"best_5k": "5k", "best_10k": "10k", "best_half": "half", "best_full": "marathon"}
 WEEKS_SHOWN = 2
-# The plan form is split into three steps; each one lists the form fields it asks for.
+# The plan form is split into three steps, in this order. Each one names the form
+# fields it asks for; errors are grouped by "key", so reordering only happens here.
 PLAN_STEPS = {
-    1: {"title": "Experience", "fields": ["has_run_before", *BEST_TIME_FIELDS, "weekly_km"]},
-    2: {"title": "Running days", "fields": ["run_days", "long_run_day"]},
-    3: {"title": "Goal", "fields": ["race_distance", "start_date", "race_date"]},
+    1: {"key": "goal", "title": "Goal", "fields": ["race_distance", "start_date", "race_date"]},
+    2: {"key": "experience", "title": "Experience", "fields": ["has_run_before", *BEST_TIME_FIELDS, "weekly_km"]},
+    3: {"key": "schedule", "title": "Schedule", "fields": ["run_days", "long_run_day"]},
 }
 LAST_STEP = len(PLAN_STEPS)
 
@@ -190,8 +194,8 @@ def read_step_form(step):
 
 
 def parse_plan_form(form):
-    # Returns (values ready to set on a Plan, {step: [error messages]}).
-    errors = {step: [] for step in PLAN_STEPS}
+    # Returns (values ready to set on a Plan, {step key: [error messages]}).
+    errors = {info["key"]: [] for info in PLAN_STEPS.values()}
     has_run_before = form["has_run_before"] == "yes"
     weekly_km = parse_number(form["weekly_km"])
     run_days = [d for d in DAYS if d in form["run_days"]]
@@ -199,19 +203,19 @@ def parse_plan_form(form):
     race_date = parse_date(form["race_date"])
 
     if form["has_run_before"] not in ("yes", "no"):
-        errors[1].append("Say whether you have run before.")
+        errors["experience"].append("Say whether you have run before.")
     if weekly_km is None or not 0 <= weekly_km <= 300:
-        errors[1].append("Current weekly distance must be a number of km between 0 and 300.")
+        errors["experience"].append("Current weekly distance must be a number of km between 0 and 300.")
     if len(run_days) < 3:
-        errors[2].append("Pick at least 3 days you can run.")
+        errors["schedule"].append("Pick at least 3 days you can run.")
     if form["long_run_day"] not in run_days:
-        errors[2].append("The long-run day must be one of your running days.")
+        errors["schedule"].append("The long-run day must be one of your running days.")
     if form["race_distance"] not in DISTANCES:
-        errors[3].append("Choose a race distance.")
+        errors["goal"].append("Choose a race distance.")
     if not start_date or not race_date:
-        errors[3].append("Enter both a start date and a race date.")
+        errors["goal"].append("Enter both a start date and a race date.")
     elif race_date <= start_date:
-        errors[3].append("The race date must be after the start date.")
+        errors["goal"].append("The race date must be after the start date.")
 
     # Times only count for people who have run before; otherwise they're ignored.
     best_times = {}
@@ -221,7 +225,7 @@ def parse_plan_form(form):
             try:
                 best_times[field] = parse_duration(form[field])
             except ValueError:
-                errors[1].append(f"{label} time should look like 25:30 or 1:45:00.")
+                errors["experience"].append(f"{label} time should look like 25:30 or 1:45:00.")
 
     values = {
         "has_run_before": has_run_before,
@@ -319,16 +323,18 @@ def plan_step(step):
             return redirect(url_for("main.plan_step", step=step - 1))
 
         values, errors = parse_plan_form(answers)
-        if errors[step]:
-            for error in errors[step]:
+        step_errors = errors[PLAN_STEPS[step]["key"]]
+        if step_errors:
+            for error in step_errors:
                 flash(error, "error")
         elif step < LAST_STEP:
             return redirect(url_for("main.plan_step", step=step + 1))
         else:
             # Earlier steps are checked again because their URLs can be skipped.
             for earlier in range(1, LAST_STEP):
-                if errors[earlier]:
-                    for error in errors[earlier]:
+                earlier_errors = errors[PLAN_STEPS[earlier]["key"]]
+                if earlier_errors:
+                    for error in earlier_errors:
                         flash(error, "error")
                     return redirect(url_for("main.plan_step", step=earlier))
             return finish_plan(plan, values)
@@ -352,9 +358,39 @@ def finish_plan(plan, values):
     else:
         save_plan(plan, values)
         flash("Plan updated and regenerated.", "success")
-        if not plan.is_active:
-            return redirect(url_for("main.plans"))
-    return redirect(url_for("main.week", start=monday_of(plan.start_date).isoformat()))
+    return redirect(url_for("main.plan_summary", plan_id=plan.id))
+
+
+@main_bp.route("/plans/<int:plan_id>/summary")
+@login_required
+def plan_summary(plan_id):
+    plan = get_user_plan(plan_id)
+
+    # Numbers come from the saved runs, so they stay right after runs are edited or moved.
+    weekly_km = {}
+    for run in plan.runs:
+        week = monday_of(run.date)
+        weekly_km[week] = weekly_km.get(week, 0) + run.distance_km
+    training_runs = [r.distance_km for r in plan.runs if r.run_type != "race"]
+    stats = {
+        "start_km": weekly_km[min(weekly_km)] if weekly_km else 0,
+        "peak_km": max(weekly_km.values(), default=0),
+        "longest_run_km": max(training_runs, default=0),
+        "total_km": sum(r.distance_km for r in plan.runs),
+    }
+
+    best_times = {BEST_TIME_DISTANCE[field]: getattr(plan, field)
+                  for field in BEST_TIME_FIELDS if getattr(plan, field)}
+    return render_template(
+        "summary.html",
+        plan=plan,
+        stats=stats,
+        total_weeks=total_plan_weeks(plan),
+        best_times=best_times,
+        paces=current_paces(best_times),
+        estimate=estimate_finish(best_times, plan.race_distance),
+        distances=DISTANCES,
+    )
 
 
 @main_bp.route("/plans/<int:plan_id>/activate", methods=["POST"])
