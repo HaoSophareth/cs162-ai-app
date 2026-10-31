@@ -7,7 +7,9 @@ week or month.
 
 After signing up you answer a few profile questions (sex, age, weight,
 height; profile only, not used by plans) and land on an empty calendar. Create
-a plan from there in three short steps: experience, running days, goal. You can have several plans; the calendar shows the active
+a plan from there in three short steps: goal, experience, schedule. A summary
+page follows (also reachable from the Plans page) with the plan at a glance
+and, if you gave a recent race time, an estimated finish time. You can have several plans; the calendar shows the active
 one, and the Plans page lets you switch, edit (regenerates) or delete them.
 
 Runs entirely on your computer: Python + Flask, data in a local SQLite file.
@@ -35,6 +37,7 @@ there between restarts. Delete the `instance/` folder to start fresh.
 
 - `app.py` - web routes: accounts, profile, plans, week/month views, runs; database access
 - `plan.py` - the plan generator (pure rules, no web or database code)
+- `estimates.py` - paces and finish-time estimates for the plan summary
 - `templates/` - HTML pages
 - `static/style.css` - styling, run-type colours and page transitions
 - `static/calendar.js` - swipe / arrow-key navigation between weeks and months
@@ -46,8 +49,12 @@ Weeks run Monday to Sunday. Week 1 is the week containing the start date.
 - **Weekly distance** starts from the km you run per week now, kept between
   8 and 15 km for new runners and at least 12 km for people who have run
   before. It grows 10% a week, capped at 30/45/55/70 km for 5K/10K/half/marathon.
-- **Recent race times** are saved with the plan for reference; they don't
-  change the plan (it has no paces).
+- **Recent race times** don't change the plan (it has no paces). They're used
+  on the summary page: the strongest recent race (the one predicting the fastest
+  goal time) gives your current pace per km, and the Riegel formula
+  (time2 = time1 x (distance2 / distance1)^1.06) estimates your finish. The range
+  runs from that prediction (today) to 3% faster (after training); the race-day
+  target pace is the middle of the range.
 - **Every 4th week** is a cutback week at 75% of the previous level.
 - **Taper:** the week before race week drops to about 70% (only for plans of
   8+ weeks); race week has a few short easy runs, none the day before the race.

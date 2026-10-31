@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Plan summary{% endblock %}
+{% block content %}
+<div class="card summary">
+  <p class="muted"><a href="{{ url_for('plans') }}">← All plans</a></p>
+  <h1>
+    Your {{ DISTANCES[p.distance][0] }} plan
+    {% if is_active %}<span class="active-badge">Active</span>{% endif %}
+  </h1>
+
+  <section>
+    <h2>Goal</h2>
+    <dl class="facts">
+      <div><dt>Race</dt><dd>{{ DISTANCES[p.distance][0] }} ({{ "%g"|format(goal_km) }} km)</dd></div>
+      <div><dt>Race date</dt><dd>{{ p.race_date|nice_date }}</dd></div>
+      <div><dt>Training</dt><dd>{{ weeks }} weeks</dd></div>
+      <div><dt>Starts</dt><dd>{{ p.start_date|nice_date }}</dd></div>
+    </dl>
+  </section>
+
+  <section>
+    <h2>Schedule</h2>
+    <dl class="facts">
+      <div><dt>Run days</dt><dd>{{ run_days|join(", ") }}</dd></div>
+      <div><dt>Long run</dt><dd>{{ long_day }}</dd></div>
+    </dl>
+  </section>
+
+  <section>
+    <h2>The plan at a glance</h2>
+    <dl class="facts">
+      <div><dt>Starting week</dt><dd>{{ "%g"|format(start_km|round(1)) }} km</dd></div>
+      <div><dt>Peak week</dt><dd>{{ "%g"|format(peak_km|round(1)) }} km</dd></div>
+      <div><dt>Longest run</dt><dd>{{ "%g"|format(longest_km) }} km</dd></div>
+      <div><dt>Total</dt><dd>{{ "%g"|format(total_km|round(1)) }} km</dd></div>
+    </dl>
+    <p class="muted">Weekly totals leave out the race itself. The total includes it.</p>
+  </section>
+
+  <section>
+    <h2>Race day estimate</h2>
+    {% if best %}
+      <dl class="facts">
+        <div><dt>Your speed now</dt><dd>{{ best.pace }}</dd></div>
+        <div><dt>Estimated finish</dt><dd>{{ estimate.fast }} – {{ estimate.slow }}</dd></div>
+        <div><dt>Race-day target pace</dt><dd>{{ estimate.target_pace }}</dd></div>
+      </dl>
+      <p class="muted">
+        Based on your {{ best.label }} in {{ best.time }}, your strongest recent race,
+        using the Riegel formula. The slower time is what you could run today; the
+        faster one assumes training makes you about 3% faster. The target pace is
+        the middle of the range.
+        {% if best.km < goal_km / 4 %}Estimates from much shorter races are less reliable.{% endif %}
+      </p>
+    {% else %}
+      <p>An estimated finish time needs a recent race time.
+        <a href="{{ url_for('edit_plan', plan_id=p.id) }}">Add one by editing the plan</a>
+        (this regenerates it).</p>
+    {% endif %}
+  </section>
+
+  <div class="actions">
+    {% if is_active %}
+      <a class="button primary" href="{{ url_for('week') }}">Go to calendar</a>
+    {% else %}
+      <form method="post" action="{{ url_for('activate_plan', plan_id=p.id) }}" class="inline">
+        <button class="primary">Make active and go to calendar</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

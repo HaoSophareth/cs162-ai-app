@@ -9,11 +9,10 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="{{ url_for('week') }}">🏃 Race Training Planner <small>· Build 1 (feature-wise)</small></a>
+    <span class="brand">🏃 Race Training Planner <small>· Build 1 (feature-wise)</small></span>
     {% if session.user_id %}
       <nav>
-        <a href="{{ url_for('week') }}">Week</a>
-        <a href="{{ url_for('month') }}">Month</a>
+        <a href="{{ url_for('week') }}">Calendar</a>
         <a href="{{ url_for('plans') }}">Plans</a>
         <a href="{{ url_for('profile') }}">Profile</a>
         <span class="muted">{{ session.username }}</span>

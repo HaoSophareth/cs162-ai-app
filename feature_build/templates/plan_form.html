@@ -21,63 +21,10 @@
 
   <form method="post" class="plan-form">
     <input type="hidden" name="step" value="{{ step }}">
+    <input type="hidden" name="confirm_short" value="{{ confirm }}">
 
-    {# ---- Step 1: experience ---- #}
+    {# ---- Step 1: goal ---- #}
     {% if step == 1 %}
-      <fieldset>
-        <legend>Have you run before?</legend>
-        <label class="choice"><input type="radio" name="experience" value="experienced" id="ran-before" required
-          {% if values.experience == "experienced" %}checked{% endif %}> Yes</label>
-        <label class="choice"><input type="radio" name="experience" value="new"
-          {% if values.experience == "new" %}checked{% endif %}> No, I'm new to running</label>
-
-        {# Shown only when "Yes" is ticked (see .race-times in style.css). #}
-        <div class="race-times">
-          <p class="muted">Recent race times, if you have them (optional), e.g. 27:30 or 1:58:00.</p>
-          <div class="time-grid">
-            {% for key, label in RACE_TIMES %}
-              <label>{{ label }}
-                <input name="{{ key }}" placeholder="e.g. 27:30" value="{{ values[key] or '' }}">
-              </label>
-            {% endfor %}
-          </div>
-        </div>
-      </fieldset>
-      <label>How many km do you run per week now?
-        <input type="number" name="weekly_km" min="0" max="200" step="0.5" required value="{{ weekly_km }}">
-      </label>
-      <p class="muted">Your plan starts from here. Enter 0 if you don't run yet.</p>
-    {% else %}
-      <input type="hidden" name="experience" value="{{ values.experience or '' }}">
-      {% for key, _ in RACE_TIMES %}<input type="hidden" name="{{ key }}" value="{{ values[key] or '' }}">{% endfor %}
-      <input type="hidden" name="weekly_km" value="{{ weekly_km }}">
-    {% endif %}
-
-    {# ---- Step 2: running days ---- #}
-    {% if step == 2 %}
-      <fieldset>
-        <legend>Days you can run (at least 3)</legend>
-        <div class="day-grid">
-          {% for name in WEEKDAYS %}
-            <label class="choice"><input type="checkbox" name="run_days" value="{{ loop.index0 }}"
-              {% if loop.index0 in values.run_days %}checked{% endif %}> {{ name }}</label>
-          {% endfor %}
-        </div>
-      </fieldset>
-      <label>Long-run day
-        <select name="long_day">
-          {% for name in WEEKDAYS %}
-            <option value="{{ loop.index0 }}" {% if loop.index0 == values.long_day %}selected{% endif %}>{{ name }}</option>
-          {% endfor %}
-        </select>
-      </label>
-    {% else %}
-      {% for day in values.run_days %}<input type="hidden" name="run_days" value="{{ day }}">{% endfor %}
-      <input type="hidden" name="long_day" value="{{ values.long_day }}">
-    {% endif %}
-
-    {# ---- Step 3: goal ---- #}
-    {% if step == 3 %}
       <label>Race distance
         <select name="distance">
           {% for key, info in DISTANCES.items() %}
@@ -99,7 +46,6 @@
           Your plan is only {{ weeks }} week{{ "s" if weeks != 1 }} long. For a {{ label }}
           at least {{ recommended }} weeks of training is recommended. You can still go ahead.
         </p>
-        <input type="hidden" name="confirm_short" value="{{ confirm_key }}">
       {% endif %}
     {% else %}
       <input type="hidden" name="distance" value="{{ values.distance or '' }}">
@@ -107,12 +53,67 @@
       <input type="hidden" name="race_date" value="{{ values.race_date or '' }}">
     {% endif %}
 
+    {# ---- Step 2: experience ---- #}
+    {% if step == 2 %}
+      <fieldset>
+        <legend>Have you run before?</legend>
+        <label class="choice"><input type="radio" name="experience" value="experienced" id="ran-before" required
+          {% if values.experience == "experienced" %}checked{% endif %}> Yes</label>
+        <label class="choice"><input type="radio" name="experience" value="new"
+          {% if values.experience == "new" %}checked{% endif %}> No, I'm new to running</label>
+
+        {# Shown only when "Yes" is ticked (see .race-times in style.css). #}
+        <div class="race-times">
+          <p class="muted">Recent race times, if you have them (optional), e.g. 27:30 or 1:58:00.
+            They're used to estimate your finish time.</p>
+          <div class="time-grid">
+            {% for key, label in RACE_TIMES %}
+              <label>{{ label }}
+                <input name="{{ key }}" placeholder="e.g. 27:30" value="{{ values[key] or '' }}">
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      </fieldset>
+      <label>How many km do you run per week now?
+        <input type="number" name="weekly_km" min="0" max="200" step="0.5" required value="{{ weekly_km }}">
+      </label>
+      <p class="muted">Your plan starts from here. Enter 0 if you don't run yet.</p>
+    {% else %}
+      <input type="hidden" name="experience" value="{{ values.experience or '' }}">
+      {% for key, _ in RACE_TIMES %}<input type="hidden" name="{{ key }}" value="{{ values[key] or '' }}">{% endfor %}
+      <input type="hidden" name="weekly_km" value="{{ weekly_km }}">
+    {% endif %}
+
+    {# ---- Step 3: schedule ---- #}
+    {% if step == 3 %}
+      <fieldset>
+        <legend>Days you can run (at least 3)</legend>
+        <div class="day-grid">
+          {% for name in WEEKDAYS %}
+            <label class="choice"><input type="checkbox" name="run_days" value="{{ loop.index0 }}"
+              {% if loop.index0 in values.run_days %}checked{% endif %}> {{ name }}</label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <label>Long-run day
+        <select name="long_day">
+          {% for name in WEEKDAYS %}
+            <option value="{{ loop.index0 }}" {% if loop.index0 == values.long_day %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    {% else %}
+      {% for day in values.run_days %}<input type="hidden" name="run_days" value="{{ day }}">{% endfor %}
+      <input type="hidden" name="long_day" value="{{ values.long_day }}">
+    {% endif %}
+
     {# Next comes first in the HTML so pressing Enter goes forward, not back;
        .step-buttons puts Back on the left visually. #}
     <div class="step-buttons">
       <button class="primary" name="action" value="next">
-        {% if step < 3 %}Next
-        {% elif short_warning %}{{ "Save plan anyway" if existing else "Create plan anyway" }}
+        {% if short_warning %}Continue anyway
+        {% elif step < 3 %}Next
         {% else %}{{ "Save and regenerate plan" if existing else "Create plan" }}{% endif %}
       </button>
       {% if step > 1 %}

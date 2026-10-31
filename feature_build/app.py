@@ -11,6 +11,7 @@ from urllib.parse import urlencode
 from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
+import estimates
 import plan
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -329,7 +330,8 @@ TIME_PATTERN = re.compile(r"^(\d{1,2}:)?[0-5]?\d:[0-5]\d$")  # mm:ss or h:mm:ss
 # The plan form is split into three steps. Each step is a normal form post;
 # answers from the other steps travel along as hidden fields, so nothing is
 # stored until the last step creates (or regenerates) the plan.
-PLAN_STEPS = {1: "Experience", 2: "Running days", 3: "Goal"}
+PLAN_STEPS = {1: "Goal", 2: "Experience", 3: "Schedule"}
+GOAL, EXPERIENCE, SCHEDULE = 1, 2, 3
 
 
 def read_plan_form(form):
@@ -346,29 +348,29 @@ def read_plan_form(form):
         "start_date": parse_date(form.get("start_date")),
         "race_date": parse_date(form.get("race_date")),
     }
-    errors = {1: [], 2: [], 3: []}
+    errors = {GOAL: [], EXPERIENCE: [], SCHEDULE: []}
     if values["experience"] not in plan.START_KM_LIMITS:
-        errors[1].append("Tell us whether you have run before.")
+        errors[EXPERIENCE].append("Tell us whether you have run before.")
 
     # Race times only make sense for people who have run before; blank is fine.
     for key, label in RACE_TIMES:
         text = form.get(key, "").strip()
         values[key] = text if values["experience"] == "experienced" and text else None
         if values[key] and not TIME_PATTERN.match(text):
-            errors[1].append(f"Write your {label} time as mm:ss or h:mm:ss, e.g. 27:30 or 1:58:00.")
+            errors[EXPERIENCE].append(f"Write your {label} time as mm:ss or h:mm:ss, e.g. 27:30 or 1:58:00.")
 
     if values["weekly_km"] is None or not 0 <= values["weekly_km"] <= 200:
-        errors[1].append("Enter how many km you run per week now (0 if you don't run yet).")
+        errors[EXPERIENCE].append("Enter how many km you run per week now (0 if you don't run yet).")
     if len(values["run_days"]) < 3:
-        errors[2].append("Pick at least 3 days you can run.")
+        errors[SCHEDULE].append("Pick at least 3 days you can run.")
     if values["long_day"] not in values["run_days"]:
-        errors[2].append("The long-run day must be one of your running days.")
+        errors[SCHEDULE].append("The long-run day must be one of your running days.")
     if values["distance"] not in plan.DISTANCES:
-        errors[3].append("Pick a race distance.")
+        errors[GOAL].append("Pick a race distance.")
     if not values["start_date"] or not values["race_date"]:
-        errors[3].append("Enter both a start date and a race date.")
+        errors[GOAL].append("Enter both a start date and a race date.")
     elif values["race_date"] <= values["start_date"]:
-        errors[3].append("The race date must be after the start date.")
+        errors[GOAL].append("The race date must be after the start date.")
     return values, errors
 
 
@@ -380,9 +382,12 @@ def short_plan_key(values):
 
 def handle_plan_form(existing=None):
     """Shared by "create plan" and "edit plan". existing is the plan being edited."""
-    def show(step, values, **extra):
-        return render_template("plan_form.html", step=step, steps=PLAN_STEPS,
-                               values=values, existing=existing, **extra)
+    def show(step, values, short_warning=None):
+        # The too-short confirmation travels with the other hidden answers;
+        # when the warning is on screen, continuing confirms the goal shown.
+        confirm = short_plan_key(values) if short_warning else request.form.get("confirm_short", "")
+        return render_template("plan_form.html", step=step, steps=PLAN_STEPS, values=values,
+                               existing=existing, short_warning=short_warning, confirm=confirm)
 
     if request.method == "GET":
         if existing:
@@ -394,7 +399,7 @@ def handle_plan_form(existing=None):
                       "race_date": date.today() + timedelta(weeks=10)}
         return show(1, values)
 
-    step = int(request.form.get("step", 1)) if request.form.get("step") in ("1", "2", "3") else 1
+    step = int(request.form["step"]) if request.form.get("step") in ("1", "2", "3") else 1
     values, errors = read_plan_form(request.form)
 
     # Back never checks anything, so half-filled answers are kept as they are.
@@ -405,28 +410,36 @@ def handle_plan_form(existing=None):
         for error in errors[step]:
             flash(error, "error")
         return show(step, values)
+
+    # Too-short plans are allowed, but only after the user has seen the warning.
+    # It shows on the goal step, right where the dates are chosen.
+    def needs_short_warning():
+        return (plan.is_too_short(values["distance"], values["start_date"], values["race_date"])
+                and request.form.get("confirm_short") != short_plan_key(values))
+
+    def show_short_warning():
+        weeks = plan.count_weeks(values["start_date"], values["race_date"])
+        label, _, recommended = plan.DISTANCES[values["distance"]]
+        return show(GOAL, values, short_warning=(weeks, label, recommended))
+
+    if step == GOAL and needs_short_warning():
+        return show_short_warning()
     if step < 3:
         return show(step + 1, values)
 
     # Last step: every step should be valid by now, but check in case a
     # hidden field was tampered with, and send the user to the step to fix.
-    for earlier in (1, 2):
+    for earlier in (GOAL, EXPERIENCE):
         if errors[earlier]:
             for error in errors[earlier]:
                 flash(error, "error")
             return show(earlier, values)
+    if needs_short_warning():
+        return show_short_warning()
 
-    # Too-short plans are allowed, but only after the user has seen the warning.
-    if (plan.is_too_short(values["distance"], values["start_date"], values["race_date"])
-            and request.form.get("confirm_short") != short_plan_key(values)):
-        weeks = plan.count_weeks(values["start_date"], values["race_date"])
-        label, _, recommended = plan.DISTANCES[values["distance"]]
-        return show(3, values, short_warning=(weeks, label, recommended),
-                    confirm_key=short_plan_key(values))
-
-    save_plan(values, existing["id"] if existing else None)
+    plan_id = save_plan(values, existing["id"] if existing else None)
     flash("Your plan was regenerated." if existing else "Your training plan is ready.", "success")
-    return redirect(url_for("plans") if existing else url_for("week"))
+    return redirect(url_for("plan_summary", plan_id=plan_id))
 
 
 @app.route("/plans")
@@ -450,6 +463,48 @@ def plans():
 @profile_required
 def new_plan():
     return handle_plan_form()
+
+
+@app.route("/plans/<int:plan_id>")
+@login_required
+def plan_summary(plan_id):
+    p = get_own_plan(plan_id)
+    start = date.fromisoformat(p["start_date"])
+    race = date.fromisoformat(p["race_date"])
+    runs = get_db().execute("SELECT * FROM runs WHERE plan_id = ? AND user_id = ? ORDER BY date",
+                            (plan_id, session["user_id"])).fetchall()
+
+    # Weekly totals of training runs (the race itself left out, so race week
+    # doesn't show up as the "peak").
+    weekly = {}
+    for run in runs:
+        if run["type"] != "race":
+            monday = plan.monday_of(date.fromisoformat(run["date"]))
+            weekly[monday] = weekly.get(monday, 0) + run["distance_km"]
+    # Week 1 is partial when the plan starts mid-week, so "starting" weekly
+    # km is the first full week.
+    first_full_week = plan.monday_of(start) + timedelta(weeks=0 if start.weekday() == 0 else 1)
+    training = [r for r in runs if r["type"] != "race"]
+
+    goal_km = plan.RACE_KM[p["distance"]]
+    recent = [(label, plan.RACE_KM[key.removeprefix("time_")], p[key]) for key, label in RACE_TIMES]
+    best = estimates.best_recent_race(recent, goal_km)
+
+    return render_template(
+        "summary.html",
+        p=p,
+        weeks=plan.count_weeks(start, race),
+        run_days=[WEEKDAYS[int(d)] for d in p["run_days"].split(",")],
+        long_day=WEEKDAYS[p["long_day"]],
+        start_km=weekly.get(first_full_week, 0),
+        peak_km=max(weekly.values(), default=0),
+        longest_km=max((r["distance_km"] for r in training), default=0),
+        total_km=sum(r["distance_km"] for r in runs),
+        goal_km=goal_km,
+        best=best,
+        estimate=estimates.finish_estimate(best, goal_km) if best else None,
+        is_active=get_user()["active_plan_id"] == plan_id,
+    )
 
 
 @app.route("/plans/<int:plan_id>/edit", methods=["GET", "POST"])
