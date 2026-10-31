@@ -59,7 +59,7 @@ Weeks run Monday to Sunday. Week 1 is the week containing the start date.
   8+ weeks); race week has a few short easy runs, none the day before the race.
 - **Long run** on the chosen day. It starts from your longest recent run if you
   gave one (otherwise 30% of the first week) and builds evenly to a peak of
-  8/14/12/18/32 km (5K/10K/15K/half/marathon), even when that's more than 30% of the week. It adds at most
+  8/14/16/18/32 km (5K/10K/15K/half/marathon), even when that's more than 30% of the week. It adds at most
   3 km a week, so a plan with too few weeks stops short of the peak. Other runs
   aren't longer than the week's long run, so with few run days a week the week's
   total can come in under its target.
