@@ -283,6 +283,9 @@ One row per prompt, filled in during each build.
 
 ## Notes
 
+- Blink: smooth page changes work in Chrome, not Arc (user confirmed). Use Chrome for the demo.
+- Ticking done (prompt 32): Build 1 used background JavaScript; Build 2's no-JS rule forced one iframe per week, which adds Back-button history steps and fixed week heights. Build 1 JavaScript is now in at least 3 places: check against the class-covered rule.
+
 - Prompts 13 onward are one change per prompt, one commit per build. Build 1 total differs by one because the summary link bug only existed there.
 - Running both builds on 127.0.0.1 makes them overwrite each other's login cookie (same host, same cookie name). Use 127.0.0.1:5051 and localhost:5050.
 
