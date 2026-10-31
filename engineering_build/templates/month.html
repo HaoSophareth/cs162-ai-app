@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ first.strftime('%B %Y') }}{% endblock %}
+{% block content %}
+<div class="calendar-toolbar">
+  <div class="week-nav">
+    <a class="button secondary" href="{{ url_for('main.month') }}">Today</a>
+    <a class="button secondary" href="{{ url_for('main.month', month=prev_month) }}" title="Previous month">&lsaquo;</a>
+    <a class="button secondary" href="{{ url_for('main.month', month=next_month) }}" title="Next month">&rsaquo;</a>
+    <h1>{{ first.strftime('%B %Y') }}</h1>
+  </div>
+  <div class="view-toggle">
+    <a href="{{ url_for('main.week', start=week_link) }}">Week</a>
+    <span class="active">Month</span>
+  </div>
+</div>
+
+<div class="week-header">
+  <p class="muted">
+    {{ distances[plan.race_distance] }} on {{ plan.race_date.strftime('%a %b') }} {{ plan.race_date.day }}, {{ plan.race_date.year }}
+  </p>
+  <div class="week-totals">
+    <span><strong>{{ '%g' % planned_km|round(1) }} km</strong> planned</span>
+    <span><strong>{{ '%g' % done_km|round(1) }} km</strong> completed</span>
+  </div>
+</div>
+
+<div class="month-grid">
+  <div class="month-corner"></div>
+  {% for name in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] %}
+    <div class="month-day-name">{{ name }}</div>
+  {% endfor %}
+
+  {% for row in rows %}
+    {# The week number on the left opens that week in the week view. #}
+    <a class="month-week-number" href="{{ url_for('main.week', start=row.week_start.isoformat()) }}"
+       title="Open this week">{% if row.week_number %}W{{ row.week_number }}{% endif %}</a>
+    {% for day in row.days %}
+      <div class="month-cell {% if day.date.month != first.month %}other-month{% endif %} {% if day.date == today %}today{% endif %}">
+        <span class="day-number">{{ day.date.day }}</span>
+        {% for run in day.runs %}
+          <a class="run-card compact run-{{ run.run_type }} {% if run.done %}done{% endif %}"
+             href="{{ url_for('main.run_detail', run_id=run.id) }}">
+            {% if run.done %}✓ {% endif %}{{ run.run_type|capitalize }} · {{ '%g' % run.distance_km }} km
+          </a>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  {% endfor %}
+</div>
+
+<div class="legend">
+  {% for type in ['easy', 'long', 'tempo', 'intervals', 'race'] %}
+    <span class="legend-item run-{{ type }}">{{ type|capitalize }}</span>
+  {% endfor %}
+</div>
+{% endblock %}

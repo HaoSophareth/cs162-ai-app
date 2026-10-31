@@ -10,6 +10,7 @@ from plan_generator import DAYS, RECOMMENDED_WEEKS, generate_plan, monday_of
 main_bp = Blueprint("main", __name__)
 
 DISTANCES = {"5k": "5k", "10k": "10k", "half": "Half marathon", "marathon": "Marathon"}
+WEEKS_SHOWN = 2
 
 
 def parse_date(text):
@@ -17,6 +18,36 @@ def parse_date(text):
         return date.fromisoformat(text)
     except (TypeError, ValueError):
         return None
+
+
+def runs_between(plan, first_day, last_day):
+    return Run.query.filter(
+        Run.plan_id == plan.id, Run.date >= first_day, Run.date <= last_day
+    ).order_by(Run.date, Run.id).all()
+
+
+def total_plan_weeks(plan):
+    return (monday_of(plan.race_date) - monday_of(plan.start_date)).days // 7 + 1
+
+
+def plan_week_number(plan, week_start):
+    # None for weeks outside the plan, so templates only show "Week N" when it means something.
+    number = (week_start - monday_of(plan.start_date)).days // 7 + 1
+    return number if 1 <= number <= total_plan_weeks(plan) else None
+
+
+def build_week(plan, week_start):
+    week_end = week_start + timedelta(days=6)
+    runs = runs_between(plan, week_start, week_end)
+    days = [week_start + timedelta(days=i) for i in range(7)]
+    return {
+        "start": week_start,
+        "end": week_end,
+        "number": plan_week_number(plan, week_start),
+        "columns": [{"date": d, "runs": [r for r in runs if r.date == d]} for d in days],
+        "planned_km": sum(r.distance_km for r in runs),
+        "done_km": sum(r.distance_km for r in runs if r.done),
+    }
 
 
 def get_user_run(run_id):
@@ -125,38 +156,65 @@ def week():
     if plan is None:
         return redirect(url_for("main.setup"))
 
-    today = date.today()
-    week_start = monday_of(parse_date(request.args.get("start")) or today)
-    week_end = week_start + timedelta(days=6)
-
-    runs = Run.query.filter(
-        Run.plan_id == plan.id, Run.date >= week_start, Run.date <= week_end
-    ).order_by(Run.date, Run.id).all()
-
-    columns = []
-    for i in range(7):
-        day = week_start + timedelta(days=i)
-        columns.append({"date": day, "runs": [r for r in runs if r.date == day]})
-
-    # Only show "Week N" for weeks that are actually part of the plan.
-    week_number = (week_start - monday_of(plan.start_date)).days // 7 + 1
-    total_weeks = (monday_of(plan.race_date) - monday_of(plan.start_date)).days // 7 + 1
-    if not 1 <= week_number <= total_weeks:
-        week_number = None
+    week_start = monday_of(parse_date(request.args.get("start")) or date.today())
+    # Two weeks side by side in a horizontal scroller: the chosen week, then the next one.
+    weeks = [build_week(plan, week_start + timedelta(weeks=i)) for i in range(WEEKS_SHOWN)]
 
     return render_template(
         "week.html",
         plan=plan,
-        columns=columns,
-        today=today,
-        week_start=week_start,
-        week_end=week_end,
-        week_number=week_number,
-        total_weeks=total_weeks,
-        planned_km=sum(r.distance_km for r in runs),
-        done_km=sum(r.distance_km for r in runs if r.done),
+        weeks=weeks,
+        today=date.today(),
+        total_weeks=total_plan_weeks(plan),
+        month=week_start.strftime("%Y-%m"),
         prev_start=(week_start - timedelta(days=7)).isoformat(),
         next_start=(week_start + timedelta(days=7)).isoformat(),
+        distances=DISTANCES,
+    )
+
+
+@main_bp.route("/month")
+@login_required
+def month():
+    plan = Plan.query.filter_by(user_id=current_user.id).first()
+    if plan is None:
+        return redirect(url_for("main.setup"))
+
+    today = date.today()
+    first = parse_date((request.args.get("month") or "") + "-01") or today.replace(day=1)
+    next_first = (first + timedelta(days=32)).replace(day=1)
+    last = next_first - timedelta(days=1)
+
+    # The grid starts on the Monday before the 1st and ends on the Sunday after
+    # the last day, so every row is a full week like in Google Calendar.
+    grid_start = monday_of(first)
+    grid_end = monday_of(last) + timedelta(days=6)
+    runs = runs_between(plan, grid_start, grid_end)
+
+    rows = []
+    week_start = grid_start
+    while week_start <= grid_end:
+        days = [week_start + timedelta(days=i) for i in range(7)]
+        rows.append({
+            "week_start": week_start,
+            "week_number": plan_week_number(plan, week_start),
+            "days": [{"date": d, "runs": [r for r in runs if r.date == d]} for d in days],
+        })
+        week_start += timedelta(days=7)
+
+    # Totals only count runs inside this month, not the grey days from next to it.
+    month_runs = [r for r in runs if first <= r.date <= last]
+    return render_template(
+        "month.html",
+        plan=plan,
+        rows=rows,
+        first=first,
+        today=today,
+        planned_km=sum(r.distance_km for r in month_runs),
+        done_km=sum(r.distance_km for r in month_runs if r.done),
+        prev_month=(first - timedelta(days=1)).strftime("%Y-%m"),
+        next_month=next_first.strftime("%Y-%m"),
+        week_link=monday_of(first).isoformat(),
         distances=DISTANCES,
     )
 
