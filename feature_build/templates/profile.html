@@ -42,6 +42,8 @@
   </form>
 </div>
 
+{# Not on the first-time page, which only asks the quick questions. #}
+{% if not first_time %}
 {# Read-only: built from the user's plans and done runs (see running_history in app.py). #}
 <div class="card narrow summary history">
   <h2>Running history</h2>
@@ -88,4 +90,5 @@
     </div>
   </form>
 </div>
+{% endif %}
 {% endblock %}
