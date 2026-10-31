@@ -2,7 +2,6 @@
 {% block title %}Plan summary{% endblock %}
 {% block content %}
 <div class="card summary">
-  <p class="muted"><a href="{{ url_for('plans') }}">← All plans</a></p>
   <h1>
     Your {{ DISTANCES[p.distance][0] }} plan
     {% if is_active %}<span class="active-badge">Active</span>{% endif %}
