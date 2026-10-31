@@ -182,7 +182,8 @@ def running_history():
     ).join(Plan).filter(Plan.user_id == current_user.id, Run.done.is_(True)).one()
 
     best_times = {label: seconds for label, seconds in zip(BEST_TIME_FIELDS.values(), plan_row)}
-    longest_recent_km = plan_row[-1]
+    # The larger of what was entered and what's been run, so it follows ticks and unticks.
+    longest_recent_km = max((km for km in (plan_row[-1], longest_done_km) if km is not None), default=None)
     return {
         "best_times": best_times,
         "longest_recent_km": longest_recent_km,
