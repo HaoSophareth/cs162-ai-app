@@ -214,6 +214,8 @@ One row per prompt, filled in during each build.
 | 8 | Week view scrolls down through all plan weeks | Done, checked in a real browser itself; 141s, 12,819 out | Re-prompt (UX) | Replaced its own sideways-swipe JS |
 | 9 | Neutral race-time hints + remove month view | Done; deleted calendar.js, so Build 1 has no JS again; 93s, 8,322 out | Re-prompt | Placeholder times biased to fast runners (and repeated) |
 | 10 | No plan yet: prompt to create one instead of empty calendar | Done | Re-prompt (UX) | |
+| 11 | Forms: times and weekly km only after Yes, no boxes, consistent styling | Done; 162s, 15,667 out | Re-prompt (UX) | |
+| 12 | This week rename + longest recent run + long run reaches peak + remove emoji | Done; added itself a cap so no run beats the long run; migrates its own DB on start; still has a small script in week.html since the month-view round; 209s, 19,111 out | Re-prompt (mixed) | Long run made consistent across builds |
 
 ### Build 2
 
@@ -229,12 +231,17 @@ One row per prompt, filled in during each build.
 | 8 | Same + page anchor, no JS | Done; 117s, 12,894 out | Re-prompt (UX) | |
 | 9 | Same as Build 1 | Done; 58s, 5,868 out | Re-prompt | |
 | 10 | Same as Build 1 | Done | Re-prompt (UX) | |
+| 11 | Same + CSS only | Done; 155s, 15,894 out | Re-prompt (UX) | |
+| 12 | Same minus emoji + keep rules in plan_generator.py | Done; added itself the same cap; no migration, app broke on old DB until a column was added by hand (data kept); 166s, 16,780 out | Re-prompt (mixed) | Long run made consistent across builds |
 
 ## Manual edits (not by the build sessions)
 
 - Both `templates/base.html`: added "· Build 1 (feature-wise)" / "· Build 2 (engineering-wise)" next to the header title and in the tab title, so the demo video shows which build is which. Edited by hand from the planning session, not an AI build prompt.
 
 ## Notes
+
+- Build 2 database: added `longest_run_km` by hand with ALTER TABLE after prompt 12 instead of recreating it. Local data only.
+- Build 1 still has a 3-line script in week.html (scroll to current week). Earlier note that it had no JS was wrong.
 
 - Blink fix (row 2) didn't seem to work in Arc (default browser); likely needs Chrome 126+/Safari 18.2+. Check in Chrome before counting it as failed.
 - Git history rebuilt from transcripts after the fact: one commit per prompt/manual edit (de089b9..4b12ce3).
