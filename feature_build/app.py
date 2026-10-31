@@ -263,7 +263,38 @@ def setup():
     return render_template("setup.html", values=values, existing=existing)
 
 
-# ---------- Week view ----------
+# ---------- Calendar views (week and month) ----------
+
+def load_runs(first_day, last_day):
+    """The user's runs between two dates (inclusive)."""
+    return get_db().execute(
+        "SELECT * FROM runs WHERE user_id = ? AND date BETWEEN ? AND ? ORDER BY date, id",
+        (session["user_id"], first_day.isoformat(), last_day.isoformat()),
+    ).fetchall()
+
+
+def build_days(first_day, count, runs):
+    """A list of {date, runs} for `count` days starting at first_day."""
+    days = []
+    for offset in range(count):
+        day = first_day + timedelta(days=offset)
+        days.append({"date": day, "runs": [r for r in runs if r["date"] == day.isoformat()]})
+    return days
+
+
+def plan_week_number(monday, setup_row):
+    """Week number within the plan, or None if this week is outside it."""
+    start = date.fromisoformat(setup_row["start_date"])
+    race = date.fromisoformat(setup_row["race_date"])
+    number = (monday - plan.monday_of(start)).days // 7 + 1
+    return number if 1 <= number <= plan.count_weeks(start, race) else None
+
+
+def default_day(setup_row):
+    # Before the plan starts, open on its first week instead of an empty one.
+    start = date.fromisoformat(setup_row["start_date"])
+    return max(date.today(), start)
+
 
 @app.route("/")
 @login_required
@@ -272,43 +303,58 @@ def week():
     if setup_row is None:
         return redirect(url_for("setup"))
 
-    start = date.fromisoformat(setup_row["start_date"])
-    race = date.fromisoformat(setup_row["race_date"])
-    today = date.today()
-
-    requested = parse_date(request.args.get("week"))
-    if requested:
-        monday = plan.monday_of(requested)
-    elif today < start:
-        monday = plan.monday_of(start)  # plan hasn't started yet: show week 1
-    else:
-        monday = plan.monday_of(today)
+    monday = plan.monday_of(parse_date(request.args.get("week")) or default_day(setup_row))
     sunday = monday + timedelta(days=6)
-
-    runs = get_db().execute(
-        "SELECT * FROM runs WHERE user_id = ? AND date BETWEEN ? AND ? ORDER BY date, id",
-        (session["user_id"], monday.isoformat(), sunday.isoformat()),
-    ).fetchall()
-
-    days = []
-    for offset in range(7):
-        day = monday + timedelta(days=offset)
-        days.append({"date": day, "runs": [r for r in runs if r["date"] == day.isoformat()]})
-
-    week_number = (monday - plan.monday_of(start)).days // 7 + 1
-    in_plan = 1 <= week_number <= plan.count_weeks(start, race)
+    runs = load_runs(monday, sunday)
 
     return render_template(
         "week.html",
-        days=days,
-        today=today,
+        days=build_days(monday, 7, runs),
+        today=date.today(),
         monday=monday,
         sunday=sunday,
-        week_number=week_number if in_plan else None,
+        week_number=plan_week_number(monday, setup_row),
         planned_km=sum(r["distance_km"] for r in runs),
         done_km=sum(r["distance_km"] for r in runs if r["done"]),
         prev_week=monday - timedelta(weeks=1),
         next_week=monday + timedelta(weeks=1),
+        setup=setup_row,
+    )
+
+
+@app.route("/month")
+@login_required
+def month():
+    setup_row = get_setup(session["user_id"])
+    if setup_row is None:
+        return redirect(url_for("setup"))
+
+    # ?month=2026-11 -> first day of that month
+    first = parse_date((request.args.get("month") or "") + "-01") or default_day(setup_row).replace(day=1)
+    next_first = (first + timedelta(days=32)).replace(day=1)
+    last = next_first - timedelta(days=1)
+
+    # The grid covers whole Monday-Sunday weeks, so it starts and ends with
+    # a few days from the neighbouring months.
+    grid_start = plan.monday_of(first)
+    grid_end = plan.monday_of(last) + timedelta(days=6)
+    runs = load_runs(grid_start, grid_end)
+    days = build_days(grid_start, (grid_end - grid_start).days + 1, runs)
+    weeks = [{"monday": days[i]["date"],
+              "number": plan_week_number(days[i]["date"], setup_row),
+              "days": days[i:i + 7]}
+             for i in range(0, len(days), 7)]
+
+    month_runs = [r for r in runs if first.isoformat() <= r["date"] <= last.isoformat()]
+    return render_template(
+        "month.html",
+        weeks=weeks,
+        first=first,
+        today=date.today(),
+        planned_km=sum(r["distance_km"] for r in month_runs),
+        done_km=sum(r["distance_km"] for r in month_runs if r["done"]),
+        prev_month=(first - timedelta(days=1)).strftime("%Y-%m"),
+        next_month=next_first.strftime("%Y-%m"),
         setup=setup_row,
     )
 

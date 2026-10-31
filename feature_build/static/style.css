@@ -21,8 +21,22 @@
 /* The top bar is identical on every page, so keep it still while the rest fades. */
 .topbar { view-transition-name: topbar; }
 
-/* Same colour on <html> as <body>, so there's no white flash between pages. */
-html { background: #f8f9fa; }
+/* Week/month change: the calendar slides left (next) or right (previous).
+   calendar.js sets the direction; the header text just cross-fades. */
+.calendar { view-transition-name: calendar; }
+:active-view-transition-type(next)::view-transition-old(calendar) { animation: 200ms ease-in both slide-to-left; }
+:active-view-transition-type(next)::view-transition-new(calendar) { animation: 200ms ease-out both slide-from-right; }
+:active-view-transition-type(prev)::view-transition-old(calendar) { animation: 200ms ease-in both slide-to-right; }
+:active-view-transition-type(prev)::view-transition-new(calendar) { animation: 200ms ease-out both slide-from-left; }
+@keyframes slide-to-left { to { transform: translateX(-30%); opacity: 0; } }
+@keyframes slide-from-right { from { transform: translateX(30%); opacity: 0; } }
+@keyframes slide-to-right { to { transform: translateX(30%); opacity: 0; } }
+@keyframes slide-from-left { from { transform: translateX(-30%); opacity: 0; } }
+
+/* Same colour on <html> as <body>, so there's no white flash between pages.
+   overscroll-behavior stops a sideways swipe from also triggering the
+   browser's own back/forward gesture. */
+html { background: #f8f9fa; overscroll-behavior-x: none; }
 
 body {
   margin: 0;
@@ -114,7 +128,7 @@ dd { margin: 0.2rem 0 0; }
 }
 .week-nav { display: flex; align-items: center; gap: 0.5rem; }
 .week-nav h1 { font-size: 1.4rem; font-weight: 400; margin: 0 0 0 0.75rem; }
-.week-totals { display: flex; gap: 1.5rem; }
+.week-totals { display: flex; gap: 1.5rem; align-items: center; }
 
 .legend { margin: 0.75rem 0; display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
@@ -160,6 +174,74 @@ dd { margin: 0.2rem 0 0; }
   border-color: rgba(255, 255, 255, 0.6);
 }
 .check:hover { background: rgba(255, 255, 255, 0.4); }
+
+.legend .hint { margin-left: auto; font-size: 0.8rem; }
+
+.view-switch { display: inline-flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.view-switch a { padding: 0.4rem 0.9rem; color: var(--text); text-decoration: none; background: white; }
+.view-switch a + a { border-left: 1px solid var(--border); }
+.view-switch a.active { background: #e8f0fe; color: #1967d2; font-weight: 600; }
+
+/* ---------- Month view ---------- */
+.month-grid {
+  display: grid;
+  grid-template-columns: 2.5rem repeat(7, 1fr);
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.month-weekday {
+  padding: 0.4rem;
+  text-align: center;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-left: 1px solid var(--border);
+}
+.month-weeknum {
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-decoration: none;
+}
+.month-weeknum:hover { background: #f1f3f4; }
+.month-day {
+  min-height: 105px;
+  padding: 0.3rem;
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+}
+.month-day .daynum {
+  display: block;
+  width: 1.8rem;
+  line-height: 1.8rem;
+  margin: 0 auto 0.2rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text);
+  text-decoration: none;
+}
+.month-day .daynum:hover { background: #f1f3f4; }
+.month-day.today .daynum { background: #1a73e8; color: white; }
+.month-day.other-month { background: #fafafa; }
+.month-day.other-month .daynum { color: #b0b4b8; }
+
+.run-chip {
+  display: block;
+  margin-bottom: 0.2rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: white;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.run-chip.done { opacity: 0.55; text-decoration: line-through; }
 
 .tag { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.8rem; color: white; }
 

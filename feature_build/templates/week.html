@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Week view{% endblock %}
+{% block head %}<script src="{{ url_for('static', filename='calendar.js') }}"></script>{% endblock %}
 {% block content %}
 <div class="week-header">
   <div class="week-nav">
     <a class="button" href="{{ url_for('week') }}">Today</a>
-    <a class="button" href="{{ url_for('week', week=prev_week) }}" title="Previous week">‹</a>
-    <a class="button" href="{{ url_for('week', week=next_week) }}" title="Next week">›</a>
+    <a class="button" data-nav="prev" href="{{ url_for('week', week=prev_week) }}" title="Previous week (←)">‹</a>
+    <a class="button" data-nav="next" href="{{ url_for('week', week=next_week) }}" title="Next week (→)">›</a>
     <h1>
       {{ monday.strftime('%b') }} {{ monday.day }} - {{ sunday.strftime('%b') }} {{ sunday.day }}
       {% if week_number %}· Week {{ week_number }}{% endif %}
@@ -14,14 +15,19 @@
   <div class="week-totals">
     <span><strong>{{ "%g"|format(planned_km|round(1)) }}</strong> km planned</span>
     <span><strong>{{ "%g"|format(done_km|round(1)) }}</strong> km done</span>
+    <div class="view-switch">
+      <a class="active" href="{{ url_for('week', week=monday) }}">Week</a>
+      <a href="{{ url_for('month', month=monday.strftime('%Y-%m')) }}">Month</a>
+    </div>
   </div>
 </div>
 
 <div class="legend">
   {% for key, label in RUN_TYPES.items() %}<span class="tag type-{{ key }}">{{ label }}</span>{% endfor %}
+  <span class="muted hint">Swipe sideways or use ← → to change week</span>
 </div>
 
-<div class="week-grid">
+<div class="week-grid calendar">
   {% for day in days %}
     <section class="day {% if day.date == today %}today{% endif %}">
       <header>

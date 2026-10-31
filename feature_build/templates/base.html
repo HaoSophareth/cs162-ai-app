@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Race Training Planner{% endblock %} · Build 1</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% block head %}{% endblock %}
 </head>
 <body>
   <header class="topbar">
@@ -12,6 +13,7 @@
     {% if session.user_id %}
       <nav>
         <a href="{{ url_for('week') }}">Week</a>
+        <a href="{{ url_for('month') }}">Month</a>
         <a href="{{ url_for('setup') }}">Setup</a>
         <span class="muted">{{ session.username }}</span>
         <form method="post" action="{{ url_for('logout') }}" class="inline">
