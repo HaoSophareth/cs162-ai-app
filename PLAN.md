@@ -224,7 +224,7 @@ One row per prompt, filled in during each build.
 | 18 | Running history on profile | Done; 77s, 7,652 out | Re-prompt (new scope) | |
 | 19 | Remove username from top bar | Done; 30s, 1,841 out | Re-prompt (UX) | |
 | 20 | Export plan button (.ics file) | Done; download checked with curl, Google import not tried yet; 96s, 10,449 out | Re-prompt (new scope) | One link can only add one event |
-| 21 | Long run at most about half the week; weekly total may rise past 10% | Done; 79s, 7,605 out | Re-prompt (plan logic) | |
+| 21 | Long run at most about half the week; weekly total may rise past 10% | Session hit the usage limit before finishing or reporting (result is_error); code and README edits were complete and committed; I checked plan shares by running it myself; the build's own tests not confirmed; 79s, 7,605 out | Re-prompt (plan logic) | |
 
 ### Build 2
 
@@ -328,6 +328,9 @@ Summed from every result file and matched exactly against each build's transcrip
 | Reported cost | $21.64 | $17.35 | -20% |
 
 Both builds together: 85,051,484 tokens, $38.99 equivalent. Excludes the planning sessions. Start to finish on the clock was 83 minutes for both, because they ran side by side while the user tested. The 21st prompt is the Build 1-only link bug, so most of the gap is not that one prompt.
+
+### Interrupted prompt
+Build 1 prompt 21 (balanced weeks) ended with "You've hit your 5-hour limit, resets 6pm". Commit b3ca87b holds its edits. Resuming costs one more Build 1 prompt, so only do it if something is wrong.
 
 ### Report points
 - Build 1: Flask, raw sqlite3, Flask sessions, split on its own into app.py, plan.py, estimates.py, calendar_export.py; still long app.py. Structure from AI defaults. Build 2: app.py, models.py, auth.py, main.py, plan_generator.py from the prompt.
