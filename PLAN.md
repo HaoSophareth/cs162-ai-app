@@ -292,7 +292,7 @@ One row per prompt, filled in during each build.
 
 ## Notes
 
-- The first week-checkbox send was stopped by the user at once. It left an empty turn in both transcripts and is not counted as a prompt or log row. Row 35 is the Today default, row 36 the week checkbox.
+- The first week-checkbox send was stopped by the user at once. It left an empty turn in both transcripts and is not counted as a prompt or log row. A stopped send of the one-field date fix left one more empty turn in Build 2 only. So transcripts show 38 and 40 user turns, against 37 and 38 counted prompts. Row 35 is the Today default, row 36 the week checkbox.
 
 - Blink: smooth page changes work in Chrome, not Arc (user confirmed). Use Chrome for the demo.
 - Ticking done (prompt 32): Build 1 used background JavaScript; Build 2's no-JS rule forced one iframe per week, which adds Back-button history steps and fixed week heights. Build 1 JavaScript is now in at least 3 places: check against the class-covered rule.
@@ -357,16 +357,16 @@ Summed from every result file and matched exactly against each build's transcrip
 
 | | Build 1 | Build 2 | Build 2 vs Build 1 |
 |---|---|---|---|
-| Prompts | 26 | 25 | -1 |
-| AI working time | 45m 54s | 36m 25s | -21% |
-| Input | 394 | 330 | |
-| Cache write | 972,051 | 823,553 | -15% |
-| Cache read | 55,204,016 | 42,860,808 | -22% |
-| Output | 267,125 | 229,092 | -14% |
-| All tokens | 56,443,586 | 43,913,783 | -22% |
-| Reported cost | $24.16 | $19.74 | -18% |
+| Prompts | 37 | 38 | +1 |
+| AI working time | 59m 13s | 52m 24s | -12% |
+| Input | 458 | 418 | |
+| Cache write | 1,155,658 | 1,030,925 | -11% |
+| Cache read | 77,735,183 | 71,161,957 | -8% |
+| Output | 343,609 | 315,980 | -8% |
+| All tokens | 79,234,908 | 72,509,280 | -8% |
+| Reported cost | $31.67 | $28.80 | -9% |
 
-Both builds together: 100,357,369 tokens, $43.91 equivalent. Recomputed from process/results after the 15K round; add any later prompts. Excludes the planning sessions. Start to finish on the clock was 83 minutes for both, because they ran side by side while the user tested. Build 1 has one extra prompt: it had the link bug and the usage-limit retry, Build 2 had the too-short warning bug.
+Both builds together: 151,744,188 tokens, $60.47 equivalent. Recomputed after prompt 37/38; add any later prompts.
 
 ### Interrupted prompt
 Build 1 prompt 21 (balanced weeks) ended with "You've hit your 5-hour limit, resets 6pm". Commit b3ca87b holds its edits. Retried as prompt 22 at about 14:02, which was not blocked; it confirmed the edits were complete and tests pass.
@@ -378,7 +378,7 @@ Build 1 prompt 21 (balanced weeks) ended with "You've hit your 5-hour limit, res
 - Both builds independently added a rule capping other runs at the long run, and found the 30% rule contradicts the peak distances.
 - JavaScript: Build 1 added calendar.js then removed it; still has a 3-line script in templates/week.html and an inline confirm() on Delete (check for more before the zip). Build 2 has none. Check against class-covered rule.
 - Be honest in the report: some Build 1 re-prompts used engineering words (`instance/`, templates, Riegel formula); Build 2 saved a memory note Build 1 could see; prompts were refined with AI, not written alone; git history before de089b9..4b12ce3 rebuilt from transcripts; title labels are manual edits.
-- Free tier: user hit the 5-hour usage limit at 1:02 PM and the builds report $43.91 in total ($24.16 and $19.74), so tip 4 applies: list alternatives (Claude.ai free, Copilot via Education Pack, DeepSeek, Gemini free) and why not used.
+- Free tier: user hit the 5-hour usage limit at 1:02 PM and the builds report $60.47 in total ($31.67 and $28.80), so tip 4 applies: list alternatives (Claude.ai free, Copilot via Education Pack, DeepSeek, Gemini free) and why not used.
 
 ### Remaining work
 1. (Export removed, no import to test.)
