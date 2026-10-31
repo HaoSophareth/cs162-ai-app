@@ -1,0 +1,2 @@
+A new plan's training start date can only be today or later, not in the past. Show a short error on the goal step if it's earlier, and stop the date picker offering past dates. When editing an existing plan, keeping its current start date is still allowed even if that date has passed; changing it to a different date must be today or later. Don't change anything else.
+Test only on a copy of the project, not the real database in instance/. Don't change the login or signup templates. Same stack and file layout, no JavaScript.

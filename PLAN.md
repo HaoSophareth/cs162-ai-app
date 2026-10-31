@@ -237,6 +237,7 @@ One row per prompt, filled in during each build.
 | 31 | Edit plan button on the summary page | Done; 32s, 2,136 out | Re-prompt (UX) | User wants to change the plan straight after seeing its stats |
 | 32 | Ticking done keeps the page in place | Done; 79s, 6,925 out | Re-prompt (UX) | Page jumped to the ticked week |
 | 33 | Top bar marks the current page | Done; 47s, 3,940 out | Re-prompt (UX) | No signal of current page; smooth page changes work in Chrome, not Arc |
+| 34 | training start date can't be in the past | Done; 68s, 6,617 out | Re-prompt (UX) | |
 
 ### Build 2
 
@@ -275,6 +276,7 @@ One row per prompt, filled in during each build.
 | 31 | Edit plan button on the summary page | Done; 37s, 3,124 out | Re-prompt (UX) | User wants to change the plan straight after seeing its stats |
 | 32 | Ticking done keeps the page in place | Done; 209s, 16,658 out | Re-prompt (UX) | Page jumped to the ticked week |
 | 33 | Top bar marks the current page | Done; 52s, 4,884 out | Re-prompt (UX) | No signal of current page; smooth page changes work in Chrome, not Arc |
+| 34 | training start date can't be in the past | Done; 59s, 5,410 out | Re-prompt (UX) | |
 
 ## Manual edits (not by the build sessions)
 
