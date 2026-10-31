@@ -292,6 +292,7 @@ One row per prompt, filled in during each build.
 ## Manual edits (not by the build sessions)
 
 - Both `templates/base.html`: added "· Build 1 (feature-wise)" / "· Build 2 (engineering-wise)" next to the header title and in the tab title, so the demo video shows which build is which. Edited by hand from the planning session, not an AI build prompt.
+- `feature_build/README.md`: run command changed to port 5051, since port 5000 is often taken by AirPlay on Macs. Edited by hand.
 - Both `app.py`: gave each build its own session cookie name (SESSION_COOKIE_NAME), because running both on one computer logged the user out of the other. Edited by hand from the planning session, not an AI build prompt.
 
 ## Notes
