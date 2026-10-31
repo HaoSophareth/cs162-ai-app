@@ -256,6 +256,12 @@ input[type=text], input[type=password], input[type=date], input[type=number], se
 
 /* Single- and multi-select answers: plain radio buttons / checkboxes in a row. */
 .form-panel .options { display: flex; flex-wrap: wrap; gap: 0.6rem 1.5rem; }
+/* All seven days stay on one line, spread across the form's width. */
+.form-panel .day-options { flex-wrap: nowrap; justify-content: space-between; gap: 0.25rem; }
+/* On phones there's no room side by side, so each label sits under its checkbox. */
+@media (max-width: 520px) {
+  .form-panel .day-options .option { flex-direction: column; gap: 0.2rem; }
+}
 .form-panel .option { display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; }
 .form-panel .option input { margin: 0; width: 1.05rem; height: 1.05rem; }
 

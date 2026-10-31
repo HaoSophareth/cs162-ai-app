@@ -77,7 +77,7 @@
     {% elif step_key == 'schedule' %}
       <fieldset class="field">
         <legend class="field-label">Days you can run <span class="optional">at least 3</span></legend>
-        <div class="options">
+        <div class="options day-options">
           {% for day in days %}
             <label class="option"><input type="checkbox" name="run_days" value="{{ day }}"
               {% if day in form.run_days %}checked{% endif %}> {{ day }}</label>
