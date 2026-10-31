@@ -362,16 +362,16 @@ Summed from every result file and matched exactly against each build's transcrip
 
 | | Build 1 | Build 2 | Build 2 vs Build 1 |
 |---|---|---|---|
-| Prompts | 37 | 38 | +1 |
-| AI working time | 59m 13s | 52m 24s | -12% |
-| Input | 458 | 418 | |
-| Cache write | 1,155,658 | 1,030,925 | -11% |
-| Cache read | 77,735,183 | 71,161,957 | -8% |
-| Output | 343,609 | 315,980 | -8% |
-| All tokens | 79,234,908 | 72,509,280 | -8% |
-| Reported cost | $31.67 | $28.80 | -9% |
+| Prompts | 38 | 39 | +1 |
+| AI working time | 61m 04s | 53m 52s | -12% |
+| Input | 464 | 424 | |
+| Cache write | 1,174,337 | 1,048,046 | -11% |
+| Cache read | 80,243,569 | 73,505,050 | -8% |
+| Output | 354,639 | 325,398 | -8% |
+| All tokens | 81,773,009 | 74,878,918 | -8% |
+| Reported cost | $32.88 | $29.89 | -9% |
 
-Both builds together: 151,744,188 tokens, $60.47 equivalent. Recomputed after prompt 37/38; add any later prompts.
+Both builds together: 156,651,927 tokens, $62.77 equivalent. FINAL: features frozen and recording stopped after this. Excludes planning sessions.
 
 ### Interrupted prompt
 Build 1 prompt 21 (balanced weeks) ended with "You've hit your 5-hour limit, resets 6pm". Commit b3ca87b holds its edits. Retried as prompt 22 at about 14:02, which was not blocked; it confirmed the edits were complete and tests pass.
@@ -383,7 +383,7 @@ Build 1 prompt 21 (balanced weeks) ended with "You've hit your 5-hour limit, res
 - Both builds independently added a rule capping other runs at the long run, and found the 30% rule contradicts the peak distances.
 - JavaScript: Build 1 added calendar.js then removed it; still has a 3-line script in templates/week.html and an inline confirm() on Delete (check for more before the zip). Build 2 has none. Check against class-covered rule.
 - Be honest in the report: some Build 1 re-prompts used engineering words (`instance/`, templates, Riegel formula); Build 2 saved a memory note Build 1 could see; prompts were refined with AI, not written alone; git history before de089b9..4b12ce3 rebuilt from transcripts; title labels are manual edits.
-- Free tier: user hit the 5-hour usage limit at 1:02 PM and the builds report $60.47 in total ($31.67 and $28.80), so tip 4 applies: list alternatives (Claude.ai free, Copilot via Education Pack, DeepSeek, Gemini free) and why not used.
+- Free tier: user hit the 5-hour usage limit at 1:02 PM and the builds report $62.77 in total ($32.88 and $29.89), so tip 4 applies: list alternatives (Claude.ai free, Copilot via Education Pack, DeepSeek, Gemini free) and why not used.
 
 ### Remaining work
 1. (Export removed, no import to test.)
@@ -394,3 +394,6 @@ Build 1 prompt 21 (balanced weeks) ended with "You've hit your 5-hour limit, res
 6. PDF report, 800 words max: cost/time, separation of concerns, conclusion on which is better to build, maintain, run; model details.
 7. Zip from git: both apps with only needed files, run instructions, all transcripts (both builds + planning sessions). Remove DEV ONLY login prefill by zipping from git.
 8. Demo video of both apps showing all features, using the two addresses above.
+
+### Status at freeze
+Features frozen and tracking stopped at the user's request. NOT in git: the four transcripts (paths above, needed for the zip), databases in instance/, and the prefilled login edits.

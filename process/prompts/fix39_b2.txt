@@ -1,0 +1,20 @@
+Let users finish and archive a plan.
+
+Finishing a plan
+- There are two ways in: ticking the race day run on the calendar or on its own page, or a Finish plan button on the plan summary. Both open the same small page titled like "Your 15K finish time", with the same style of time boxes as recent race times (min : sec for 5K and 10K, h : min : sec for 15K, half marathon and marathon) and a Cancel button. The distance comes from the plan.
+- The finish time is required. Cancel changes nothing, and the race stays not done.
+- On save: the race run is marked done, the finish time is saved, the plan is archived and no longer active, and the user goes to the page that prompts them to create a plan (or the calendar if another plan is active).
+
+Week checkbox
+- The week checkbox skips the race run. In race week it ticks and unticks the other runs only, and shows ticked once those are done.
+
+Archived plans
+- The Plans page shows them in a separate Archived section at the bottom, with the finish time. Each can open its summary, which shows the finish time, and has Restore and Delete. No Edit, no Make active.
+- Restore makes the plan the active one again, marks the race run not done, and removes its finish time.
+
+Running history
+- Finish times count toward the best time for that distance. Add a 15K row to best times, shown only when there's a 15K finish time.
+
+Plans that are already finished stay as they are until someone finishes them this way. Don't change anything else.
+
+Test only on a copy of the project, not the real database in instance/. Don't change the login or signup templates. Same stack and file layout, no JavaScript. Keep any time and plan rules that don't need Flask in plan_generator.py. Don't delete or alter the real database yourself. If the database needs new columns, list the exact ALTER TABLE statements at the end of your reply.
