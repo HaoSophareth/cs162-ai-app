@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -55,4 +55,6 @@ def login():
 @login_required
 def logout():
     logout_user()
+    # Drop any half-finished plan form so the next person on this browser doesn't see it.
+    session.pop("plan_form", None)
     return redirect(url_for("auth.login"))

@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 from urllib.parse import urlencode
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 
 from models import Plan, Run, db
@@ -12,6 +12,13 @@ main_bp = Blueprint("main", __name__)
 DISTANCES = {"5k": "5k", "10k": "10k", "half": "Half marathon", "marathon": "Marathon"}
 BEST_TIME_FIELDS = {"best_5k": "5k", "best_10k": "10k", "best_half": "Half marathon", "best_full": "Marathon"}
 WEEKS_SHOWN = 2
+# The plan form is split into three steps; each one lists the form fields it asks for.
+PLAN_STEPS = {
+    1: {"title": "Experience", "fields": ["has_run_before", *BEST_TIME_FIELDS, "weekly_km"]},
+    2: {"title": "Running days", "fields": ["run_days", "long_run_day"]},
+    3: {"title": "Goal", "fields": ["race_distance", "start_date", "race_date"]},
+}
+LAST_STEP = len(PLAN_STEPS)
 
 
 @main_bp.before_request
@@ -172,17 +179,19 @@ def profile():
     return render_template("profile.html", form=form, onboarding=onboarding)
 
 
-def read_plan_form():
-    fields = ["has_run_before", "weekly_km", "long_run_day", "race_distance",
-              "start_date", "race_date", *BEST_TIME_FIELDS]
-    form = {k: request.form.get(k, "").strip() for k in fields}
-    form["run_days"] = request.form.getlist("run_days")
-    return form
+def read_step_form(step):
+    answers = {}
+    for field in PLAN_STEPS[step]["fields"]:
+        if field == "run_days":
+            answers[field] = request.form.getlist(field)
+        else:
+            answers[field] = request.form.get(field, "").strip()
+    return answers
 
 
 def parse_plan_form(form):
-    # Returns (values ready to set on a Plan, list of error messages).
-    errors = []
+    # Returns (values ready to set on a Plan, {step: [error messages]}).
+    errors = {step: [] for step in PLAN_STEPS}
     has_run_before = form["has_run_before"] == "yes"
     weekly_km = parse_number(form["weekly_km"])
     run_days = [d for d in DAYS if d in form["run_days"]]
@@ -190,19 +199,19 @@ def parse_plan_form(form):
     race_date = parse_date(form["race_date"])
 
     if form["has_run_before"] not in ("yes", "no"):
-        errors.append("Say whether you have run before.")
+        errors[1].append("Say whether you have run before.")
     if weekly_km is None or not 0 <= weekly_km <= 300:
-        errors.append("Current weekly distance must be a number of km between 0 and 300.")
+        errors[1].append("Current weekly distance must be a number of km between 0 and 300.")
     if len(run_days) < 3:
-        errors.append("Pick at least 3 days you can run.")
+        errors[2].append("Pick at least 3 days you can run.")
     if form["long_run_day"] not in run_days:
-        errors.append("The long-run day must be one of your running days.")
+        errors[2].append("The long-run day must be one of your running days.")
     if form["race_distance"] not in DISTANCES:
-        errors.append("Choose a race distance.")
+        errors[3].append("Choose a race distance.")
     if not start_date or not race_date:
-        errors.append("Enter both a start date and a race date.")
+        errors[3].append("Enter both a start date and a race date.")
     elif race_date <= start_date:
-        errors.append("The race date must be after the start date.")
+        errors[3].append("The race date must be after the start date.")
 
     # Times only count for people who have run before; otherwise they're ignored.
     best_times = {}
@@ -212,7 +221,7 @@ def parse_plan_form(form):
             try:
                 best_times[field] = parse_duration(form[field])
             except ValueError:
-                errors.append(f"{label} time should look like 25:30 or 1:45:00.")
+                errors[1].append(f"{label} time should look like 25:30 or 1:45:00.")
 
     values = {
         "has_run_before": has_run_before,
@@ -242,11 +251,6 @@ def form_from_plan(plan):
     return form
 
 
-def render_plan_form(form, plan):
-    return render_template("setup.html", form=form, plan=plan, days=DAYS, distances=DISTANCES,
-                           recommended=RECOMMENDED_WEEKS, best_time_fields=BEST_TIME_FIELDS)
-
-
 def save_plan(plan, values):
     for key, value in values.items():
         setattr(plan, key, value)
@@ -274,17 +278,69 @@ def plans():
                            best_time_fields=BEST_TIME_FIELDS)
 
 
-@main_bp.route("/plans/new", methods=["GET", "POST"])
+# Creating and editing a plan share the same three steps. The answers live in the
+# Flask session between steps, and nothing touches the database until the last one.
+@main_bp.route("/plans/new")
 @login_required
 def new_plan():
-    if request.method == "POST":
-        form = read_plan_form()
-        values, errors = parse_plan_form(form)
-        if errors:
-            for error in errors:
-                flash(error, "error")
-            return render_plan_form(form, None)
+    answers = {"has_run_before": "", "weekly_km": "", "run_days": [], "long_run_day": "Sun",
+               "race_distance": "5k", "start_date": date.today().isoformat(), "race_date": "",
+               **{field: "" for field in BEST_TIME_FIELDS}}
+    session["plan_form"] = {"plan_id": None, "answers": answers}
+    return redirect(url_for("main.plan_step", step=1))
 
+
+@main_bp.route("/plans/<int:plan_id>/edit")
+@login_required
+def edit_plan(plan_id):
+    plan = get_user_plan(plan_id)
+    session["plan_form"] = {"plan_id": plan.id, "answers": form_from_plan(plan)}
+    return redirect(url_for("main.plan_step", step=1))
+
+
+@main_bp.route("/plans/step/<int:step>", methods=["GET", "POST"])
+@login_required
+def plan_step(step):
+    wizard = session.get("plan_form")
+    if wizard is None or step not in PLAN_STEPS:
+        return redirect(url_for("main.plans"))
+    # Checked on every step, so a plan id left in the session can only ever be the user's own.
+    plan = get_user_plan(wizard["plan_id"]) if wizard["plan_id"] else None
+    answers = wizard["answers"]
+
+    if request.method == "POST":
+        answers.update(read_step_form(step))
+        session.modified = True  # Flask doesn't notice changes inside nested dicts on its own.
+
+        if request.form.get("action") == "back":
+            if step == 1:
+                session.pop("plan_form")
+                return redirect(url_for("main.plans"))
+            return redirect(url_for("main.plan_step", step=step - 1))
+
+        values, errors = parse_plan_form(answers)
+        if errors[step]:
+            for error in errors[step]:
+                flash(error, "error")
+        elif step < LAST_STEP:
+            return redirect(url_for("main.plan_step", step=step + 1))
+        else:
+            # Earlier steps are checked again because their URLs can be skipped.
+            for earlier in range(1, LAST_STEP):
+                if errors[earlier]:
+                    for error in errors[earlier]:
+                        flash(error, "error")
+                    return redirect(url_for("main.plan_step", step=earlier))
+            return finish_plan(plan, values)
+
+    return render_template("setup.html", step=step, steps=PLAN_STEPS, last_step=LAST_STEP,
+                           form=answers, plan=plan, days=DAYS, distances=DISTANCES,
+                           recommended=RECOMMENDED_WEEKS, best_time_fields=BEST_TIME_FIELDS)
+
+
+def finish_plan(plan, values):
+    session.pop("plan_form")
+    if plan is None:
         # Built with its values up front: make_active's UPDATE flushes this plan to the
         # database first, and that insert would fail with required columns still empty.
         plan = Plan(user_id=current_user.id, **values)
@@ -293,34 +349,12 @@ def new_plan():
         make_active(plan)
         save_plan(plan, values)
         flash("Your training plan is ready.", "success")
-        return redirect(url_for("main.week", start=monday_of(plan.start_date).isoformat()))
-
-    form = {"has_run_before": "", "weekly_km": "", "run_days": [], "long_run_day": "Sun",
-            "race_distance": "5k", "start_date": date.today().isoformat(), "race_date": "",
-            **{field: "" for field in BEST_TIME_FIELDS}}
-    return render_plan_form(form, None)
-
-
-@main_bp.route("/plans/<int:plan_id>/edit", methods=["GET", "POST"])
-@login_required
-def edit_plan(plan_id):
-    plan = get_user_plan(plan_id)
-
-    if request.method == "POST":
-        form = read_plan_form()
-        values, errors = parse_plan_form(form)
-        if errors:
-            for error in errors:
-                flash(error, "error")
-            return render_plan_form(form, plan)
-
+    else:
         save_plan(plan, values)
         flash("Plan updated and regenerated.", "success")
-        if plan.is_active:
-            return redirect(url_for("main.week", start=monday_of(plan.start_date).isoformat()))
-        return redirect(url_for("main.plans"))
-
-    return render_plan_form(form_from_plan(plan), plan)
+        if not plan.is_active:
+            return redirect(url_for("main.plans"))
+    return redirect(url_for("main.week", start=monday_of(plan.start_date).isoformat()))
 
 
 @main_bp.route("/plans/<int:plan_id>/activate", methods=["POST"])

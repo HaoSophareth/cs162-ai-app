@@ -246,3 +246,14 @@ legend { font-weight: 600; padding: 0 0.3rem; }
 .confirm-delete summary { list-style: none; }
 .confirm-delete summary::-webkit-details-marker { display: none; }
 .confirm-delete[open] form { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+
+/* Plan form steps */
+.panel.wide-form { max-width: 640px; }
+.step-count { margin: 0 0 0.5rem; font-size: 0.85rem; font-weight: 600; color: #1a73e8; text-transform: uppercase; letter-spacing: 0.04em; }
+.steps { display: flex; gap: 0.5rem; padding: 0; margin: 0 0 1.25rem; list-style: none; counter-reset: step; }
+.steps li { flex: 1; padding-top: 0.5rem; border-top: 4px solid #dadce0; font-size: 0.85rem; color: #5f6368; counter-increment: step; }
+.steps li::before { content: counter(step) ". "; }
+.steps li.finished { border-color: #8ab4f8; }
+.steps li.current { border-color: #1a73e8; color: #202124; font-weight: 600; }
+/* row-reverse shows Back on the left even though Next comes first in the HTML. */
+.step-buttons { display: flex; flex-direction: row-reverse; justify-content: space-between; margin-top: 1.5rem; }

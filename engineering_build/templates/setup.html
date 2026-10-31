@@ -1,52 +1,57 @@
 {% extends "base.html" %}
-{% block title %}{% if plan %}Edit plan{% else %}Create plan{% endif %}{% endblock %}
+{% block title %}{% if plan %}Edit plan{% else %}Create plan{% endif %} · Step {{ step }} of {{ last_step }}{% endblock %}
 {% block content %}
-<p><a href="{{ url_for('main.plans') }}">&larr; Back to plans</a></p>
+<div class="panel narrow wide-form">
+  <p class="step-count">Step {{ step }} of {{ last_step }}</p>
+  <ol class="steps">
+    {% for number, info in steps.items() %}
+      <li class="{% if number == step %}current{% elif number < step %}finished{% endif %}">{{ info.title }}</li>
+    {% endfor %}
+  </ol>
 
-<div class="panel">
-  <h1>{% if plan %}Edit plan{% else %}Create a plan{% endif %}</h1>
+  <h1>{% if plan %}Edit plan{% else %}Create a plan{% endif %}: {{ steps[step].title }}</h1>
 
   {% if plan %}
     <div class="flash flash-warning">
-      Saving will regenerate this whole plan. Any changes you made to its runs
+      Saving at the last step regenerates this whole plan. Any changes you made to its runs
       (dates, distances, notes, done) will be replaced.
     </div>
-  {% else %}
-    <p class="muted">The new plan becomes your active plan and shows on the calendar.</p>
   {% endif %}
 
   <form method="post" class="plan-form">
-    <fieldset>
-      <legend>Have you run before?</legend>
-      <label class="inline"><input type="radio" name="has_run_before" value="yes" required
-        {% if form.has_run_before == 'yes' %}checked{% endif %}> Yes</label>
-      <label class="inline"><input type="radio" name="has_run_before" value="no"
-        {% if form.has_run_before == 'no' %}checked{% endif %}> No, I'm new to running</label>
+    {% if step == 1 %}
+      <fieldset>
+        <legend>Have you run before?</legend>
+        <label class="inline"><input type="radio" name="has_run_before" value="yes" required
+          {% if form.has_run_before == 'yes' %}checked{% endif %}> Yes</label>
+        <label class="inline"><input type="radio" name="has_run_before" value="no"
+          {% if form.has_run_before == 'no' %}checked{% endif %}> No, I'm new to running</label>
 
-      {# Hidden by CSS when "No" is picked; the server also ignores these for new runners. #}
-      <div class="best-times">
-        <p class="muted">Recent times (optional), as mm:ss or h:mm:ss</p>
-        <div class="time-grid">
-          {% for field, label in best_time_fields.items() %}
-            <label>{{ label }}
-              <input type="text" name="{{ field }}" value="{{ form[field] }}"
-                     placeholder="{{ '25:30' if field == 'best_5k' else '1:45:00' }}">
-            </label>
-          {% endfor %}
+        {# Hidden by CSS when "No" is picked; the server also ignores these for new runners. #}
+        <div class="best-times">
+          <p class="muted">Recent times (optional), as mm:ss or h:mm:ss</p>
+          <div class="time-grid">
+            {% for field, label in best_time_fields.items() %}
+              <label>{{ label }}
+                <input type="text" name="{{ field }}" value="{{ form[field] }}"
+                       placeholder="{{ '25:30' if field == 'best_5k' else '1:45:00' }}">
+              </label>
+            {% endfor %}
+          </div>
         </div>
-      </div>
-
+      </fieldset>
       <label>Current weekly distance (km)
         <input type="number" name="weekly_km" value="{{ form.weekly_km }}" min="0" max="300" step="0.5" required>
       </label>
-    </fieldset>
 
-    <fieldset>
-      <legend>Days you can run (at least 3)</legend>
-      {% for day in days %}
-        <label class="inline"><input type="checkbox" name="run_days" value="{{ day }}"
-          {% if day in form.run_days %}checked{% endif %}> {{ day }}</label>
-      {% endfor %}
+    {% elif step == 2 %}
+      <fieldset>
+        <legend>Days you can run (at least 3)</legend>
+        {% for day in days %}
+          <label class="inline"><input type="checkbox" name="run_days" value="{{ day }}"
+            {% if day in form.run_days %}checked{% endif %}> {{ day }}</label>
+        {% endfor %}
+      </fieldset>
       <label>Long-run day
         <select name="long_run_day">
           {% for day in days %}
@@ -54,10 +59,8 @@
           {% endfor %}
         </select>
       </label>
-    </fieldset>
 
-    <fieldset>
-      <legend>Goal</legend>
+    {% else %}
       <label>Race distance
         <select name="race_distance">
           {% for key, name in distances.items() %}
@@ -69,9 +72,21 @@
       </label>
       <label>Training start date <input type="date" name="start_date" value="{{ form.start_date }}" required></label>
       <label>Race date <input type="date" name="race_date" value="{{ form.race_date }}" required></label>
-    </fieldset>
+      {% if not plan %}
+        <p class="muted">The new plan becomes your active plan and shows on the calendar.</p>
+      {% endif %}
+    {% endif %}
 
-    <button type="submit" class="button">{% if plan %}Save and regenerate plan{% else %}Create plan{% endif %}</button>
+    {# Next comes first in the HTML so pressing Enter goes forward; CSS puts Back on the left.
+       formnovalidate lets Back work even when this step's fields aren't filled in yet. #}
+    <div class="step-buttons">
+      <button type="submit" name="action" value="next" class="button">
+        {% if step < last_step %}Next{% elif plan %}Save and regenerate plan{% else %}Create plan{% endif %}
+      </button>
+      <button type="submit" name="action" value="back" class="button secondary" formnovalidate>
+        Back
+      </button>
+    </div>
   </form>
 </div>
 {% endblock %}
