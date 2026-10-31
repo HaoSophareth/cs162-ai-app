@@ -255,7 +255,6 @@ def signup():
             db.commit()
             session.clear()
             session["user_id"] = cursor.lastrowid
-            session["username"] = username
             return redirect(url_for("profile"))
     return render_template("auth.html", mode="signup")
 
@@ -269,7 +268,6 @@ def login():
         if user and check_password_hash(user["password_hash"], password):
             session.clear()
             session["user_id"] = user["id"]
-            session["username"] = user["username"]
             return redirect(url_for("week"))
         flash("Wrong username or password.", "error")
     return render_template("auth.html", mode="login")

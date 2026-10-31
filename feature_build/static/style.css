@@ -66,14 +66,12 @@ main { max-width: 1200px; margin: 0 auto; padding: 1rem; }
 .topbar nav { display: flex; flex-shrink: 0; gap: 1rem; align-items: center; }
 /* Calendar while on the calendar: looks like the other links but isn't clickable. */
 .topbar nav a.current { text-decoration: underline; }
-.username { max-width: 10rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Narrow screens: title on one row, links on the next, still a fixed height. */
 @media (max-width: 700px) {
   :root { --topbar-height: 4.75rem; }
   .topbar { flex-direction: column; align-items: flex-start; justify-content: center; gap: 0.25rem; padding: 0 1rem; }
   .brand { max-width: 100%; }
   .topbar nav { gap: 0.75rem; font-size: 0.9rem; }
-  .username { max-width: 5rem; }
 }
 
 /* ---------- Generic pieces ---------- */
