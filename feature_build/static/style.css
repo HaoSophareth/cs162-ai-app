@@ -195,6 +195,7 @@ dd { margin: 0.2rem 0 0; }
   gap: 0.25rem 1rem;
   margin-bottom: 0.5rem;
 }
+.plan-week-title { display: flex; align-items: center; gap: 0.5rem; }
 .plan-week-header h2 { font-size: 1.15rem; font-weight: 500; margin: 0; }
 .this-week .week-grid { border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
 .this-week-badge {

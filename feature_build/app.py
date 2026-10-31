@@ -790,6 +790,35 @@ def edit_run(run_id):
     return render_template("edit_run.html", run=run)
 
 
+def week_done_km(plan_id, monday):
+    """A week's done km, as shown in its heading."""
+    total = get_db().execute(
+        "SELECT COALESCE(SUM(distance_km), 0) FROM runs"
+        " WHERE plan_id = ? AND user_id = ? AND done AND date BETWEEN ? AND ?",
+        (plan_id, session["user_id"], monday.isoformat(), (monday + timedelta(days=6)).isoformat()),
+    ).fetchone()[0]
+    return f"{round(total, 1):g}"
+
+
+@app.route("/plans/<int:plan_id>/weeks/<week_date>/done", methods=["POST"])
+@login_required
+def set_week_done(plan_id, week_date):
+    """Mark all of one week's runs done or not done."""
+    get_own_plan(plan_id)
+    day = parse_date(week_date)
+    if day is None:
+        abort(404)
+    monday = plan.monday_of(day)
+    done = 1 if request.form.get("done") else 0
+    db = get_db()
+    db.execute("UPDATE runs SET done = ? WHERE plan_id = ? AND user_id = ? AND date BETWEEN ? AND ?",
+               (done, plan_id, session["user_id"], monday.isoformat(), (monday + timedelta(days=6)).isoformat()))
+    db.commit()
+    if request.headers.get("Accept") == "application/json":
+        return jsonify(done=bool(done), week_done_km=week_done_km(plan_id, monday))
+    return redirect(url_for("week", week=monday))
+
+
 @app.route("/runs/<int:run_id>/done", methods=["POST"])
 @login_required
 def set_done(run_id):
@@ -803,12 +832,7 @@ def set_done(run_id):
     # the week's new done km. Without JavaScript, the normal redirects below apply.
     if request.headers.get("Accept") == "application/json":
         monday = plan.monday_of(date.fromisoformat(run["date"]))
-        week_done = db.execute(
-            "SELECT COALESCE(SUM(distance_km), 0) FROM runs"
-            " WHERE plan_id = ? AND user_id = ? AND done AND date BETWEEN ? AND ?",
-            (run["plan_id"], session["user_id"], monday.isoformat(), (monday + timedelta(days=6)).isoformat()),
-        ).fetchone()[0]
-        return jsonify(done=bool(done), week_done_km=f"{round(week_done, 1):g}")
+        return jsonify(done=bool(done), week_done_km=week_done_km(run["plan_id"], monday))
     # Go back to wherever the checkbox was clicked.
     next_page = request.form.get("next")
     if next_page == "week":

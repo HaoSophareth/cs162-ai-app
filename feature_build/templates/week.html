@@ -13,11 +13,25 @@
   <section class="plan-week {% if week.monday == this_monday %}this-week{% endif %}"
            {% if week.monday == target %}id="target-week"{% endif %}>
     <header class="plan-week-header">
+      {% set week_runs = week.days|map(attribute="runs")|sum(start=[]) %}
+      <div class="plan-week-title">
+        {# Marks all the week's runs at once; ticked when every run is done. No runs, no box. #}
+        {% if week_runs %}
+          {% set all_done = week_runs|rejectattr("done")|list|length == 0 %}
+          <form method="post" action="{{ url_for('set_week_done', plan_id=active.id, week_date=week.monday) }}" class="done-form week-done-form">
+            <label class="done-box" title="{{ 'Mark all this week\'s runs as not done' if all_done else 'Mark all this week\'s runs as done' }}">
+              <input type="checkbox" name="done" value="1" {% if all_done %}checked{% endif %}
+                     onchange="this.form.requestSubmit()" aria-label="All runs done this week">
+            </label>
+            <noscript><button>Save</button></noscript>
+          </form>
+        {% endif %}
       <h2>
         {{ week.monday.strftime('%b') }} {{ week.monday.day }} - {{ week.sunday.strftime('%b') }} {{ week.sunday.day }}
         {% if week.number %}· Week {{ week.number }}{% endif %}
         {% if week.monday == this_monday %}<span class="this-week-badge">This week</span>{% endif %}
       </h2>
+      </div>
       <span class="muted">
         <strong>{{ "%g"|format(week.planned_km|round(1)) }}</strong> km planned ·
         <span class="week-done"><strong>{{ "%g"|format(week.done_km|round(1)) }}</strong> km done</span>
@@ -65,9 +79,19 @@
       const response = await fetch(form.action, { method: "POST", body, headers: { Accept: "application/json" } });
       if (!response.ok || response.redirected) throw new Error("not saved");
       const result = await response.json();
-      form.closest(".run-card").classList.toggle("done", result.done);
-      form.querySelector(".done-box").title = result.done ? "Mark as not done" : "Mark as done";
-      form.closest(".plan-week").querySelector(".week-done strong").textContent = result.week_done_km;
+      const week = form.closest(".plan-week");
+      const allCards = [...week.querySelectorAll(".run-card")];
+      // The week's box changes all its runs; a run's own box changes just that run.
+      for (const card of form.closest(".run-card") ? [form.closest(".run-card")] : allCards) {
+        card.classList.toggle("done", result.done);
+        card.querySelector('input[type="checkbox"]').checked = result.done;
+        card.querySelector(".done-box").title = result.done ? "Mark as not done" : "Mark as done";
+      }
+      const allDone = allCards.every((card) => card.classList.contains("done"));
+      week.querySelector(".week-done-form input").checked = allDone;
+      week.querySelector(".week-done-form .done-box").title =
+        allDone ? "Mark all this week's runs as not done" : "Mark all this week's runs as done";
+      week.querySelector(".week-done strong").textContent = result.week_done_km;
       box.disabled = false;
       box.focus({ preventScroll: true });
     } catch {
