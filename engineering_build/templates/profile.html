@@ -65,5 +65,21 @@
       </dl>
     {% endif %}
   </section>
+
+  <section class="panel form-panel delete-account">
+    <h2>Delete account</h2>
+    <div class="flash flash-warning">
+      This permanently deletes your account and all its plans, runs and history. It can't be undone.
+    </div>
+    <form method="post" action="{{ url_for('main.delete_account') }}" autocomplete="off">
+      <label class="field">
+        <span class="field-label">Type your username ({{ current_user.username }}) to confirm <span class="required-mark">*</span></span>
+        <input type="text" name="confirm_username" required>
+      </label>
+      <div class="form-actions">
+        <button type="submit" class="button danger-solid">Delete my account</button>
+      </div>
+    </form>
+  </section>
 {% endif %}
 {% endblock %}

@@ -306,3 +306,7 @@ input[type=text], input[type=password], input[type=date], input[type=number], se
 .history .details { grid-template-columns: 1fr 6rem; margin-bottom: 1.25rem; }
 .history .details:last-child { margin-bottom: 0; }
 .history .details dt { font-weight: 400; }
+
+/* Delete account on the profile page */
+.panel.form-panel.delete-account { margin-top: 1.5rem; }
+.delete-account h2 { margin: 0 0 1rem; font-size: 1.15rem; }

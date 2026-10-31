@@ -2,7 +2,7 @@ from datetime import date, timedelta
 from urllib.parse import urlencode
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
-from flask_login import current_user, login_required
+from flask_login import current_user, login_required, logout_user
 from sqlalchemy import func
 
 from models import Plan, Run, db
@@ -217,6 +217,23 @@ def profile():
             "height_cm": current_user.height_cm or "",
         }
     return render_template("profile.html", form=form, onboarding=onboarding, history=running_history())
+
+
+@main_bp.route("/profile/delete", methods=["POST"])
+@login_required
+def delete_account():
+    if request.form.get("confirm_username", "").strip() != current_user.username:
+        flash("That username doesn't match, so nothing was deleted.", "error")
+        return redirect(url_for("main.profile"))
+
+    # Always the logged-in user. Their plans and runs go with them through the
+    # cascades in models.py, all in this one commit.
+    db.session.delete(current_user._get_current_object())
+    db.session.commit()
+    logout_user()
+    session.pop("plan_form", None)
+    flash("Your account has been deleted.", "success")
+    return redirect(url_for("auth.login"))
 
 
 def read_step_form(step):
