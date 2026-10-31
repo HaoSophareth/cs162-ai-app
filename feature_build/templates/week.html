@@ -25,6 +25,8 @@
 
 <p class="muted calendar-hint">Swipe sideways or use ← → to change week</p>
 
+{% include "_no_plan.html" %}
+
 <div class="week-grid calendar">
   {% for day in days %}
     <section class="day {% if day.date == today %}today{% endif %}">
@@ -45,7 +47,10 @@
   {% endfor %}
 </div>
 
-<p class="muted">
-  Training for a {{ DISTANCES[setup.distance][0] }} on {{ setup.race_date|nice_date }}.
-</p>
+{% if active %}
+  <p class="muted">
+    Training for a {{ DISTANCES[active.distance][0] }} on {{ active.race_date|nice_date }} ·
+    <a href="{{ url_for('plans') }}">Switch plan</a>
+  </p>
+{% endif %}
 {% endblock %}

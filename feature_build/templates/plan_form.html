@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Setup{% endblock %}
+{% block title %}{{ "Edit plan" if existing else "Create a plan" }}{% endblock %}
 {% block content %}
 <div class="card">
-  <h1>{{ "Edit your setup" if existing else "Set up your training" }}</h1>
+  <h1>{{ "Edit plan" if existing else "Create a plan" }}</h1>
 
   {% if existing %}
     <p class="flash warning">
-      Saving will regenerate your whole plan. Any changes you made to runs
+      Saving will regenerate this whole plan. Any changes you made to its runs
       (dates, distances, notes, done marks) will be replaced.
     </p>
   {% endif %}
@@ -19,13 +19,31 @@
     </p>
   {% endif %}
 
-  <form method="post">
+  <form method="post" class="plan-form">
     <fieldset>
-      <legend>Experience</legend>
+      <legend>Have you run before?</legend>
+      <label class="choice"><input type="radio" name="experience" value="experienced" id="ran-before" required
+        {% if values.experience == "experienced" %}checked{% endif %}> Yes</label>
       <label class="choice"><input type="radio" name="experience" value="new"
-        {% if values.experience == "new" %}checked{% endif %}> I'm a new runner</label>
-      <label class="choice"><input type="radio" name="experience" value="experienced"
-        {% if values.experience == "experienced" %}checked{% endif %}> I have run before</label>
+        {% if values.experience == "new" %}checked{% endif %}> No, I'm new to running</label>
+
+      {# Shown only when "Yes" is ticked (see .race-times in style.css). #}
+      <div class="race-times">
+        <p class="muted">Recent race times, if you have them (optional), e.g. 27:30 or 1:58:00.</p>
+        <div class="time-grid">
+          {% for key, label in RACE_TIMES %}
+            <label>{{ label }}
+              <input name="{{ key }}" placeholder="e.g. 27:30" value="{{ values[key] or '' }}">
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <label>How many km do you run per week now?
+        <input type="number" name="weekly_km" min="0" max="200" step="0.5" required
+               value="{{ '%g'|format(values.weekly_km) if values.weekly_km is not none else '' }}">
+      </label>
+      <p class="muted">Your plan starts from here. Enter 0 if you don't run yet.</p>
     </fieldset>
 
     <fieldset>
@@ -65,11 +83,11 @@
 
     {% if short_warning %}
       <input type="hidden" name="confirm_short" value="1">
-      <button class="primary">Create plan anyway</button>
+      <button class="primary">{{ "Save plan anyway" if existing else "Create plan anyway" }}</button>
     {% else %}
-      <button class="primary">{{ "Save and regenerate plan" if existing else "Create my plan" }}</button>
+      <button class="primary">{{ "Save and regenerate plan" if existing else "Create plan" }}</button>
     {% endif %}
-    {% if existing %}<a href="{{ url_for('week') }}">Cancel</a>{% endif %}
+    <a href="{{ url_for('plans') if existing else url_for('week') }}">Cancel</a>
   </form>
 </div>
 {% endblock %}

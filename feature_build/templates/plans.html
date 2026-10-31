@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Your plans{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="plans-header">
+    <h1>Your plans</h1>
+    <a class="button primary" href="{{ url_for('new_plan') }}">+ Create plan</a>
+  </div>
+
+  {% if not plans %}
+    <p class="muted">You don't have any plans yet.</p>
+  {% endif %}
+
+  {% for p in plans %}
+    <section class="plan-item {% if p.id == active_id %}active{% endif %}">
+      <div>
+        <h2>
+          {{ DISTANCES[p.distance][0] }} on {{ p.race_date|nice_date }}
+          {% if p.id == active_id %}<span class="active-badge">Active</span>{% endif %}
+        </h2>
+        <p class="muted">
+          Starts {{ p.start_date|nice_date }} ·
+          {{ weeks[p.id] }} weeks ·
+          {{ p.done_count }} of {{ p.run_count }} runs done
+        </p>
+      </div>
+      <div class="actions">
+        {% if p.id != active_id %}
+          <form method="post" action="{{ url_for('activate_plan', plan_id=p.id) }}" class="inline">
+            <button class="primary">Make active</button>
+          </form>
+        {% endif %}
+        <a class="button" href="{{ url_for('edit_plan', plan_id=p.id) }}">Edit</a>
+        <form method="post" action="{{ url_for('delete_plan', plan_id=p.id) }}" class="inline"
+              onsubmit="return confirm('Delete this plan and all its runs? This cannot be undone.')">
+          <button class="danger">Delete</button>
+        </form>
+      </div>
+    </section>
+  {% endfor %}
+</div>
+{% endblock %}

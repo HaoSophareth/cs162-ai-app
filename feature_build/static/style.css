@@ -260,3 +260,50 @@ h1.run-done { opacity: 0.5; }
   .day { border-left: none; border-top: 1px solid var(--border); min-height: auto; }
   .day header { text-align: left; }
 }
+
+/* ---------- Plans and plan form ---------- */
+/* Race-time boxes only appear once "Yes, I have run before" is ticked. */
+.race-times { display: none; }
+.plan-form:has(#ran-before:checked) .race-times { display: block; }
+.time-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0 1rem; }
+
+.no-plan {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: #e8f0fe;
+  border: 1px solid #c6dafc;
+  border-radius: 8px;
+}
+.no-plan .muted { display: block; margin-top: 0.2rem; }
+a.button.primary { background: #1a73e8; color: white; border-color: #1a73e8; }
+a.button.primary:hover { background: #1765cc; }
+
+.plans-header { display: flex; justify-content: space-between; align-items: center; }
+.plan-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border);
+}
+.plan-item h2 { font-size: 1.05rem; margin: 0 0 0.3rem; }
+.plan-item p { margin: 0; }
+.plan-item .actions { margin-top: 0; }
+.active-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: #e6f4ea;
+  color: #137333;
+  vertical-align: middle;
+}
+button.danger { color: #c5221f; }
+button.danger:hover { background: #fce8e6; }

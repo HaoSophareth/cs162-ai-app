@@ -1,6 +1,6 @@
 """Training plan generator: fixed rules, no AI.
 
-generate_plan() takes the setup answers and returns a list of runs
+generate_plan() takes the plan answers and returns a list of runs
 (plain dicts). It knows nothing about the web app or the database.
 """
 
@@ -14,18 +14,21 @@ DISTANCES = {
     "marathon": ("Marathon", 32, 16),
 }
 
-# Weekly km in week 1. New runners start lower.
-START_WEEKLY_KM = {
-    "new": {"5k": 10, "10k": 12, "half": 15, "marathon": 20},
-    "experienced": {"5k": 15, "10k": 20, "half": 25, "marathon": 30},
-}
+# Week 1 starts from the runner's current weekly km, kept within these limits.
+# New runners get a lower ceiling: their body isn't used to running yet,
+# even if they already walk-run a fair amount.
+START_KM_LIMITS = {"new": (8, 15), "experienced": (12, 70)}
 
 # Weekly volume stops growing here, so short races don't balloon.
 MAX_WEEKLY_KM = {"5k": 30, "10k": 45, "half": 55, "marathon": 70}
 
 RACE_KM = {"5k": 5, "10k": 10, "half": 21.1, "marathon": 42.2}
 
-MIN_RUN_KM = 3
+# Shortest runs the plan will schedule. Kept small so a brand-new runner's
+# first weeks stay close to their (low) starting volume.
+MIN_EASY_KM = 2
+MIN_QUALITY_KM = 3.5
+RACE_WEEK_EASY_KM = 3
 
 
 def monday_of(day):
@@ -46,13 +49,19 @@ def round_half(km):
     return round(km * 2) / 2
 
 
-def weekly_targets(total_weeks, experience, distance):
+def starting_weekly_km(experience, current_km, distance):
+    """Week 1 volume: the runner's current weekly km, within sensible limits."""
+    low, high = START_KM_LIMITS[experience]
+    return min(max(current_km, low), high, MAX_WEEKLY_KM[distance])
+
+
+def weekly_targets(total_weeks, start_km, distance):
     """Planned km for each week, plus whether that week is a cutback or taper week."""
     taper_weeks = 2 if total_weeks >= 8 else 1
     build_weeks = total_weeks - taper_weeks
 
     weeks = []
-    peak = START_WEEKLY_KM[experience][distance]
+    peak = start_km
     for week_number in range(1, build_weeks + 1):
         if week_number % 4 == 0:
             # Cutback: drop volume to let the body recover, then resume
@@ -109,9 +118,9 @@ def describe(run_type, km, distance):
     if run_type == "long":
         return f"Long run of {km:g} km, slow and steady. Practise drinking and fuelling."
     if run_type == "tempo":
-        middle = max(1, round_half(km - 3))
-        return (f"1.5 km easy warm-up, {middle:g} km at a comfortably hard pace "
-                f"(you can speak a few words, not full sentences), 1.5 km easy cool-down.")
+        middle = max(1, round_half(km - 2))
+        return (f"1 km easy warm-up, {middle:g} km at a comfortably hard pace "
+                f"(you can speak a few words, not full sentences), 1 km easy cool-down.")
     if run_type == "intervals":
         # Each 400 m fast + 400 m jog is 0.8 km, after 2 km of warm-up/cool-down.
         repeats = max(2, round((km - 2) / 0.8))
@@ -131,13 +140,15 @@ def make_run(day, run_type, km, distance):
     }
 
 
-def generate_plan(experience, run_days, long_day, distance, start_date, race_date):
+def generate_plan(experience, current_km, run_days, long_day, distance, start_date, race_date):
     """Return the full list of runs.
 
+    current_km is how much the runner runs per week now.
     run_days and long_day use Python weekday numbers (Monday = 0).
     """
     total_weeks = count_weeks(start_date, race_date)
-    weeks = weekly_targets(total_weeks, experience, distance)
+    start_km = starting_weekly_km(experience, current_km, distance)
+    weeks = weekly_targets(total_weeks, start_km, distance)
     longs = long_run_targets(weeks, distance)
     first_monday = monday_of(start_date)
 
@@ -152,7 +163,7 @@ def generate_plan(experience, run_days, long_day, distance, start_date, race_dat
             # Keep race week light: short easy runs, nothing the day before.
             for day in days:
                 if (race_date - day).days > 1:
-                    runs.append(make_run(day, "easy", MIN_RUN_KM, distance))
+                    runs.append(make_run(day, "easy", RACE_WEEK_EASY_KM, distance))
             continue
 
         long_date = next((d for d in days if d.weekday() == long_day), None)
@@ -167,11 +178,11 @@ def generate_plan(experience, run_days, long_day, distance, start_date, race_dat
             quality_date = d
             break
         quality_type = "tempo" if i % 2 == 0 else "intervals"
-        quality_km = max(4, round_half(week["km"] * 0.2)) if quality_date else 0
+        quality_km = max(MIN_QUALITY_KM, round_half(week["km"] * 0.2)) if quality_date else 0
 
         easy_days = [d for d in days if d not in (long_date, quality_date)]
         left_over = week["km"] - long_km - quality_km
-        easy_km = max(MIN_RUN_KM, round_half(left_over / len(easy_days))) if easy_days else 0
+        easy_km = max(MIN_EASY_KM, round_half(left_over / len(easy_days))) if easy_days else 0
 
         for day in days:
             if day == long_date:

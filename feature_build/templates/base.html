@@ -14,7 +14,8 @@
       <nav>
         <a href="{{ url_for('week') }}">Week</a>
         <a href="{{ url_for('month') }}">Month</a>
-        <a href="{{ url_for('setup') }}">Setup</a>
+        <a href="{{ url_for('plans') }}">Plans</a>
+        <a href="{{ url_for('profile') }}">Profile</a>
         <span class="muted">{{ session.username }}</span>
         <form method="post" action="{{ url_for('logout') }}" class="inline">
           <button class="link-button">Log out</button>

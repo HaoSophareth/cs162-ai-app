@@ -1,6 +1,7 @@
 """Race training planner: a small Flask app backed by a SQLite file."""
 
 import os
+import re
 import secrets
 import sqlite3
 from datetime import date, timedelta
@@ -14,11 +15,16 @@ import plan
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "instance")
-DB_PATH = os.path.join(DATA_DIR, "training.db")
+# planner.db replaced training.db when plans changed (profile + multiple plans).
+# The old file is left alone; it just isn't used any more.
+DB_PATH = os.path.join(DATA_DIR, "planner.db")
 
 WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 WEEKDAY_VALUES = [str(i) for i in range(7)]
 RUN_TYPES = {"easy": "Easy", "long": "Long run", "tempo": "Tempo", "intervals": "Intervals", "race": "Race"}
+# Optional recent race times asked when creating a plan: (column, label).
+RACE_TIMES = [("time_5k", "5K"), ("time_10k", "10K"), ("time_half", "Half marathon"),
+              ("time_marathon", "Marathon")]
 
 app = Flask(__name__)
 
@@ -39,11 +45,23 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL
+    password_hash TEXT NOT NULL,
+    -- profile, filled in right after signup (not used by the plan)
+    sex TEXT,
+    age INTEGER,
+    weight_kg REAL,
+    height_cm REAL,
+    active_plan_id INTEGER       -- the plan the calendar shows, or NULL
 );
-CREATE TABLE IF NOT EXISTS setups (
-    user_id INTEGER PRIMARY KEY REFERENCES users(id),
-    experience TEXT NOT NULL,
+CREATE TABLE IF NOT EXISTS plans (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    experience TEXT NOT NULL,    -- "new" or "experienced"
+    time_5k TEXT,                -- optional recent race times, e.g. "27:30"
+    time_10k TEXT,
+    time_half TEXT,
+    time_marathon TEXT,
+    weekly_km REAL NOT NULL,     -- weekly distance when the plan was made
     run_days TEXT NOT NULL,      -- weekday numbers, e.g. "0,2,5" (Monday = 0)
     long_day INTEGER NOT NULL,
     distance TEXT NOT NULL,
@@ -52,7 +70,8 @@ CREATE TABLE IF NOT EXISTS setups (
 );
 CREATE TABLE IF NOT EXISTS runs (
     id INTEGER PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id),
+    plan_id INTEGER NOT NULL REFERENCES plans(id),
+    user_id INTEGER NOT NULL REFERENCES users(id),  -- copied from the plan, to keep ownership checks simple
     date TEXT NOT NULL,
     type TEXT NOT NULL,
     distance_km REAL NOT NULL,
@@ -83,38 +102,77 @@ def init_db():
         db.executescript(SCHEMA)
 
 
-def get_setup(user_id):
-    return get_db().execute("SELECT * FROM setups WHERE user_id = ?", (user_id,)).fetchone()
+def get_user():
+    return get_db().execute("SELECT * FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+
+
+def get_active_plan():
+    return get_db().execute(
+        "SELECT plans.* FROM plans JOIN users ON users.active_plan_id = plans.id"
+        " WHERE users.id = ? AND plans.user_id = users.id",
+        (session["user_id"],),
+    ).fetchone()
+
+
+# Filtering by user_id means nobody can open another user's plan or run by URL.
+
+def get_own_plan(plan_id):
+    row = get_db().execute("SELECT * FROM plans WHERE id = ? AND user_id = ?",
+                           (plan_id, session["user_id"])).fetchone()
+    if row is None:
+        abort(404)
+    return row
 
 
 def get_own_run(run_id):
-    # Filtering by user_id means nobody can open another user's run by URL.
-    run = get_db().execute(
-        "SELECT * FROM runs WHERE id = ? AND user_id = ?", (run_id, session["user_id"])
-    ).fetchone()
+    run = get_db().execute("SELECT * FROM runs WHERE id = ? AND user_id = ?",
+                           (run_id, session["user_id"])).fetchone()
     if run is None:
         abort(404)
     return run
 
 
-def save_plan(user_id, form):
-    """Store the setup answers and replace all runs with a freshly generated plan."""
+def save_plan(values, plan_id=None):
+    """Create a plan (plan_id=None) or update one, and (re)generate its runs.
+
+    A new plan becomes the active one. Returns the plan id.
+    """
+    user_id = session["user_id"]
     db = get_db()
-    db.execute("DELETE FROM setups WHERE user_id = ?", (user_id,))
-    db.execute(
-        "INSERT INTO setups (user_id, experience, run_days, long_day, distance, start_date, race_date)"
-        " VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (user_id, form["experience"], ",".join(map(str, form["run_days"])), form["long_day"],
-         form["distance"], form["start_date"].isoformat(), form["race_date"].isoformat()),
-    )
-    db.execute("DELETE FROM runs WHERE user_id = ?", (user_id,))
-    runs = plan.generate_plan(form["experience"], form["run_days"], form["long_day"],
-                              form["distance"], form["start_date"], form["race_date"])
+    columns = {
+        "experience": values["experience"],
+        **{key: values[key] for key, _ in RACE_TIMES},
+        "weekly_km": values["weekly_km"],
+        "run_days": ",".join(map(str, values["run_days"])),
+        "long_day": values["long_day"],
+        "distance": values["distance"],
+        "start_date": values["start_date"].isoformat(),
+        "race_date": values["race_date"].isoformat(),
+    }
+    if plan_id is None:
+        cursor = db.execute(
+            f"INSERT INTO plans (user_id, {', '.join(columns)}) VALUES (?{', ?' * len(columns)})",
+            (user_id, *columns.values()),
+        )
+        plan_id = cursor.lastrowid
+        db.execute("UPDATE users SET active_plan_id = ? WHERE id = ?", (plan_id, user_id))
+    else:
+        db.execute(
+            f"UPDATE plans SET {', '.join(name + ' = ?' for name in columns)} WHERE id = ? AND user_id = ?",
+            (*columns.values(), plan_id, user_id),
+        )
+
+    db.execute("DELETE FROM runs WHERE plan_id = ? AND user_id = ?", (plan_id, user_id))
+    runs = plan.generate_plan(values["experience"], values["weekly_km"], values["run_days"],
+                              values["long_day"], values["distance"],
+                              values["start_date"], values["race_date"])
     db.executemany(
-        "INSERT INTO runs (user_id, date, type, distance_km, description) VALUES (?, ?, ?, ?, ?)",
-        [(user_id, r["date"].isoformat(), r["type"], r["distance_km"], r["description"]) for r in runs],
+        "INSERT INTO runs (plan_id, user_id, date, type, distance_km, description) VALUES (?, ?, ?, ?, ?, ?)",
+        [(plan_id, user_id, r["date"].isoformat(), r["type"], r["distance_km"], r["description"])
+         for r in runs],
     )
-    db.commit()  # one commit, so the old plan is never half-replaced
+    db.commit()  # one commit, so a plan is never half-replaced
+    return plan_id
 
 
 # ---------- Helpers ----------
@@ -122,7 +180,10 @@ def save_plan(user_id, form):
 def login_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
-        if "user_id" not in session:
+        # The second check catches a leftover login for an account that no
+        # longer exists (e.g. after switching to a fresh database).
+        if "user_id" not in session or get_user() is None:
+            session.clear()
             return redirect(url_for("login"))
         return view(*args, **kwargs)
     return wrapped
@@ -131,6 +192,13 @@ def login_required(view):
 def parse_date(text):
     try:
         return date.fromisoformat(text)
+    except (TypeError, ValueError):
+        return None
+
+
+def parse_number(text):
+    try:
+        return float(text)
     except (TypeError, ValueError):
         return None
 
@@ -149,7 +217,8 @@ def google_calendar_link(run):
 
 @app.context_processor
 def template_helpers():
-    return {"RUN_TYPES": RUN_TYPES, "WEEKDAYS": WEEKDAYS, "DISTANCES": plan.DISTANCES}
+    return {"RUN_TYPES": RUN_TYPES, "WEEKDAYS": WEEKDAYS, "DISTANCES": plan.DISTANCES,
+            "RACE_TIMES": RACE_TIMES}
 
 
 @app.template_filter("nice_date")
@@ -178,7 +247,7 @@ def signup():
             session.clear()
             session["user_id"] = cursor.lastrowid
             session["username"] = username
-            return redirect(url_for("setup"))
+            return redirect(url_for("profile"))
     return render_template("auth.html", mode="signup")
 
 
@@ -203,21 +272,84 @@ def logout():
     return redirect(url_for("login"))
 
 
-# ---------- Setup ----------
+# ---------- Profile ----------
 
-def read_setup_form(form):
-    """Return (values, errors) from the submitted setup form."""
+@app.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+    user = get_user()
+    first_time = user["sex"] is None
+
+    if request.method == "POST":
+        values = {
+            "sex": request.form.get("sex"),
+            "age": parse_number(request.form.get("age")),
+            "weight_kg": parse_number(request.form.get("weight_kg")),
+            "height_cm": parse_number(request.form.get("height_cm")),
+        }
+        errors = []
+        if values["sex"] not in ("male", "female"):
+            errors.append("Pick male or female.")
+        if values["age"] is None or not 10 <= values["age"] <= 100:
+            errors.append("Age must be between 10 and 100.")
+        if values["weight_kg"] is None or not 25 <= values["weight_kg"] <= 250:
+            errors.append("Weight must be between 25 and 250 kg.")
+        if values["height_cm"] is None or not 100 <= values["height_cm"] <= 250:
+            errors.append("Height must be between 100 and 250 cm.")
+        if not errors:
+            db = get_db()
+            db.execute("UPDATE users SET sex = ?, age = ?, weight_kg = ?, height_cm = ? WHERE id = ?",
+                       (values["sex"], int(values["age"]), values["weight_kg"], values["height_cm"],
+                        user["id"]))
+            db.commit()
+            flash("Profile saved.", "success")
+            return redirect(url_for("week"))
+        for error in errors:
+            flash(error, "error")
+        return render_template("profile.html", values=request.form, first_time=first_time)
+
+    return render_template("profile.html", values=user, first_time=first_time)
+
+
+def profile_required(view):
+    """Send users who skipped the profile questions back to them first."""
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if get_user()["sex"] is None:
+            return redirect(url_for("profile"))
+        return view(*args, **kwargs)
+    return wrapped
+
+
+# ---------- Plans ----------
+
+TIME_PATTERN = re.compile(r"^(\d{1,2}:)?[0-5]?\d:[0-5]\d$")  # mm:ss or h:mm:ss
+
+
+def read_plan_form(form):
+    """Return (values, errors) from the submitted plan form."""
     values = {
         "experience": form.get("experience"),
+        "weekly_km": parse_number(form.get("weekly_km")),
         "run_days": sorted({int(d) for d in form.getlist("run_days") if d in WEEKDAY_VALUES}),
-        "long_day": int(form.get("long_day", -1)) if form.get("long_day", "").isdigit() else -1,
+        "long_day": int(form["long_day"]) if form.get("long_day", "").isdigit() else -1,
         "distance": form.get("distance"),
         "start_date": parse_date(form.get("start_date")),
         "race_date": parse_date(form.get("race_date")),
     }
     errors = []
-    if values["experience"] not in plan.START_WEEKLY_KM:
-        errors.append("Pick your running experience.")
+    if values["experience"] not in plan.START_KM_LIMITS:
+        errors.append("Tell us whether you have run before.")
+
+    # Race times only make sense for people who have run before; blank is fine.
+    for key, label in RACE_TIMES:
+        text = form.get(key, "").strip()
+        values[key] = text if values["experience"] == "experienced" and text else None
+        if values[key] and not TIME_PATTERN.match(text):
+            errors.append(f"Write your {label} time as mm:ss or h:mm:ss, e.g. 27:30 or 1:58:00.")
+
+    if values["weekly_km"] is None or not 0 <= values["weekly_km"] <= 200:
+        errors.append("Enter how many km you run per week now (0 if you don't run yet).")
     if len(values["run_days"]) < 3:
         errors.append("Pick at least 3 days you can run.")
     if values["long_day"] not in values["run_days"]:
@@ -231,45 +363,103 @@ def read_setup_form(form):
     return values, errors
 
 
-@app.route("/setup", methods=["GET", "POST"])
-@login_required
-def setup():
-    user_id = session["user_id"]
-    existing = get_setup(user_id)
-
+def handle_plan_form(existing=None):
+    """Shared by "create plan" and "edit plan". existing is the plan being edited."""
     if request.method == "POST":
-        values, errors = read_setup_form(request.form)
+        values, errors = read_plan_form(request.form)
         if not errors:
             short = plan.is_too_short(values["distance"], values["start_date"], values["race_date"])
             # Too-short plans are allowed, but only after the user has seen the warning.
             if short and not request.form.get("confirm_short"):
                 weeks = plan.count_weeks(values["start_date"], values["race_date"])
                 label, _, recommended = plan.DISTANCES[values["distance"]]
-                return render_template("setup.html", values=values, existing=existing,
+                return render_template("plan_form.html", values=values, existing=existing,
                                        short_warning=(weeks, label, recommended))
-            save_plan(user_id, values)
-            flash("Your training plan is ready." if not existing else "Your plan was regenerated.", "success")
-            return redirect(url_for("week"))
+            save_plan(values, existing["id"] if existing else None)
+            flash("Your plan was regenerated." if existing else "Your training plan is ready.", "success")
+            return redirect(url_for("plans") if existing else url_for("week"))
         for error in errors:
             flash(error, "error")
-        return render_template("setup.html", values=values, existing=existing)
+        return render_template("plan_form.html", values=values, existing=existing)
 
     if existing:
         values = dict(existing)
         values["run_days"] = [int(d) for d in existing["run_days"].split(",")]
     else:
-        values = {"experience": "new", "run_days": [1, 3, 5], "long_day": 5, "distance": "5k",
-                  "start_date": date.today(), "race_date": date.today() + timedelta(weeks=10)}
-    return render_template("setup.html", values=values, existing=existing)
+        values = {"experience": "", "weekly_km": None, "run_days": [1, 3, 5], "long_day": 5,
+                  "distance": "5k", "start_date": date.today(),
+                  "race_date": date.today() + timedelta(weeks=10)}
+    return render_template("plan_form.html", values=values, existing=existing)
+
+
+@app.route("/plans")
+@login_required
+@profile_required
+def plans():
+    rows = get_db().execute(
+        "SELECT plans.*,"
+        " (SELECT COUNT(*) FROM runs WHERE runs.plan_id = plans.id) AS run_count,"
+        " (SELECT COUNT(*) FROM runs WHERE runs.plan_id = plans.id AND done) AS done_count"
+        " FROM plans WHERE user_id = ? ORDER BY race_date",
+        (session["user_id"],),
+    ).fetchall()
+    weeks = {p["id"]: plan.count_weeks(date.fromisoformat(p["start_date"]), date.fromisoformat(p["race_date"]))
+             for p in rows}
+    return render_template("plans.html", plans=rows, weeks=weeks, active_id=get_user()["active_plan_id"])
+
+
+@app.route("/plans/new", methods=["GET", "POST"])
+@login_required
+@profile_required
+def new_plan():
+    return handle_plan_form()
+
+
+@app.route("/plans/<int:plan_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_plan(plan_id):
+    return handle_plan_form(get_own_plan(plan_id))
+
+
+@app.route("/plans/<int:plan_id>/activate", methods=["POST"])
+@login_required
+def activate_plan(plan_id):
+    get_own_plan(plan_id)
+    db = get_db()
+    db.execute("UPDATE users SET active_plan_id = ? WHERE id = ?", (plan_id, session["user_id"]))
+    db.commit()
+    flash("Active plan switched.", "success")
+    return redirect(url_for("week"))
+
+
+@app.route("/plans/<int:plan_id>/delete", methods=["POST"])
+@login_required
+def delete_plan(plan_id):
+    get_own_plan(plan_id)
+    user_id = session["user_id"]
+    db = get_db()
+    db.execute("DELETE FROM runs WHERE plan_id = ? AND user_id = ?", (plan_id, user_id))
+    db.execute("DELETE FROM plans WHERE id = ? AND user_id = ?", (plan_id, user_id))
+    if get_user()["active_plan_id"] == plan_id:
+        # The active plan is gone: fall back to the most recently created one, if any.
+        latest = db.execute("SELECT id FROM plans WHERE user_id = ? ORDER BY id DESC LIMIT 1",
+                            (user_id,)).fetchone()
+        db.execute("UPDATE users SET active_plan_id = ? WHERE id = ?",
+                   (latest["id"] if latest else None, user_id))
+    db.commit()
+    flash("Plan deleted.", "success")
+    return redirect(url_for("plans"))
 
 
 # ---------- Calendar views (week and month) ----------
 
-def load_runs(first_day, last_day):
-    """The user's runs between two dates (inclusive)."""
+def load_runs(active, first_day, last_day):
+    """Runs of the active plan between two dates (inclusive). No plan, no runs."""
+    if active is None:
+        return []
     return get_db().execute(
-        "SELECT * FROM runs WHERE user_id = ? AND date BETWEEN ? AND ? ORDER BY date, id",
-        (session["user_id"], first_day.isoformat(), last_day.isoformat()),
+        "SELECT * FROM runs WHERE plan_id = ? AND user_id = ? AND date BETWEEN ? AND ? ORDER BY date, id",
+        (active["id"], session["user_id"], first_day.isoformat(), last_day.isoformat()),
     ).fetchall()
 
 
@@ -282,30 +472,31 @@ def build_days(first_day, count, runs):
     return days
 
 
-def plan_week_number(monday, setup_row):
-    """Week number within the plan, or None if this week is outside it."""
-    start = date.fromisoformat(setup_row["start_date"])
-    race = date.fromisoformat(setup_row["race_date"])
+def plan_week_number(monday, active):
+    """Week number within the active plan, or None if this week is outside it."""
+    if active is None:
+        return None
+    start = date.fromisoformat(active["start_date"])
+    race = date.fromisoformat(active["race_date"])
     number = (monday - plan.monday_of(start)).days // 7 + 1
     return number if 1 <= number <= plan.count_weeks(start, race) else None
 
 
-def default_day(setup_row):
+def default_day(active):
     # Before the plan starts, open on its first week instead of an empty one.
-    start = date.fromisoformat(setup_row["start_date"])
-    return max(date.today(), start)
+    if active is None:
+        return date.today()
+    return max(date.today(), date.fromisoformat(active["start_date"]))
 
 
 @app.route("/")
 @login_required
+@profile_required
 def week():
-    setup_row = get_setup(session["user_id"])
-    if setup_row is None:
-        return redirect(url_for("setup"))
-
-    monday = plan.monday_of(parse_date(request.args.get("week")) or default_day(setup_row))
+    active = get_active_plan()
+    monday = plan.monday_of(parse_date(request.args.get("week")) or default_day(active))
     sunday = monday + timedelta(days=6)
-    runs = load_runs(monday, sunday)
+    runs = load_runs(active, monday, sunday)
 
     return render_template(
         "week.html",
@@ -313,24 +504,22 @@ def week():
         today=date.today(),
         monday=monday,
         sunday=sunday,
-        week_number=plan_week_number(monday, setup_row),
+        week_number=plan_week_number(monday, active),
         planned_km=sum(r["distance_km"] for r in runs),
         done_km=sum(r["distance_km"] for r in runs if r["done"]),
         prev_week=monday - timedelta(weeks=1),
         next_week=monday + timedelta(weeks=1),
-        setup=setup_row,
+        active=active,
     )
 
 
 @app.route("/month")
 @login_required
+@profile_required
 def month():
-    setup_row = get_setup(session["user_id"])
-    if setup_row is None:
-        return redirect(url_for("setup"))
-
+    active = get_active_plan()
     # ?month=2026-11 -> first day of that month
-    first = parse_date((request.args.get("month") or "") + "-01") or default_day(setup_row).replace(day=1)
+    first = parse_date((request.args.get("month") or "") + "-01") or default_day(active).replace(day=1)
     next_first = (first + timedelta(days=32)).replace(day=1)
     last = next_first - timedelta(days=1)
 
@@ -338,10 +527,10 @@ def month():
     # a few days from the neighbouring months.
     grid_start = plan.monday_of(first)
     grid_end = plan.monday_of(last) + timedelta(days=6)
-    runs = load_runs(grid_start, grid_end)
+    runs = load_runs(active, grid_start, grid_end)
     days = build_days(grid_start, (grid_end - grid_start).days + 1, runs)
     weeks = [{"monday": days[i]["date"],
-              "number": plan_week_number(days[i]["date"], setup_row),
+              "number": plan_week_number(days[i]["date"], active),
               "days": days[i:i + 7]}
              for i in range(0, len(days), 7)]
 
@@ -355,7 +544,7 @@ def month():
         done_km=sum(r["distance_km"] for r in month_runs if r["done"]),
         prev_month=(first - timedelta(days=1)).strftime("%Y-%m"),
         next_month=next_first.strftime("%Y-%m"),
-        setup=setup_row,
+        active=active,
     )
 
 
@@ -374,17 +563,16 @@ def edit_run(run_id):
     run = get_own_run(run_id)
     if request.method == "POST":
         new_date = parse_date(request.form.get("date"))
-        try:
-            distance = round(float(request.form.get("distance_km", "")), 1)
-        except ValueError:
-            distance = None
+        distance = parse_number(request.form.get("distance_km"))
         if new_date is None:
             flash("Enter a valid date.", "error")
         elif distance is None or not 0 < distance <= 100:
             flash("Distance must be a number of km between 0 and 100.", "error")
         else:
+            distance = round(distance, 1)
             # Rewrite the workout text so it matches the new distance.
-            description = plan.describe(run["type"], distance, get_setup(session["user_id"])["distance"])
+            race_distance = get_own_plan(run["plan_id"])["distance"]
+            description = plan.describe(run["type"], distance, race_distance)
             db = get_db()
             db.execute("UPDATE runs SET date = ?, distance_km = ?, description = ?, notes = ?"
                        " WHERE id = ? AND user_id = ?",

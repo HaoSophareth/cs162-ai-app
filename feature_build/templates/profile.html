@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>{{ "A few quick questions" if first_time else "Your profile" }}</h1>
+  <p class="muted">This is just your profile. It doesn't change your training plans.</p>
+
+  <form method="post">
+    <fieldset>
+      <legend>Sex</legend>
+      <label class="choice"><input type="radio" name="sex" value="male" required
+        {% if values.sex == "male" %}checked{% endif %}> Male</label>
+      <label class="choice"><input type="radio" name="sex" value="female"
+        {% if values.sex == "female" %}checked{% endif %}> Female</label>
+    </fieldset>
+    <label>Age
+      <input type="number" name="age" min="10" max="100" step="1" required value="{{ values.age or '' }}">
+    </label>
+    <label>Weight (kg)
+      <input type="number" name="weight_kg" min="25" max="250" step="0.1" required
+             value="{{ '%g'|format(values.weight_kg|float) if values.weight_kg else '' }}">
+    </label>
+    <label>Height (cm)
+      <input type="number" name="height_cm" min="100" max="250" step="0.1" required
+             value="{{ '%g'|format(values.height_cm|float) if values.height_cm else '' }}">
+    </label>
+    <button class="primary">{{ "Continue" if first_time else "Save profile" }}</button>
+    {% if not first_time %}<a href="{{ url_for('week') }}">Cancel</a>{% endif %}
+  </form>
+</div>
+{% endblock %}
