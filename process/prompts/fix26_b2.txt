@@ -1,0 +1,2 @@
+Rename 'Calendar' in the top bar to 'Home'. It behaves the same as now. Don't change anything else.
+Test only on a copy of the project, not the real database in instance/. Don't change the login or signup templates. Same stack and file layout, no JavaScript.

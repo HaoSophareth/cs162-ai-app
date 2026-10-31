@@ -1,0 +1,2 @@
+Rename 'Calendar' in the top bar to 'Home'. It behaves the same as now. Don't change anything else.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.

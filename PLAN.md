@@ -230,6 +230,7 @@ One row per prompt, filled in during each build.
 | 24 | Remove Export plan completely; keep per-run link | Done; 47s, 4,291 out | Re-prompt (scope cut) | One link can't add a whole plan; import steps too complicated for the user |
 | 25 | Add 15K race distance | Done; 66s, 6,692 out | Re-prompt (new scope) | Custom distance rejected as too many special cases |
 | 26 | 15K peak long run 16 km, not 12 | Done; 22s, 2,279 out | Correct | My 12 km in the prompt was wrong; both builds flagged it |
+| 27 | Rename Calendar to Home in top bar | Done; 27s, 1,984 out | Re-prompt (UX) | |
 
 ### Build 2
 
@@ -260,6 +261,7 @@ One row per prompt, filled in during each build.
 | 23 | Add 15K race distance | Done; 69s, 7,338 out | Re-prompt (new scope) | Custom distance rejected as too many special cases |
 | 24 | 15K peak long run 16 km, not 12 | Done; 17s, 1,286 out | Correct | My 12 km in the prompt was wrong; both builds flagged it |
 | 25 | Too-short warning counts weeks like the summary | Done; 32s, 2,874 out | Re-prompt (BUG, Build 2 only) | Found by Build 2 itself |
+| 26 | Rename Calendar to Home in top bar | Done; 14s, 907 out | Re-prompt (UX) | |
 
 ## Manual edits (not by the build sessions)
 
