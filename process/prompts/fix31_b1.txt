@@ -1,0 +1,2 @@
+On the plan summary page, add an Edit plan button next to the Go to calendar button, so I can change the plan straight away if I don't like what I see. It opens the same edit steps as the plans page. Don't change anything else.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.

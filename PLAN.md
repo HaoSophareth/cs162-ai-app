@@ -234,6 +234,7 @@ One row per prompt, filled in during each build.
 | 28 | Delete account on profile, confirmed by typing username | Done; 113s, 11,365 out | Re-prompt (new scope) | |
 | 29 | First-time profile: hide running history and delete account | Done; 29s, 2,525 out | Re-prompt (UX, Build 1 bug) | Build 1 showed them on onboarding |
 | 30 | Race times: separate boxes with the colon shown | Done; 168s, 18,027 out | Re-prompt (UX) | Auto-inserting a colon while typing needs JavaScript |
+| 31 | Edit plan button on the summary page | Done; 32s, 2,136 out | Re-prompt (UX) | User wants to change the plan straight after seeing its stats |
 
 ### Build 2
 
@@ -269,6 +270,7 @@ One row per prompt, filled in during each build.
 | 28 | Delete account on profile, confirmed by typing username | Done; 65s, 6,424 out | Re-prompt (new scope) | |
 | 29 | First-time profile: hide running history and delete account | Done; 23s, 2,191 out | Unneeded prompt | No code change: Build 2 already hid them; the screenshot was from Build 1 |
 | 30 | Race times: separate boxes with the colon shown | Done; 144s, 14,699 out | Re-prompt (UX) | Auto-inserting a colon while typing needs JavaScript |
+| 31 | Edit plan button on the summary page | Done; 37s, 3,124 out | Re-prompt (UX) | User wants to change the plan straight after seeing its stats |
 
 ## Manual edits (not by the build sessions)
 
