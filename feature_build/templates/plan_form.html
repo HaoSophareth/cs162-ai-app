@@ -40,7 +40,7 @@
 
       <div class="field">
         <label class="field-label" for="start_date">Training start date *</label>
-        <input id="start_date" type="date" name="start_date" required value="{{ values.start_date or '' }}">
+        <input id="start_date" type="date" name="start_date" min="{{ earliest_start }}" required value="{{ values.start_date or '' }}">
       </div>
 
       <div class="field">

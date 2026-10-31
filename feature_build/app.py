@@ -427,10 +427,11 @@ PLAN_STEPS = {1: "Goal", 2: "Experience", 3: "Schedule"}
 GOAL, EXPERIENCE, SCHEDULE = 1, 2, 3
 
 
-def read_plan_form(form):
+def read_plan_form(form, existing=None):
     """Return (values, errors) from the submitted plan form.
 
-    errors maps each step number to that step's error messages.
+    errors maps each step number to that step's error messages. existing is the
+    plan being edited, if any: it may keep its start date even if that has passed.
     """
     values = {
         "experience": form.get("experience"),
@@ -485,8 +486,12 @@ def read_plan_form(form):
         errors[GOAL].append("Pick a race distance.")
     if not values["start_date"] or not values["race_date"]:
         errors[GOAL].append("Enter both a start date and a race date.")
-    elif values["race_date"] <= values["start_date"]:
-        errors[GOAL].append("The race date must be after the start date.")
+    else:
+        if values["race_date"] <= values["start_date"]:
+            errors[GOAL].append("The race date must be after the start date.")
+        kept_date = existing and values["start_date"].isoformat() == existing["start_date"]
+        if values["start_date"] < date.today() and not kept_date:
+            errors[GOAL].append("The training start date can't be in the past.")
     return values, errors
 
 
@@ -506,8 +511,13 @@ def handle_plan_form(existing=None):
         opened_past_goal = request.method == "GET" and step > GOAL
         confirm = (short_plan_key(values) if short_warning or opened_past_goal
                    else request.form.get("confirm_short", ""))
-        return render_template("plan_form.html", step=step, steps=PLAN_STEPS, values=values,
-                               existing=existing, short_warning=short_warning, confirm=confirm)
+        # The date picker starts at today. A plan whose saved start has passed starts
+        # there instead, or the browser would refuse to let it keep that date.
+        earliest_start = date.today().isoformat()
+        if existing:
+            earliest_start = min(earliest_start, existing["start_date"])
+        return render_template("plan_form.html", step=step, steps=PLAN_STEPS, values=values, existing=existing,
+                               short_warning=short_warning, confirm=confirm, earliest_start=earliest_start)
 
     if request.method == "GET":
         if existing:
@@ -527,7 +537,7 @@ def handle_plan_form(existing=None):
         return show(int(wanted) if existing and wanted in ("1", "2", "3") else GOAL, values)
 
     step = int(request.form["step"]) if request.form.get("step") in ("1", "2", "3") else 1
-    values, errors = read_plan_form(request.form)
+    values, errors = read_plan_form(request.form, existing)
 
     # Back never checks anything, so half-filled answers are kept as they are.
     if request.form.get("action") == "back":
