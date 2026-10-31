@@ -58,9 +58,7 @@
     </section>
     <section>
       <h3>Longest recent run</h3>
-      <dl class="facts">
-        <div><dt>Entered in your plans</dt><dd>{{ "%g km"|format(history.longest_entered) if history.longest_entered else "–" }}</dd></div>
-      </dl>
+      <p class="history-value">{{ "%g km"|format(history.longest_recent) if history.longest_recent else "–" }}</p>
     </section>
     <section>
       <h3>Completed runs</h3>

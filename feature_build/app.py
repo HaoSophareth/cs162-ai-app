@@ -342,7 +342,9 @@ def running_history(user_id):
 
     if not (longest_entered or done["count"] or any(b["time"] for b in best_times)):
         return None
-    return {"best_times": best_times, "longest_entered": longest_entered, "done": done}
+    # The larger of what was entered and what was actually run, so it updates itself.
+    longest_recent = max(longest_entered or 0, done["longest"] or 0) or None
+    return {"best_times": best_times, "longest_recent": longest_recent, "done": done}
 
 
 @app.route("/profile", methods=["GET", "POST"])

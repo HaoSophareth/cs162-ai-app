@@ -329,6 +329,7 @@ button.danger:hover { background: #fce8e6; }
 .history h2 { font-size: 1.4rem; margin: 0 0 0.5rem; }
 .history h3 { font-size: 1rem; margin: 0.5rem 0; }
 .history p { margin: 0; }
+.history .history-value { font-size: 1.1rem; font-weight: 600; }
 
 /* ---------- Delete account (profile page) ---------- */
 .delete-account h2 { font-size: 1.4rem; margin: 0 0 0.75rem; }
