@@ -1,12 +1,12 @@
 from datetime import date, timedelta
 from urllib.parse import urlencode
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, Response, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from models import Plan, Run, db
-from plan_generator import (DAYS, RECOMMENDED_WEEKS, current_paces, estimate_finish,
+from plan_generator import (DAYS, RECOMMENDED_WEEKS, build_ics, current_paces, estimate_finish,
                             generate_plan, monday_of)
 
 main_bp = Blueprint("main", __name__)
@@ -142,13 +142,21 @@ def get_user_run(run_id):
     ).first_or_404()
 
 
+def calendar_title(run):
+    return f"{run.run_type.capitalize()} run - {run.distance_km:g} km"
+
+
+def calendar_details(run):
+    return run.description + ("\n\n" + run.notes if run.notes else "")
+
+
 def google_calendar_url(run):
     # An all-day event: Google expects the end date to be the day after.
     params = {
         "action": "TEMPLATE",
-        "text": f"{run.run_type.capitalize()} run - {run.distance_km:g} km",
+        "text": calendar_title(run),
         "dates": f"{run.date:%Y%m%d}/{run.date + timedelta(days=1):%Y%m%d}",
-        "details": run.description + ("\n\n" + run.notes if run.notes else ""),
+        "details": calendar_details(run),
     }
     return "https://calendar.google.com/calendar/render?" + urlencode(params)
 
@@ -450,6 +458,19 @@ def plan_summary(plan_id):
         estimate=estimate_finish(best_times, plan.race_distance),
         distances=DISTANCES,
     )
+
+
+@main_bp.route("/plans/<int:plan_id>/export")
+@login_required
+def export_plan(plan_id):
+    plan = get_user_plan(plan_id)
+    runs = sorted(plan.runs, key=lambda run: (run.date, run.id))
+    # A stable id per run lets the calendar recognise a run if the file is imported again.
+    events = [{"uid": f"run-{run.id}@race-training", "date": run.date,
+               "title": calendar_title(run), "details": calendar_details(run)} for run in runs]
+    filename = f"{plan.race_distance}-plan-{plan.race_date.isoformat()}.ics"
+    return Response(build_ics(events), mimetype="text/calendar",
+                    headers={"Content-Disposition": f'attachment; filename="{filename}"'})
 
 
 @main_bp.route("/plans/<int:plan_id>/activate", methods=["POST"])

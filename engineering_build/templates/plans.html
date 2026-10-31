@@ -47,6 +47,7 @@
       {% endif %}
       <a class="button secondary" href="{{ url_for('main.plan_summary', plan_id=plan.id) }}">Summary</a>
       <a class="button secondary" href="{{ url_for('main.edit_plan', plan_id=plan.id) }}">Edit</a>
+      <a class="button secondary" href="{{ url_for('main.export_plan', plan_id=plan.id) }}">Export plan</a>
       {# <details> asks "are you sure?" without JavaScript. #}
       <details class="confirm-delete">
         <summary class="button secondary danger">Delete</summary>
@@ -56,6 +57,7 @@
         </form>
       </details>
     </div>
+    <p class="muted export-hint">To import the exported file: in Google Calendar, go to Settings &gt; Import &amp; export.</p>
   </div>
 {% endfor %}
 {% endblock %}

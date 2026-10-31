@@ -1,5 +1,5 @@
 import math
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -173,3 +173,40 @@ def estimate_finish(best_times, race_distance):
         # Aim for the middle of the range on race day.
         "target_pace": pace_per_km((today + trained) / 2, race_km),
     }
+
+
+def escape_ics_text(text):
+    # The backslash goes first, or it would double the ones added for the other characters.
+    text = text.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,")
+    return text.replace("\r\n", "\n").replace("\n", "\\n")
+
+
+def fold_ics_line(line):
+    # The format limits lines to 75 bytes; a longer line continues on the next with a
+    # leading space. Counting bytes, not characters, keeps accented letters in one piece.
+    pieces = [""]
+    for character in line:
+        if len((pieces[-1] + character).encode("utf-8")) > 75:
+            pieces.append(" ")
+        pieces[-1] += character
+    return "\r\n".join(pieces)
+
+
+def build_ics(events):
+    """Return .ics file text. events: dicts with uid, date, title and details."""
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Race Training//Plan Export//EN", "CALSCALE:GREGORIAN"]
+    for event in events:
+        lines += [
+            "BEGIN:VEVENT",
+            f"UID:{event['uid']}",
+            f"DTSTAMP:{stamp}",
+            # An all-day event: the end date is the day after, and is not included.
+            f"DTSTART;VALUE=DATE:{event['date']:%Y%m%d}",
+            f"DTEND;VALUE=DATE:{event['date'] + timedelta(days=1):%Y%m%d}",
+            f"SUMMARY:{escape_ics_text(event['title'])}",
+            f"DESCRIPTION:{escape_ics_text(event['details'])}",
+            "END:VEVENT",
+        ]
+    lines.append("END:VCALENDAR")
+    return "".join(fold_ics_line(line) + "\r\n" for line in lines)
