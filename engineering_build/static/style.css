@@ -21,7 +21,11 @@
 * { box-sizing: border-box; }
 
 /* Matching the page background here stops a white flash before the body paints. */
-html { background: #f8f9fa; }
+html {
+  background: #f8f9fa;
+  /* Anchors stop below the fixed top bar instead of underneath it. */
+  scroll-padding-top: 3.5rem;
+}
 
 body {
   margin: 0;
@@ -36,6 +40,12 @@ h1 { font-size: 1.4rem; margin: 0 0 1rem; }
 
 /* Top bar */
 .topbar {
+  /* Always stays at the top of the window, above the page content. */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -44,7 +54,12 @@ h1 { font-size: 1.4rem; margin: 0 0 1rem; }
   border-bottom: 1px solid #dadce0;
 }
 .brand { font-weight: 700; font-size: 1.1rem; color: #202124; text-decoration: none; }
-.nav-links { display: flex; gap: 1rem; align-items: center; }
+.nav-links { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: center; }
+.nav-current { font-weight: 600; }
+/* On phones the bar takes two or more lines, so anchors need to stop lower. */
+@media (max-width: 520px) {
+  html { scroll-padding-top: 7rem; }
+}
 .nav-links a { text-decoration: none; }
 
 .container { max-width: 1100px; margin: 1.5rem auto; padding: 0 1rem; }
