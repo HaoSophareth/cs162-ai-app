@@ -38,19 +38,20 @@
       <div class="month-cell {% if day.date.month != first.month %}other-month{% endif %} {% if day.date == today %}today{% endif %}">
         <span class="day-number">{{ day.date.day }}</span>
         {% for run in day.runs %}
-          <a class="run-card compact run-{{ run.run_type }} {% if run.done %}done{% endif %}"
-             href="{{ url_for('main.run_detail', run_id=run.id) }}">
-            {% if run.done %}✓ {% endif %}{{ run.run_type|capitalize }} · {{ '%g' % run.distance_km }} km
-          </a>
+          <div class="run-card compact run-{{ run.run_type }} {% if run.done %}done{% endif %}" id="run-{{ run.id }}">
+            <form method="post" action="{{ url_for('main.toggle_done', run_id=run.id) }}">
+              <input type="hidden" name="next" value="{{ request.full_path }}#run-{{ run.id }}">
+              <button type="submit" class="checkbox {% if run.done %}checked{% endif %}" role="checkbox"
+                      aria-checked="{{ 'true' if run.done else 'false' }}" aria-label="Done"
+                      title="{{ 'Mark as not done' if run.done else 'Mark as done' }}"><span class="box"></span></button>
+            </form>
+            <a class="run-link" href="{{ url_for('main.run_detail', run_id=run.id) }}">
+              {{ run.run_type|capitalize }} · {{ '%g' % run.distance_km }} km
+            </a>
+          </div>
         {% endfor %}
       </div>
     {% endfor %}
-  {% endfor %}
-</div>
-
-<div class="legend">
-  {% for type in ['easy', 'long', 'tempo', 'intervals', 'race'] %}
-    <span class="legend-item run-{{ type }}">{{ type|capitalize }}</span>
   {% endfor %}
 </div>
 {% endblock %}

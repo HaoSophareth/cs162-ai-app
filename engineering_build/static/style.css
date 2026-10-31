@@ -1,4 +1,4 @@
-/* Run-type colors are defined once here and reused by cards, legend and detail page. */
+/* Run-type colors are defined once here and reused by cards and the detail page. */
 .run-easy      { --run-color: #4caf50; --run-bg: #e8f5e9; }
 .run-long      { --run-color: #1e88e5; --run-bg: #e3f2fd; }
 .run-tempo     { --run-color: #fb8c00; --run-bg: #fff3e0; }
@@ -132,19 +132,57 @@ legend { font-weight: 600; padding: 0 0.3rem; }
 .today .day-number { background: #1a73e8; color: #fff; }
 
 .run-card {
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
   padding: 0.5rem;
   margin-bottom: 0.5rem;
   border-left: 4px solid var(--run-color);
   border-radius: 4px;
   background: var(--run-bg);
-  color: #202124;
-  text-decoration: none;
+  /* Leaves room above the card when a checkbox click brings you back to it. */
+  scroll-margin-top: 10rem;
 }
 .run-card:hover { filter: brightness(0.96); }
-.run-card.done { opacity: 0.6; }
+.run-card form { margin: 0; }
+.run-link { flex: 1; min-width: 0; color: #202124; text-decoration: none; }
 .run-type { display: block; font-weight: 600; }
-.run-distance, .run-done { display: block; font-size: 0.85rem; }
+.run-distance { display: block; font-size: 0.85rem; }
+
+/* Done runs are crossed out and faded so the remaining work stands out. */
+.run-card.done { opacity: 0.45; }
+.run-card.done .run-link { text-decoration: line-through; }
+
+/* Without JavaScript a real checkbox can't save on click, so this is a submit
+   button drawn as a checkbox. */
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.checkbox .box {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  border: 2px solid var(--run-color, #5f6368);
+  border-radius: 3px;
+  background: #fff;
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 0.8rem;
+  color: #fff;
+}
+.checkbox.checked .box { background: var(--run-color, #1a73e8); }
+.checkbox.checked .box::after { content: "✓"; font-weight: 700; }
+.checkbox:focus-visible .box { outline: 2px solid #1a73e8; outline-offset: 2px; }
+.checkbox.labeled { font-weight: 600; }
 
 /* Month view: a narrow week-number column, then 7 day columns. */
 .month-grid {
@@ -162,15 +200,14 @@ legend { font-weight: 600; padding: 0 0.3rem; }
 .month-cell .day-number { display: block; font-size: 0.85rem; width: 1.6rem; height: 1.6rem; line-height: 1.6rem; margin: 0 auto 0.3rem; }
 .month-cell.other-month { background: #f8f9fa; }
 .month-cell.other-month .day-number { color: #9aa0a6; }
-.run-card.compact { padding: 0.15rem 0.35rem; margin-bottom: 0.25rem; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.legend { display: flex; gap: 1rem; margin-top: 1rem; font-size: 0.85rem; }
-.legend-item { padding-left: 0.5rem; border-left: 12px solid var(--run-color); }
+.run-card.compact { align-items: center; gap: 0.3rem; padding: 0.15rem 0.35rem; margin-bottom: 0.25rem; font-size: 0.75rem; }
+.run-card.compact .run-link { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.run-card.compact .checkbox .box { width: 0.8rem; height: 0.8rem; font-size: 0.6rem; line-height: 0.65rem; }
 
 /* Run detail */
 .run-title { display: flex; align-items: center; gap: 1rem; border-left: 6px solid var(--run-color); padding-left: 0.75rem; margin-bottom: 1rem; }
 .run-title h1 { margin: 0; }
-.badge { background: #e6f4ea; color: #137333; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.85rem; }
+.run-title form { margin: 0; }
 .details { display: grid; grid-template-columns: 8rem 1fr; gap: 0.6rem 1rem; margin: 0 0 1.5rem; }
 .details dt { font-weight: 600; }
 .details dd { margin: 0; white-space: pre-line; }

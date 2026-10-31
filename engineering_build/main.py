@@ -260,4 +260,9 @@ def toggle_done(run_id):
     run = get_user_run(run_id)
     run.done = not run.done
     db.session.commit()
-    return redirect(url_for("main.run_detail", run_id=run.id))
+    # Go back to the page the checkbox was on. Only local paths are allowed, so the
+    # form can't be used to send someone to another site.
+    back = request.form.get("next", "")
+    if not back.startswith("/") or back.startswith(("//", "/\\")):
+        back = url_for("main.run_detail", run_id=run.id)
+    return redirect(back)

@@ -40,23 +40,24 @@
               <span class="day-number">{{ column.date.day }}</span>
             </div>
             {% for run in column.runs %}
-              <a class="run-card run-{{ run.run_type }} {% if run.done %}done{% endif %}"
-                 href="{{ url_for('main.run_detail', run_id=run.id) }}">
-                <span class="run-type">{{ run.run_type|capitalize }}</span>
-                <span class="run-distance">{{ '%g' % run.distance_km }} km</span>
-                {% if run.done %}<span class="run-done">✓ Done</span>{% endif %}
-              </a>
+              <div class="run-card run-{{ run.run_type }} {% if run.done %}done{% endif %}" id="run-{{ run.id }}">
+                {# The #run-id anchor brings you back to this card, even in the second week. #}
+                <form method="post" action="{{ url_for('main.toggle_done', run_id=run.id) }}">
+                  <input type="hidden" name="next" value="{{ request.full_path }}#run-{{ run.id }}">
+                  <button type="submit" class="checkbox {% if run.done %}checked{% endif %}" role="checkbox"
+                          aria-checked="{{ 'true' if run.done else 'false' }}" aria-label="Done"
+                          title="{{ 'Mark as not done' if run.done else 'Mark as done' }}"><span class="box"></span></button>
+                </form>
+                <a class="run-link" href="{{ url_for('main.run_detail', run_id=run.id) }}">
+                  <span class="run-type">{{ run.run_type|capitalize }}</span>
+                  <span class="run-distance">{{ '%g' % run.distance_km }} km</span>
+                </a>
+              </div>
             {% endfor %}
           </div>
         {% endfor %}
       </div>
     </section>
-  {% endfor %}
-</div>
-
-<div class="legend">
-  {% for type in ['easy', 'long', 'tempo', 'intervals', 'race'] %}
-    <span class="legend-item run-{{ type }}">{{ type|capitalize }}</span>
   {% endfor %}
 </div>
 {% endblock %}

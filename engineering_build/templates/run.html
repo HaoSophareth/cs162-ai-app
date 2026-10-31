@@ -6,7 +6,13 @@
 <div class="panel">
   <div class="run-title run-{{ run.run_type }}">
     <h1>{{ run.run_type|capitalize }} run</h1>
-    {% if run.done %}<span class="badge">✓ Done</span>{% endif %}
+    <form method="post" action="{{ url_for('main.toggle_done', run_id=run.id) }}">
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <button type="submit" class="checkbox labeled {% if run.done %}checked{% endif %}" role="checkbox"
+              aria-checked="{{ 'true' if run.done else 'false' }}">
+        <span class="box"></span> Done
+      </button>
+    </form>
   </div>
 
   <dl class="details">
@@ -17,9 +23,6 @@
   </dl>
 
   <div class="actions">
-    <form method="post" action="{{ url_for('main.toggle_done', run_id=run.id) }}">
-      <button type="submit" class="button">{% if run.done %}Mark as not done{% else %}Mark as done{% endif %}</button>
-    </form>
     <a class="button secondary" href="{{ url_for('main.edit_run', run_id=run.id) }}">Edit run</a>
     <a class="button secondary" href="{{ gcal_url }}" target="_blank" rel="noopener">Add to Google Calendar</a>
   </div>
