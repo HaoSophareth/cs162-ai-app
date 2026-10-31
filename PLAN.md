@@ -289,6 +289,8 @@ One row per prompt, filled in during each build.
 
 ## Notes
 
+- The first week-checkbox send was stopped by the user at once. It left an empty turn in both transcripts and is not counted as a prompt or log row. Row 35 is the Today default, row 36 the week checkbox.
+
 - Blink: smooth page changes work in Chrome, not Arc (user confirmed). Use Chrome for the demo.
 - Ticking done (prompt 32): Build 1 used background JavaScript; Build 2's no-JS rule forced one iframe per week, which adds Back-button history steps and fixed week heights. Build 1 JavaScript is now in at least 3 places: check against the class-covered rule.
 
