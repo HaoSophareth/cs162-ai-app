@@ -1,0 +1,2 @@
+Add a Delete account option at the bottom of the profile page. It warns that this permanently deletes the account and all its plans, runs and history, and asks the user to type their username to confirm. If the username doesn't match, nothing is deleted and it shows a short error. If it matches, delete all of that user's data only, log them out and return to the login page with a short message. Other users' data must not be affected.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.

@@ -231,6 +231,7 @@ One row per prompt, filled in during each build.
 | 25 | Add 15K race distance | Done; 66s, 6,692 out | Re-prompt (new scope) | Custom distance rejected as too many special cases |
 | 26 | 15K peak long run 16 km, not 12 | Done; 22s, 2,279 out | Correct | My 12 km in the prompt was wrong; both builds flagged it |
 | 27 | Rename Calendar to Home in top bar | Done; 27s, 1,984 out | Re-prompt (UX) | |
+| 28 | Delete account on profile, confirmed by typing username | Done; 113s, 11,365 out | Re-prompt (new scope) | |
 
 ### Build 2
 
@@ -263,6 +264,7 @@ One row per prompt, filled in during each build.
 | 25 | Too-short warning counts weeks like the summary | Done; 32s, 2,874 out | Re-prompt (BUG, Build 2 only) | Found by Build 2 itself |
 | 26 | Rename Calendar to Home in top bar | Done; 14s, 907 out | Re-prompt (UX) | |
 | 27 | Delete question below an even button row | Done; 54s, 4,835 out | Re-prompt (UI bug, Build 2 only) | CSS-only confirm stretched the buttons; Build 1 uses a JS confirm() |
+| 28 | Delete account on profile, confirmed by typing username | Done; 65s, 6,424 out | Re-prompt (new scope) | |
 
 ## Manual edits (not by the build sessions)
 
