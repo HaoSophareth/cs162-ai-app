@@ -1,21 +1,19 @@
 {% extends "base.html" %}
+{% from "_done_checkbox.html" import done_checkbox with context %}
 {% block title %}{{ RUN_TYPES[run.type] }}{% endblock %}
 {% block content %}
 <div class="card narrow">
   <p><a href="{{ url_for('week', week=run.date) }}">← Back to week</a></p>
-  <h1><span class="tag type-{{ run.type }}">{{ RUN_TYPES[run.type] }}</span> {{ "%g"|format(run.distance_km) }} km</h1>
+  <h1 class="{% if run.done %}run-done{% endif %}"><span class="tag type-{{ run.type }}">{{ RUN_TYPES[run.type] }}</span> {{ "%g"|format(run.distance_km) }} km</h1>
 
   <dl>
     <dt>Date</dt><dd>{{ run.date|nice_date }}</dd>
     <dt>Workout</dt><dd>{{ run.description }}</dd>
     <dt>Notes</dt><dd>{{ run.notes or "No notes yet." }}</dd>
-    <dt>Status</dt><dd>{{ "Done ✓" if run.done else "Not done" }}</dd>
+    <dt>Status</dt><dd>{{ done_checkbox(run, label="Done") }}</dd>
   </dl>
 
   <div class="actions">
-    <form method="post" action="{{ url_for('toggle_done', run_id=run.id) }}" class="inline">
-      <button class="primary">{{ "Mark as not done" if run.done else "Mark as done" }}</button>
-    </form>
     <a class="button" href="{{ url_for('edit_run', run_id=run.id) }}">Edit</a>
     <a class="button" href="{{ calendar_link }}" target="_blank" rel="noopener">Add to Google Calendar</a>
   </div>

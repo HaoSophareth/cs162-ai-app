@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_done_checkbox.html" import done_checkbox with context %}
 {% block title %}Month view{% endblock %}
 {% block head %}<script src="{{ url_for('static', filename='calendar.js') }}"></script>{% endblock %}
 {% block content %}
@@ -20,10 +21,7 @@
   </div>
 </div>
 
-<div class="legend">
-  {% for key, label in RUN_TYPES.items() %}<span class="tag type-{{ key }}">{{ label }}</span>{% endfor %}
-  <span class="muted hint">Swipe sideways or use ← → to change month</span>
-</div>
+<p class="muted calendar-hint">Swipe sideways or use ← → to change month</p>
 
 <div class="month-grid calendar">
   <div class="month-corner"></div>
@@ -38,11 +36,13 @@
       <div class="month-day {% if day.date.month != first.month %}other-month{% endif %} {% if day.date == today %}today{% endif %}">
         <a class="daynum" href="{{ url_for('week', week=day.date) }}">{{ day.date.day }}</a>
         {% for run in day.runs %}
-          <a class="run-chip type-{{ run.type }} {% if run.done %}done{% endif %}"
-             href="{{ url_for('run_detail', run_id=run.id) }}"
-             title="{{ RUN_TYPES[run.type] }}, {{ '%g'|format(run.distance_km) }} km{{ ', done' if run.done }}">
-            {% if run.done %}✓ {% endif %}{{ RUN_TYPES[run.type] }} {{ "%g"|format(run.distance_km) }} km
-          </a>
+          <div class="run-chip type-{{ run.type }} {% if run.done %}done{% endif %}">
+            {{ done_checkbox(run, next_page="month", month=first.strftime('%Y-%m')) }}
+            <a href="{{ url_for('run_detail', run_id=run.id) }}"
+               title="{{ RUN_TYPES[run.type] }}, {{ '%g'|format(run.distance_km) }} km{{ ', done' if run.done }}">
+              {{ RUN_TYPES[run.type] }} {{ "%g"|format(run.distance_km) }} km
+            </a>
+          </div>
         {% endfor %}
       </div>
     {% endfor %}

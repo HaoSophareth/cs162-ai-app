@@ -396,17 +396,23 @@ def edit_run(run_id):
     return render_template("edit_run.html", run=run)
 
 
-@app.route("/runs/<int:run_id>/toggle", methods=["POST"])
+@app.route("/runs/<int:run_id>/done", methods=["POST"])
 @login_required
-def toggle_done(run_id):
+def set_done(run_id):
     run = get_own_run(run_id)
+    # The form sends the checkbox's new state; an unticked box sends nothing.
+    done = 1 if request.form.get("done") else 0
     db = get_db()
-    db.execute("UPDATE runs SET done = ? WHERE id = ? AND user_id = ?",
-               (0 if run["done"] else 1, run_id, session["user_id"]))
+    db.execute("UPDATE runs SET done = ? WHERE id = ? AND user_id = ?", (done, run_id, session["user_id"]))
     db.commit()
-    # Go back to wherever the button was clicked (week view or run page).
-    if request.form.get("next") == "week":
+    # Go back to wherever the checkbox was clicked.
+    next_page = request.form.get("next")
+    if next_page == "week":
         return redirect(url_for("week", week=run["date"]))
+    if next_page == "month":
+        # Stay on the month being viewed, even if the run is a greyed-out
+        # day from the neighbouring month.
+        return redirect(url_for("month", month=request.form.get("month") or run["date"][:7]))
     return redirect(url_for("run_detail", run_id=run_id))
 
 

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_done_checkbox.html" import done_checkbox with context %}
 {% block title %}Week view{% endblock %}
 {% block head %}<script src="{{ url_for('static', filename='calendar.js') }}"></script>{% endblock %}
 {% block content %}
@@ -22,10 +23,7 @@
   </div>
 </div>
 
-<div class="legend">
-  {% for key, label in RUN_TYPES.items() %}<span class="tag type-{{ key }}">{{ label }}</span>{% endfor %}
-  <span class="muted hint">Swipe sideways or use ← → to change week</span>
-</div>
+<p class="muted calendar-hint">Swipe sideways or use ← → to change week</p>
 
 <div class="week-grid calendar">
   {% for day in days %}
@@ -36,16 +34,11 @@
       </header>
       {% for run in day.runs %}
         <div class="run-card type-{{ run.type }} {% if run.done %}done{% endif %}">
+          {{ done_checkbox(run, next_page="week") }}
           <a href="{{ url_for('run_detail', run_id=run.id) }}">
             <span class="run-type">{{ RUN_TYPES[run.type] }}</span>
             <span class="run-km">{{ "%g"|format(run.distance_km) }} km</span>
           </a>
-          <form method="post" action="{{ url_for('toggle_done', run_id=run.id) }}">
-            <input type="hidden" name="next" value="week">
-            <button class="check" title="{{ 'Mark not done' if run.done else 'Mark done' }}">
-              {{ "✓ Done" if run.done else "Mark done" }}
-            </button>
-          </form>
         </div>
       {% endfor %}
     </section>

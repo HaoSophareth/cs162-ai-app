@@ -1,4 +1,4 @@
-/* Run-type colours, used by cards, tags and the legend. */
+/* Run-type colours, used by run cards, month chips and the run page tag. */
 :root {
   --easy: #33b679;
   --long: #039be5;
@@ -130,7 +130,7 @@ dd { margin: 0.2rem 0 0; }
 .week-nav h1 { font-size: 1.4rem; font-weight: 400; margin: 0 0 0 0.75rem; }
 .week-totals { display: flex; gap: 1.5rem; align-items: center; }
 
-.legend { margin: 0.75rem 0; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.calendar-hint { margin: 0.5rem 0; text-align: right; font-size: 0.8rem; }
 
 .week-grid {
   display: grid;
@@ -155,27 +155,28 @@ dd { margin: 0.2rem 0 0; }
 .today .weekday { color: #1a73e8; }
 
 .run-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
   border-radius: 6px;
   padding: 0.5rem;
   margin-bottom: 0.5rem;
   color: white;
 }
-.run-card a { color: inherit; text-decoration: none; display: block; }
+.run-card a { flex: 1; color: inherit; text-decoration: none; display: block; }
 .run-type { display: block; font-weight: 600; font-size: 0.9rem; }
 .run-km { font-size: 0.85rem; }
-.run-card.done { opacity: 0.55; }
-.run-card.done .run-type { text-decoration: line-through; }
-.check {
-  margin-top: 0.4rem;
-  padding: 0.15rem 0.5rem;
-  font-size: 0.75rem;
-  background: rgba(255, 255, 255, 0.25);
-  color: inherit;
-  border-color: rgba(255, 255, 255, 0.6);
-}
-.check:hover { background: rgba(255, 255, 255, 0.4); }
 
-.legend .hint { margin-left: auto; font-size: 0.8rem; }
+/* Done checkbox (templates/_done_checkbox.html). */
+.done-form { display: inline; margin: 0; }
+.done-box { display: inline-flex; align-items: center; gap: 0.4rem; margin: 0; cursor: pointer; }
+.done-box input { display: inline-block; width: 1rem; height: 1rem; margin: 0.1rem 0 0; cursor: pointer; }
+.run-card .done-box input, .run-chip .done-box input { accent-color: white; }
+
+/* A finished run: crossed out and faded, in the calendars and on its own page. */
+.run-card.done, .run-chip.done { opacity: 0.4; }
+.run-card.done a, .run-chip.done a, h1.run-done { text-decoration: line-through; }
+h1.run-done { opacity: 0.5; }
 
 .view-switch { display: inline-flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
 .view-switch a { padding: 0.4rem 0.9rem; color: var(--text); text-decoration: none; background: white; }
@@ -230,7 +231,9 @@ dd { margin: 0.2rem 0 0; }
 .month-day.other-month .daynum { color: #b0b4b8; }
 
 .run-chip {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
   margin-bottom: 0.2rem;
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
@@ -241,7 +244,8 @@ dd { margin: 0.2rem 0 0; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.run-chip.done { opacity: 0.55; text-decoration: line-through; }
+.run-chip a { color: inherit; text-decoration: none; overflow: hidden; text-overflow: ellipsis; }
+.run-chip .done-box input { width: 0.8rem; height: 0.8rem; margin: 0; }
 
 .tag { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.8rem; color: white; }
 
