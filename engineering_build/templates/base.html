@@ -10,6 +10,12 @@
   <nav class="topbar">
     {# On the calendar these two are plain text, not links, so clicking them does nothing. #}
     {% set on_calendar = request.endpoint == 'main.week' %}
+    {# Which top bar item the current page belongs to. #}
+    {% set section = {
+      'main.week': 'home', 'main.run_detail': 'home', 'main.edit_run': 'home',
+      'main.plans': 'plans', 'main.plan_summary': 'plans', 'main.plan_step': 'plans',
+      'main.profile': 'profile',
+    }.get(request.endpoint) %}
     {% if on_calendar %}
       <span class="brand" aria-current="page">Race Training <small>· Build 2 (engineering-wise)</small></span>
     {% else %}
@@ -20,10 +26,10 @@
         {% if on_calendar %}
           <span class="nav-current" aria-current="page">Home</span>
         {% else %}
-          <a href="{{ url_for('main.week', _anchor='current') }}">Home</a>
+          <a href="{{ url_for('main.week', _anchor='current') }}"{% if section == 'home' %} class="nav-current" aria-current="true"{% endif %}>Home</a>
         {% endif %}
-        <a href="{{ url_for('main.plans') }}">Plans</a>
-        <a href="{{ url_for('main.profile') }}">Profile</a>
+        <a href="{{ url_for('main.plans') }}"{% if section == 'plans' %} class="nav-current" aria-current="true"{% endif %}>Plans</a>
+        <a href="{{ url_for('main.profile') }}"{% if section == 'profile' %} class="nav-current" aria-current="true"{% endif %}>Profile</a>
         <a href="{{ url_for('auth.logout') }}">Log out</a>
       {% else %}
         <a href="{{ url_for('auth.login') }}">Log in</a>

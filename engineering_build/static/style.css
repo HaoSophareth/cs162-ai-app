@@ -55,7 +55,7 @@ h1 { font-size: 1.4rem; margin: 0 0 1rem; }
 }
 .brand { font-weight: 700; font-size: 1.1rem; color: #202124; text-decoration: none; }
 .nav-links { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: center; }
-.nav-current { font-weight: 600; }
+.nav-links .nav-current { font-weight: 600; color: #202124; text-decoration: none; }
 /* On phones the bar takes two or more lines, so anchors need to stop lower. */
 @media (max-width: 520px) {
   html { scroll-padding-top: 7rem; }
