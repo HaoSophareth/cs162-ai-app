@@ -763,6 +763,8 @@ def set_done(run_id):
 
 init_db()
 app.secret_key = load_secret_key()
+# Own cookie name, so another app on this computer can't overwrite this login.
+app.config["SESSION_COOKIE_NAME"] = "race_planner_session"
 
 if __name__ == "__main__":
     app.run(debug=True)
