@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import func
 
 from models import Plan, Run, db
 from plan_generator import (DAYS, RECOMMENDED_WEEKS, current_paces, estimate_finish,
@@ -152,6 +153,28 @@ def google_calendar_url(run):
     return "https://calendar.google.com/calendar/render?" + urlencode(params)
 
 
+def running_history():
+    # Covers all of the user's plans, active or not. Nothing is stored; it's worked out each time.
+    plan_row = db.session.query(
+        *[func.min(getattr(Plan, field)) for field in BEST_TIME_FIELDS],
+        func.max(Plan.longest_run_km),
+    ).filter(Plan.user_id == current_user.id).one()
+    done_count, done_km, longest_done_km = db.session.query(
+        func.count(Run.id), func.sum(Run.distance_km), func.max(Run.distance_km),
+    ).join(Plan).filter(Plan.user_id == current_user.id, Run.done.is_(True)).one()
+
+    best_times = {label: seconds for label, seconds in zip(BEST_TIME_FIELDS.values(), plan_row)}
+    longest_recent_km = plan_row[-1]
+    return {
+        "best_times": best_times,
+        "longest_recent_km": longest_recent_km,
+        "done_count": done_count,
+        "done_km": done_km or 0,
+        "longest_done_km": longest_done_km,
+        "is_empty": not any(best_times.values()) and longest_recent_km is None and done_count == 0,
+    }
+
+
 @main_bp.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
@@ -193,7 +216,7 @@ def profile():
             "weight_kg": "" if current_user.weight_kg is None else f"{current_user.weight_kg:g}",
             "height_cm": current_user.height_cm or "",
         }
-    return render_template("profile.html", form=form, onboarding=onboarding)
+    return render_template("profile.html", form=form, onboarding=onboarding, history=running_history())
 
 
 def read_step_form(step):

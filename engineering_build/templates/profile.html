@@ -36,4 +36,34 @@
     </div>
   </form>
 </div>
+
+{# Someone still onboarding can't have any history yet, so it starts once the profile exists. #}
+{% if not onboarding %}
+  <section class="panel form-panel history">
+    <h2>Running history</h2>
+    {% if history.is_empty %}
+      <p class="muted">Nothing here yet.</p>
+    {% else %}
+      <h3>Best times</h3>
+      <dl class="details">
+        {% for label, seconds in history.best_times.items() %}
+          <dt>{{ label }}</dt><dd>{% if seconds %}{{ seconds|duration }}{% else %}<span class="muted">–</span>{% endif %}</dd>
+        {% endfor %}
+      </dl>
+
+      <dl class="details">
+        <dt>Longest recent run</dt>
+        <dd>{% if history.longest_recent_km %}{{ '%g' % history.longest_recent_km }} km{% else %}<span class="muted">–</span>{% endif %}</dd>
+      </dl>
+
+      <h3>Completed runs</h3>
+      <dl class="details">
+        <dt>Runs completed</dt><dd>{{ history.done_count }}</dd>
+        <dt>Total distance</dt><dd>{{ '%g' % history.done_km|round(1) }} km</dd>
+        <dt>Longest completed run</dt>
+        <dd>{% if history.longest_done_km %}{{ '%g' % history.longest_done_km }} km{% else %}<span class="muted">–</span>{% endif %}</dd>
+      </dl>
+    {% endif %}
+  </section>
+{% endif %}
 {% endblock %}
