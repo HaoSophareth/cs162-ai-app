@@ -1,0 +1,2 @@
+Remove the Export plan feature completely: the button, the import hint, the download, and any code or styles only used for it. Each run's Add to Google Calendar link must stay and keep working exactly as it does now.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.

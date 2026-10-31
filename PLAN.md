@@ -227,6 +227,7 @@ One row per prompt, filled in during each build.
 | 21 | Long run at most about half the week; weekly total may rise past 10% | Session hit the usage limit before finishing or reporting (result is_error); code and README edits were complete and committed; I checked plan shares by running it myself; the build's own tests not confirmed; 79s, 7,605 out | Re-prompt (plan logic) | |
 | 22 | Finish the cut-off balanced-weeks prompt | No code change, edits were complete; all 9 of its test suites pass on copies; 49s, 4,978 out | Re-prompt (usage limit) | Limit error did not block this retry |
 | 23 | Import hint: own Google calendar, file named after plan | Done; 30s, 2,788 out | Re-prompt (UX) | Google adds imported events to the chosen calendar; a separate calendar gives tick and whole-plan removal |
+| 24 | Remove Export plan completely; keep per-run link | Done; 47s, 4,291 out | Re-prompt (scope cut) | One link can't add a whole plan; import steps too complicated for the user |
 
 ### Build 2
 
@@ -253,6 +254,7 @@ One row per prompt, filled in during each build.
 | 19 | Export plan button (.ics file) | Done; download checked with curl, Google import not tried yet; 78s, 8,371 out | Re-prompt (new scope) | One link can only add one event |
 | 20 | Long run at most about half the week; weekly total may rise past 10% | Done; 79s, 7,241 out | Re-prompt (plan logic) | |
 | 21 | Import hint: own Google calendar, file named after plan | Done; 41s, 3,835 out | Re-prompt (UX) | Google adds imported events to the chosen calendar; a separate calendar gives tick and whole-plan removal |
+| 22 | Remove Export plan completely; keep per-run link | Done; 36s, 3,721 out | Re-prompt (scope cut) | One link can't add a whole plan; import steps too complicated for the user |
 
 ## Manual edits (not by the build sessions)
 
@@ -313,10 +315,10 @@ If a new session picks this up: read this section, then the logs above. `process
 - Race times: Yes/No first, then ticked distances, then only those boxes.
 - `*` on mandatory fields, never the word optional.
 - Running history on profile is read-only, derived from existing data. No time recorded per run.
-- Export plan downloads .ics. Per-run Add to Google Calendar link stays (user first asked to remove it, then changed their mind).
+- Export plan was built, then removed at the user's request (import too complicated, one link can't add a whole plan). Per-run Add to Google Calendar link stays.
 - User rejected cheap models: builds use Claude Opus 5.5.
 
-Totals table below stops before Build 1 prompt 23 and Build 2 prompt 21; recompute from process/results before the report. Latest reported cost: Build 1 $22.62, Build 2 $17.80.
+Totals table below stops before Build 1 prompt 23 and Build 2 prompt 21; recompute from process/results before the report. Latest reported cost: Build 1 $23.04, Build 2 $18.18.
 
 ### Token and time totals (verified)
 Summed from every result file and matched exactly against each build's transcript (per API call, deduplicated by message id). Result usage is per prompt, not cumulative. `total_cost_usd` IS cumulative per session, so the final value is the total; the earlier $7.44 figure was only a midpoint.
@@ -348,7 +350,7 @@ Build 1 prompt 21 (balanced weeks) ended with "You've hit your 5-hour limit, res
 - Free tier: user hit the 5-hour usage limit at 1:02 PM and the builds report $39.61 in total ($22.26 and $17.35), so tip 4 applies: list alternatives (Claude.ai free, Copilot via Education Pack, DeepSeek, Gemini free) and why not used.
 
 ### Remaining work
-1. Try a real .ics import in Google Calendar.
+1. (Export removed, no import to test.)
 2. Fill "TBD after review" in row 1 of both logs.
 3. Decide on Build 1's week.html script. Name a public plan source in both READMEs (spec asked for one, e.g. Hal Higdon, never prompted). Confirm no test files in build folders.
 4. Separation-of-concerns map, one line per file, for both.
