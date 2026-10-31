@@ -113,10 +113,16 @@
           {% endfor %}
         </select>
       </label>
-      <label class="field">
-        <span class="field-label">Training start date <span class="required-mark">*</span></span>
-        <input type="date" name="start_date" value="{{ form.start_date }}" min="{{ min_start }}" required>
-      </label>
+      <div class="field start-date">
+        <label class="field-label" for="start_date">Training start date <span class="required-mark">*</span></label>
+        {# When the date is today, show the word instead; the date box still submits it.
+           Clicking the word ticks the hidden checkbox, and CSS swaps in the date box. #}
+        {% if form.start_date == today %}
+          <input type="checkbox" id="start_date_change" class="date-toggle" aria-label="Today. Choose a different start date">
+          <label class="today-box" for="start_date_change">Today</label>
+        {% endif %}
+        <input type="date" id="start_date" name="start_date" value="{{ form.start_date }}" min="{{ min_start }}" required>
+      </div>
       <label class="field">
         <span class="field-label">Race date <span class="required-mark">*</span></span>
         <input type="date" name="race_date" value="{{ form.race_date }}" required>

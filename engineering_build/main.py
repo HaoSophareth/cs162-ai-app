@@ -438,7 +438,7 @@ def plan_step(step):
     # The browser must still accept a saved start date that has passed; the server
     # rejects any other past date.
     min_start = min(date.today(), plan.start_date) if plan else date.today()
-    return render_template("setup.html", min_start=min_start.isoformat(), step=step, steps=PLAN_STEPS, last_step=LAST_STEP,
+    return render_template("setup.html", min_start=min_start.isoformat(), today=date.today().isoformat(), step=step, steps=PLAN_STEPS, last_step=LAST_STEP,
                            form=answers, plan=plan, days=DAYS, distances=DISTANCES,
                            recommended=RECOMMENDED_WEEKS, best_time_fields=BEST_TIME_FIELDS,
                            best_time_parts=BEST_TIME_PARTS)
