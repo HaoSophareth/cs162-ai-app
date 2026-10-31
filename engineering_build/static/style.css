@@ -259,7 +259,10 @@ input[type=text], input[type=password], input[type=date], input[type=number], se
 .form-panel .option { display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; }
 .form-panel .option input { margin: 0; width: 1.05rem; height: 1.05rem; }
 
-.form-panel .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem 1rem; }
+.form-panel .race-time-rows { display: flex; flex-direction: column; gap: 0.6rem; }
+.form-panel .race-time-box { display: none; margin-top: 0.6rem; }
+.form-panel .race-time-row:has(input[type=checkbox]:checked) .race-time-box { display: block; }
+.plan-form:not(:has(input[name=has_race_time][value=yes]:checked)) .if-race-time { display: none; }
 
 /* Weekly distance and race times only appear once "Have you run before?" is "Yes". */
 .plan-form:not(:has(input[name=has_run_before][value=yes]:checked)) .if-run-before { display: none; }

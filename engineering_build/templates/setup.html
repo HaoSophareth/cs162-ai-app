@@ -46,14 +46,29 @@
         </label>
 
         <fieldset class="field">
-          <legend class="field-label">Recent race times <span class="optional">optional</span></legend>
-          <div class="time-grid">
+          <legend class="field-label">Do you have a recent race time?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="has_race_time" value="yes"
+              {% if form.has_race_time == 'yes' %}checked{% endif %}> Yes</label>
+            <label class="option"><input type="radio" name="has_race_time" value="no"
+              {% if form.has_race_time == 'no' %}checked{% endif %}> No</label>
+          </div>
+        </fieldset>
+
+        {# Shown by CSS once "Yes" is picked. Each row's time box shows when its own checkbox is ticked. #}
+        <fieldset class="field if-race-time">
+          <legend class="field-label">Which distances?</legend>
+          <div class="race-time-rows">
             {% for field, label in best_time_fields.items() %}
-              <label>
-                <span class="field-sublabel">{{ label }} ({{ best_time_format[field] }})</span>
-                <input type="text" name="{{ field }}" value="{{ form[field] }}"
-                       placeholder="{{ best_time_format[field] }}">
-              </label>
+              <div class="race-time-row">
+                <label class="option"><input type="checkbox" name="race_time_distances" value="{{ field }}"
+                  {% if field in form.race_time_distances %}checked{% endif %}> {{ label }}</label>
+                <label class="race-time-box">
+                  <span class="field-sublabel">{{ label }} time ({{ best_time_format[field] }})</span>
+                  <input type="text" name="{{ field }}" value="{{ form[field] }}"
+                         placeholder="{{ best_time_format[field] }}">
+                </label>
+              </div>
             {% endfor %}
           </div>
         </fieldset>

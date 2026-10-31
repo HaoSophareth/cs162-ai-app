@@ -10,8 +10,8 @@ from plan_generator import (DAYS, RECOMMENDED_WEEKS, current_paces, estimate_fin
 
 main_bp = Blueprint("main", __name__)
 
-DISTANCES = {"5k": "5k", "10k": "10k", "half": "Half marathon", "marathon": "Marathon"}
-BEST_TIME_FIELDS = {"best_5k": "5k", "best_10k": "10k", "best_half": "Half marathon", "best_full": "Marathon"}
+DISTANCES = {"5k": "5K", "10k": "10K", "half": "Half marathon", "marathon": "Marathon"}
+BEST_TIME_FIELDS = {"best_5k": "5K", "best_10k": "10K", "best_half": "Half marathon", "best_full": "Marathon"}
 # Format hint shown in each time box. Either format is accepted in any box.
 BEST_TIME_FORMAT = {"best_5k": "mm:ss", "best_10k": "mm:ss", "best_half": "h:mm:ss", "best_full": "h:mm:ss"}
 # Which race distance each best-time column is for (the marathon column is best_full).
@@ -20,7 +20,8 @@ BEST_TIME_DISTANCE = {"best_5k": "5k", "best_10k": "10k", "best_half": "half", "
 # fields it asks for; errors are grouped by "key", so reordering only happens here.
 PLAN_STEPS = {
     1: {"key": "goal", "title": "Goal", "fields": ["race_distance", "start_date", "race_date"]},
-    2: {"key": "experience", "title": "Experience", "fields": ["has_run_before", *BEST_TIME_FIELDS, "weekly_km", "longest_run_km"]},
+    2: {"key": "experience", "title": "Experience", "fields": ["has_run_before", "weekly_km", "longest_run_km",
+                                                               "has_race_time", "race_time_distances", *BEST_TIME_FIELDS]},
     3: {"key": "schedule", "title": "Schedule", "fields": ["run_days", "long_run_day"]},
 }
 LAST_STEP = len(PLAN_STEPS)
@@ -198,7 +199,7 @@ def profile():
 def read_step_form(step):
     answers = {}
     for field in PLAN_STEPS[step]["fields"]:
-        if field == "run_days":
+        if field in ("run_days", "race_time_distances"):
             answers[field] = request.form.getlist(field)
         else:
             answers[field] = request.form.get(field, "").strip()
@@ -236,11 +237,18 @@ def parse_plan_form(form):
     elif race_date <= start_date:
         errors["goal"].append("The race date must be after the start date.")
 
-    # Times only count for people who have run before; otherwise they're ignored.
+    # A time only counts if its box was showing: run before, "Yes" to having a race
+    # time, and that distance ticked. Anything typed and then hidden is ignored.
+    has_race_time = has_run_before and form.get("has_race_time") == "yes"
+    ticked = form.get("race_time_distances", []) if has_race_time else []
+    if has_run_before and form.get("has_race_time") not in ("yes", "no"):
+        errors["experience"].append("Say whether you have a recent race time.")
+    if has_race_time and not any(field in ticked for field in BEST_TIME_FIELDS):
+        errors["experience"].append("Tick the distance of your recent race, or choose No.")
     best_times = {}
     for field, label in BEST_TIME_FIELDS.items():
         best_times[field] = None
-        if has_run_before and form[field]:
+        if field in ticked:
             try:
                 best_times[field] = parse_duration(form[field])
             except ValueError:
@@ -273,6 +281,11 @@ def form_from_plan(plan):
     }
     for field in BEST_TIME_FIELDS:
         form[field] = format_duration(getattr(plan, field))
+    form["race_time_distances"] = [field for field in BEST_TIME_FIELDS if getattr(plan, field)]
+    if plan.has_run_before:
+        form["has_race_time"] = "yes" if form["race_time_distances"] else "no"
+    else:
+        form["has_race_time"] = ""
     return form
 
 
@@ -308,7 +321,8 @@ def plans():
 @main_bp.route("/plans/new")
 @login_required
 def new_plan():
-    answers = {"has_run_before": "", "weekly_km": "", "longest_run_km": "", "run_days": [], "long_run_day": "Sun",
+    answers = {"has_run_before": "", "weekly_km": "", "longest_run_km": "", "has_race_time": "", "race_time_distances": [],
+               "run_days": [], "long_run_day": "Sun",
                "race_distance": "5k", "start_date": date.today().isoformat(), "race_date": "",
                **{field: "" for field in BEST_TIME_FIELDS}}
     session["plan_form"] = {"plan_id": None, "answers": answers}
