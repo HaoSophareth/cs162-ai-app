@@ -36,6 +36,13 @@ def require_profile():
         return redirect(url_for("main.profile"))
 
 
+@main_bp.app_template_filter("plan_name")
+def plan_name(plan):
+    # Plans have no name of their own; the date tells apart two plans for the same distance.
+    race_date = plan.race_date
+    return f"{DISTANCES[plan.race_distance]} plan ({race_date:%b} {race_date.day}, {race_date.year})"
+
+
 @main_bp.app_template_filter("duration")
 def format_duration(seconds):
     if seconds is None:
@@ -469,7 +476,7 @@ def export_plan(plan_id):
     events = [{"uid": f"run-{run.id}@race-training", "date": run.date,
                "title": calendar_title(run), "details": calendar_details(run)} for run in runs]
     filename = f"{plan.race_distance}-plan-{plan.race_date.isoformat()}.ics"
-    return Response(build_ics(events), mimetype="text/calendar",
+    return Response(build_ics(plan_name(plan), events), mimetype="text/calendar",
                     headers={"Content-Disposition": f'attachment; filename="{filename}"'})
 
 

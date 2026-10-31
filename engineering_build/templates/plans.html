@@ -57,7 +57,14 @@
         </form>
       </details>
     </div>
-    <p class="muted export-hint">To import the exported file: in Google Calendar, go to Settings &gt; Import &amp; export.</p>
+    <div class="muted export-hint">
+      <p>To import the exported file into its own calendar, which you can tick on or off:</p>
+      <ol>
+        <li>In Google Calendar, go to Settings &gt; Add calendar &gt; Create new calendar, and name it &ldquo;{{ plan|plan_name }}&rdquo;.</li>
+        <li>Go to Settings &gt; Import &amp; export, choose the exported file, and pick that new calendar under &ldquo;Add to calendar&rdquo;.</li>
+      </ol>
+      <p>To remove the plan later, delete that calendar.</p>
+    </div>
   </div>
 {% endfor %}
 {% endblock %}

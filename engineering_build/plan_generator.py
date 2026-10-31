@@ -199,10 +199,11 @@ def fold_ics_line(line):
     return "\r\n".join(pieces)
 
 
-def build_ics(events):
+def build_ics(calendar_name, events):
     """Return .ics file text. events: dicts with uid, date, title and details."""
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Race Training//Plan Export//EN", "CALSCALE:GREGORIAN"]
+    lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Race Training//Plan Export//EN", "CALSCALE:GREGORIAN",
+             f"X-WR-CALNAME:{escape_ics_text(calendar_name)}"]
     for event in events:
         lines += [
             "BEGIN:VEVENT",
