@@ -1,0 +1,2 @@
+Remove the '← All plans' link at the top of the plan summary page. Plans in the top bar already goes there. Don't change anything else.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.
