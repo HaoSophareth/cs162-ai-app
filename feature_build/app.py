@@ -548,9 +548,7 @@ def delete_plan(plan_id):
 # ---------- Week view ----------
 
 def load_runs(active, first_day, last_day):
-    """Runs of the active plan between two dates (inclusive). No plan, no runs."""
-    if active is None:
-        return []
+    """Runs of the active plan between two dates (inclusive)."""
     return get_db().execute(
         "SELECT * FROM runs WHERE plan_id = ? AND user_id = ? AND date BETWEEN ? AND ? ORDER BY date, id",
         (active["id"], session["user_id"], first_day.isoformat(), last_day.isoformat()),
@@ -568,8 +566,6 @@ def build_days(first_day, count, runs):
 
 def plan_week_number(monday, active):
     """Week number within the active plan, or None if this week is outside it."""
-    if active is None:
-        return None
     start = date.fromisoformat(active["start_date"])
     race = date.fromisoformat(active["race_date"])
     number = (monday - plan.monday_of(start)).days // 7 + 1
@@ -584,23 +580,22 @@ def week():
     week to race week. The page opens scrolled to the current week, or to the
     week of ?week=<date> (used by "back to week" links)."""
     active = get_active_plan()
+    if active is None:
+        # Nothing to show yet: a simple page that points to "Create plan".
+        return render_template("no_plan.html")
+
     today = date.today()
     target = plan.monday_of(parse_date(request.args.get("week")) or today)
-
-    if active is None:
-        # No plan: just this week, empty, under the "Create plan" banner.
-        first = last = target
-    else:
-        first = plan.monday_of(date.fromisoformat(active["start_date"]))
-        last = plan.monday_of(date.fromisoformat(active["race_date"]))
-        # Include runs the user moved outside the plan's dates.
-        dates = get_db().execute("SELECT MIN(date), MAX(date) FROM runs WHERE plan_id = ? AND user_id = ?",
-                                 (active["id"], session["user_id"])).fetchone()
-        if dates[0]:
-            first = min(first, plan.monday_of(date.fromisoformat(dates[0])))
-            last = max(last, plan.monday_of(date.fromisoformat(dates[1])))
-        # Before the plan, open on its first week; after race day, on race week.
-        target = min(max(target, first), last)
+    first = plan.monday_of(date.fromisoformat(active["start_date"]))
+    last = plan.monday_of(date.fromisoformat(active["race_date"]))
+    # Include runs the user moved outside the plan's dates.
+    dates = get_db().execute("SELECT MIN(date), MAX(date) FROM runs WHERE plan_id = ? AND user_id = ?",
+                             (active["id"], session["user_id"])).fetchone()
+    if dates[0]:
+        first = min(first, plan.monday_of(date.fromisoformat(dates[0])))
+        last = max(last, plan.monday_of(date.fromisoformat(dates[1])))
+    # Before the plan, open on its first week; after race day, on race week.
+    target = min(max(target, first), last)
 
     runs = load_runs(active, first, last + timedelta(days=6))
     weeks = []

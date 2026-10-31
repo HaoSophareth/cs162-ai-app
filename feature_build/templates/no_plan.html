@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Create your plan{% endblock %}
+{% block content %}
+{# Shown instead of the calendar while there is no active plan. #}
+<div class="card narrow no-plan">
+  <h1>Let's build your training plan</h1>
+  <p class="muted">
+    Tell us your race, your running experience and the days you can run,
+    and we'll lay out every run from your first week to race day.
+  </p>
+  <a class="button primary" href="{{ url_for('new_plan') }}">Create plan</a>
+</div>
+{% endblock %}

@@ -6,8 +6,8 @@ the whole plan, one week below the other from the first week to race week,
 and opens on the current week.
 
 After signing up you answer a few profile questions (sex, age, weight,
-height; profile only, not used by plans) and land on an empty calendar. Create
-a plan from there in three short steps: goal, experience, schedule. A summary
+height; profile only, not used by plans) and land on a page that prompts you to
+create a plan in three short steps: goal, experience, schedule. A summary
 page follows (also reachable from the Plans page) with the plan at a glance
 and, if you gave a recent race time, an estimated finish time. You can have several plans; the calendar shows the active
 one, and the Plans page lets you switch, edit (regenerates) or delete them.
