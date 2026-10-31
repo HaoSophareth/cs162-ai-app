@@ -24,6 +24,8 @@ WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 WEEKDAY_VALUES = [str(i) for i in range(7)]
 RUN_TYPES = {"easy": "Easy", "long": "Long run", "tempo": "Tempo", "intervals": "Intervals", "race": "Race"}
 # Optional recent race times asked when creating a plan: (column, label).
+# Format hint shown in each box (either format is accepted for any distance).
+TIME_FORMATS = {"time_5k": "mm:ss", "time_10k": "mm:ss", "time_half": "h:mm:ss", "time_marathon": "h:mm:ss"}
 RACE_TIMES = [("time_5k", "5K"), ("time_10k", "10K"), ("time_half", "Half marathon"),
               ("time_marathon", "Marathon")]
 
@@ -58,7 +60,7 @@ CREATE TABLE IF NOT EXISTS plans (
     id INTEGER PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id),
     experience TEXT NOT NULL,    -- "new" or "experienced"
-    time_5k TEXT,                -- optional recent race times, e.g. "27:30"
+    time_5k TEXT,                -- optional recent race times, "mm:ss" or "h:mm:ss"
     time_10k TEXT,
     time_half TEXT,
     time_marathon TEXT,
@@ -219,7 +221,7 @@ def google_calendar_link(run):
 @app.context_processor
 def template_helpers():
     return {"RUN_TYPES": RUN_TYPES, "WEEKDAYS": WEEKDAYS, "DISTANCES": plan.DISTANCES,
-            "RACE_TIMES": RACE_TIMES}
+            "RACE_TIMES": RACE_TIMES, "TIME_FORMATS": TIME_FORMATS}
 
 
 @app.template_filter("nice_date")
@@ -357,7 +359,7 @@ def read_plan_form(form):
         text = form.get(key, "").strip()
         values[key] = text if values["experience"] == "experienced" and text else None
         if values[key] and not TIME_PATTERN.match(text):
-            errors[EXPERIENCE].append(f"Write your {label} time as mm:ss or h:mm:ss, e.g. 27:30 or 1:58:00.")
+            errors[EXPERIENCE].append(f"Write your {label} time as {TIME_FORMATS[key]}.")
 
     if values["weekly_km"] is None or not 0 <= values["weekly_km"] <= 200:
         errors[EXPERIENCE].append("Enter how many km you run per week now (0 if you don't run yet).")
@@ -543,7 +545,7 @@ def delete_plan(plan_id):
     return redirect(url_for("plans"))
 
 
-# ---------- Calendar views (week and month) ----------
+# ---------- Week view ----------
 
 def load_runs(active, first_day, last_day):
     """Runs of the active plan between two dates (inclusive). No plan, no runs."""
@@ -572,13 +574,6 @@ def plan_week_number(monday, active):
     race = date.fromisoformat(active["race_date"])
     number = (monday - plan.monday_of(start)).days // 7 + 1
     return number if 1 <= number <= plan.count_weeks(start, race) else None
-
-
-def default_day(active):
-    # Before the plan starts, open on its first week instead of an empty one.
-    if active is None:
-        return date.today()
-    return max(date.today(), date.fromisoformat(active["start_date"]))
 
 
 @app.route("/")
@@ -626,41 +621,6 @@ def week():
 
     return render_template("week.html", weeks=weeks, target=target, today=today,
                            this_monday=plan.monday_of(today), active=active)
-
-
-@app.route("/month")
-@login_required
-@profile_required
-def month():
-    active = get_active_plan()
-    # ?month=2026-11 -> first day of that month
-    first = parse_date((request.args.get("month") or "") + "-01") or default_day(active).replace(day=1)
-    next_first = (first + timedelta(days=32)).replace(day=1)
-    last = next_first - timedelta(days=1)
-
-    # The grid covers whole Monday-Sunday weeks, so it starts and ends with
-    # a few days from the neighbouring months.
-    grid_start = plan.monday_of(first)
-    grid_end = plan.monday_of(last) + timedelta(days=6)
-    runs = load_runs(active, grid_start, grid_end)
-    days = build_days(grid_start, (grid_end - grid_start).days + 1, runs)
-    weeks = [{"monday": days[i]["date"],
-              "number": plan_week_number(days[i]["date"], active),
-              "days": days[i:i + 7]}
-             for i in range(0, len(days), 7)]
-
-    month_runs = [r for r in runs if first.isoformat() <= r["date"] <= last.isoformat()]
-    return render_template(
-        "month.html",
-        weeks=weeks,
-        first=first,
-        today=date.today(),
-        planned_km=sum(r["distance_km"] for r in month_runs),
-        done_km=sum(r["distance_km"] for r in month_runs if r["done"]),
-        prev_month=(first - timedelta(days=1)).strftime("%Y-%m"),
-        next_month=next_first.strftime("%Y-%m"),
-        active=active,
-    )
 
 
 # ---------- Runs ----------
@@ -712,10 +672,6 @@ def set_done(run_id):
     next_page = request.form.get("next")
     if next_page == "week":
         return redirect(url_for("week", week=run["date"]))
-    if next_page == "month":
-        # Stay on the month being viewed, even if the run is a greyed-out
-        # day from the neighbouring month.
-        return redirect(url_for("month", month=request.form.get("month") or run["date"][:7]))
     return redirect(url_for("run_detail", run_id=run_id))
 
 

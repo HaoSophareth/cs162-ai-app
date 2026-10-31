@@ -64,12 +64,12 @@
 
         {# Shown only when "Yes" is ticked (see .race-times in style.css). #}
         <div class="race-times">
-          <p class="muted">Recent race times, if you have them (optional), e.g. 27:30 or 1:58:00.
+          <p class="muted">Recent race times, if you have them (optional).
             They're used to estimate your finish time.</p>
           <div class="time-grid">
             {% for key, label in RACE_TIMES %}
               <label>{{ label }}
-                <input name="{{ key }}" placeholder="e.g. 27:30" value="{{ values[key] or '' }}">
+                <input name="{{ key }}" placeholder="{{ TIME_FORMATS[key] }}" value="{{ values[key] or '' }}">
               </label>
             {% endfor %}
           </div>

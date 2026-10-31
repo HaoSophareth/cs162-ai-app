@@ -1,9 +1,8 @@
 {# A "done" checkbox for one run. Ticking or unticking it saves right away.
-   next_page says where to return afterwards: "week", "month" or the run page. #}
-{% macro done_checkbox(run, next_page="", month="", label="") %}
+   next_page says where to return afterwards: "week" or the run page. #}
+{% macro done_checkbox(run, next_page="", label="") %}
 <form method="post" action="{{ url_for('set_done', run_id=run.id) }}" class="done-form">
   <input type="hidden" name="next" value="{{ next_page }}">
-  <input type="hidden" name="month" value="{{ month }}">
   <label class="done-box" title="{{ 'Mark as not done' if run.done else 'Mark as done' }}">
     <input type="checkbox" name="done" value="1" {% if run.done %}checked{% endif %}
            onchange="this.form.submit()"

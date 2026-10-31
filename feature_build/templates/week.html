@@ -8,10 +8,6 @@
   <h1>
     {% if active %}{{ DISTANCES[active.distance][0] }} · {{ active.race_date|nice_date }}{% else %}Your calendar{% endif %}
   </h1>
-  <div class="view-switch">
-    <a class="active" href="{{ url_for('week', week=target) }}">Week</a>
-    <a href="{{ url_for('month', month=target.strftime('%Y-%m')) }}">Month</a>
-  </div>
 </div>
 
 {% include "_no_plan.html" %}
