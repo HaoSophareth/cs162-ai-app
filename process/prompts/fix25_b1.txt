@@ -1,0 +1,2 @@
+Change the 15K peak long run from 12 km to 16 km, so it sits between the 10K (14 km) and the half marathon (18 km). Don't change anything else.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.

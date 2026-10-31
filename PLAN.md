@@ -229,6 +229,7 @@ One row per prompt, filled in during each build.
 | 23 | Import hint: own Google calendar, file named after plan | Done; 30s, 2,788 out | Re-prompt (UX) | Google adds imported events to the chosen calendar; a separate calendar gives tick and whole-plan removal |
 | 24 | Remove Export plan completely; keep per-run link | Done; 47s, 4,291 out | Re-prompt (scope cut) | One link can't add a whole plan; import steps too complicated for the user |
 | 25 | Add 15K race distance | Done; 66s, 6,692 out | Re-prompt (new scope) | Custom distance rejected as too many special cases |
+| 26 | 15K peak long run 16 km, not 12 | Done; 22s, 2,279 out | Correct | My 12 km in the prompt was wrong; both builds flagged it |
 
 ### Build 2
 
@@ -257,6 +258,8 @@ One row per prompt, filled in during each build.
 | 21 | Import hint: own Google calendar, file named after plan | Done; 41s, 3,835 out | Re-prompt (UX) | Google adds imported events to the chosen calendar; a separate calendar gives tick and whole-plan removal |
 | 22 | Remove Export plan completely; keep per-run link | Done; 36s, 3,721 out | Re-prompt (scope cut) | One link can't add a whole plan; import steps too complicated for the user |
 | 23 | Add 15K race distance | Done; 69s, 7,338 out | Re-prompt (new scope) | Custom distance rejected as too many special cases |
+| 24 | 15K peak long run 16 km, not 12 | Done; 17s, 1,286 out | Correct | My 12 km in the prompt was wrong; both builds flagged it |
+| 25 | Too-short warning counts weeks like the summary | Done; 32s, 2,874 out | Re-prompt (BUG, Build 2 only) | Found by Build 2 itself |
 
 ## Manual edits (not by the build sessions)
 
@@ -320,24 +323,21 @@ If a new session picks this up: read this section, then the logs above. `process
 - Export plan was built, then removed at the user's request (import too complicated, one link can't add a whole plan). Per-run Add to Google Calendar link stays.
 - User rejected cheap models: builds use Claude Opus 5.5.
 
-Totals table below stops before Build 1 prompt 23 and Build 2 prompt 21; recompute from process/results before the report. Latest reported cost: Build 1 $23.78, Build 2 $18.97.
-
 ### Token and time totals (verified)
 Summed from every result file and matched exactly against each build's transcript (per API call, deduplicated by message id). Result usage is per prompt, not cumulative. `total_cost_usd` IS cumulative per session, so the final value is the total; the earlier $7.44 figure was only a midpoint.
 
 | | Build 1 | Build 2 | Build 2 vs Build 1 |
 |---|---|---|---|
-| Prompts | 22 | 20 | -2 |
-| API calls | 187 (from result turns) | 150 | |
-| AI working time | 43m 07s | 33m 10s | -23% |
-| Input | 374 | 300 | |
-| Cache write | 921,300 | 761,500 | -17% |
-| Cache read | 49,322,958 | 35,273,133 | -28% |
-| Output | 251,075 | 210,038 | -16% |
-| All tokens | 50,495,707 | 36,244,971 | -28% |
-| Reported cost | $22.26 | $17.35 | -22% |
+| Prompts | 26 | 25 | -1 |
+| AI working time | 45m 54s | 36m 25s | -21% |
+| Input | 394 | 330 | |
+| Cache write | 972,051 | 823,553 | -15% |
+| Cache read | 55,204,016 | 42,860,808 | -22% |
+| Output | 267,125 | 229,092 | -14% |
+| All tokens | 56,443,586 | 43,913,783 | -22% |
+| Reported cost | $24.16 | $19.74 | -18% |
 
-Both builds together: 86,740,678 tokens, $39.61 equivalent. Excludes the planning sessions. Start to finish on the clock was 83 minutes for both, because they ran side by side while the user tested. Build 1's two extra prompts are the link bug and the retry after the usage limit, so most of the gap is not those two prompts.
+Both builds together: 100,357,369 tokens, $43.91 equivalent. Recomputed from process/results after the 15K round; add any later prompts. Excludes the planning sessions. Start to finish on the clock was 83 minutes for both, because they ran side by side while the user tested. Build 1 has one extra prompt: it had the link bug and the usage-limit retry, Build 2 had the too-short warning bug.
 
 ### Interrupted prompt
 Build 1 prompt 21 (balanced weeks) ended with "You've hit your 5-hour limit, resets 6pm". Commit b3ca87b holds its edits. Retried as prompt 22 at about 14:02, which was not blocked; it confirmed the edits were complete and tests pass.
@@ -345,11 +345,11 @@ Build 1 prompt 21 (balanced weeks) ended with "You've hit your 5-hour limit, res
 ### Report points
 - Build 1: Flask, raw sqlite3, Flask sessions, split on its own into app.py, plan.py, estimates.py, calendar_export.py; still long app.py. Structure from AI defaults. Build 2: app.py, models.py, auth.py, main.py, plan_generator.py from the prompt.
 - Build 1 first build: 5m 10s, 31,708 out. Build 2: 4m 2s, 26,687 out. Later rounds: Build 2 is often faster and cheaper but NOT every time (forms 15,667 vs 15,894; stacked weeks 12,819 vs 12,894).
-- Bugs/incidents: Build 2 deleted the real database once while testing (no backup). Build 1 only: summary link went to the wrong step, top-bar duplicate. Build 2's new column broke the old database, fixed by hand with ALTER TABLE, backup kept; Build 1 migrates itself on start.
+- Bugs/incidents: Build 2 too-short warning off by one week (found by itself). Build 2 deleted the real database once while testing (no backup). Build 1 only: summary link went to the wrong step, top-bar duplicate. Build 2's new column broke the old database, fixed by hand with ALTER TABLE, backup kept; Build 1 migrates itself on start.
 - Both builds independently added a rule capping other runs at the long run, and found the 30% rule contradicts the peak distances.
 - JavaScript: Build 1 added calendar.js then removed it; still has a 3-line script in templates/week.html. Build 2 has none. Check against class-covered rule.
 - Be honest in the report: some Build 1 re-prompts used engineering words (`instance/`, templates, Riegel formula); Build 2 saved a memory note Build 1 could see; prompts were refined with AI, not written alone; git history before de089b9..4b12ce3 rebuilt from transcripts; title labels are manual edits.
-- Free tier: user hit the 5-hour usage limit at 1:02 PM and the builds report $39.61 in total ($22.26 and $17.35), so tip 4 applies: list alternatives (Claude.ai free, Copilot via Education Pack, DeepSeek, Gemini free) and why not used.
+- Free tier: user hit the 5-hour usage limit at 1:02 PM and the builds report $43.91 in total ($24.16 and $19.74), so tip 4 applies: list alternatives (Claude.ai free, Copilot via Education Pack, DeepSeek, Gemini free) and why not used.
 
 ### Remaining work
 1. (Export removed, no import to test.)
