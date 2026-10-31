@@ -24,6 +24,7 @@ class Plan(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     is_active = db.Column(db.Boolean, nullable=False, default=False)
+    is_archived = db.Column(db.Boolean, nullable=False, default=False)
     has_run_before = db.Column(db.Boolean, nullable=False)
     weekly_km = db.Column(db.Float, nullable=False)
     longest_run_km = db.Column(db.Float)  # optional; None for new runners

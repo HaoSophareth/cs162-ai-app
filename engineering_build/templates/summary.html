@@ -6,12 +6,15 @@
     <h1>
       Your {{ distances[plan.race_distance] }} plan
       {% if plan.is_active %}<span class="active-tag">Active</span>{% endif %}
+      {% if plan.is_archived %}<span class="muted archived-tag">Archived</span>{% endif %}
     </h1>
     <div class="actions">
-      <a class="button secondary" href="{{ url_for('main.edit_plan', plan_id=plan.id) }}">Edit plan</a>
+      {% if not plan.is_archived %}
+        <a class="button secondary" href="{{ url_for('main.edit_plan', plan_id=plan.id) }}">Edit plan</a>
+      {% endif %}
       {% if plan.is_active %}
         <a class="button" href="{{ url_for('main.week', _anchor='current') }}">Go to calendar</a>
-      {% else %}
+      {% elif not plan.is_archived %}
         <form method="post" action="{{ url_for('main.activate_plan', plan_id=plan.id) }}">
           <button type="submit" class="button">Make active and go to calendar</button>
         </form>

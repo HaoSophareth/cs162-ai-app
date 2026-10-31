@@ -376,7 +376,8 @@ def save_plan(plan, values):
 def plans():
     user_plans = Plan.query.filter_by(user_id=current_user.id).order_by(
         Plan.is_active.desc(), Plan.race_date.desc()).all()
-    return render_template("plans.html", plans=user_plans, distances=DISTANCES,
+    return render_template("plans.html", plans=[p for p in user_plans if not p.is_archived],
+                           archived_plans=[p for p in user_plans if p.is_archived], distances=DISTANCES,
                            best_time_fields=BEST_TIME_FIELDS)
 
 
@@ -397,6 +398,8 @@ def new_plan():
 @login_required
 def edit_plan(plan_id):
     plan = get_user_plan(plan_id)
+    if plan.is_archived:
+        return redirect(url_for("main.plans"))
     session["plan_form"] = {"plan_id": plan.id, "answers": form_from_plan(plan)}
     return redirect(url_for("main.plan_step", step=1))
 
@@ -409,6 +412,9 @@ def plan_step(step):
         return redirect(url_for("main.plans"))
     # Checked on every step, so a plan id left in the session can only ever be the user's own.
     plan = get_user_plan(wizard["plan_id"]) if wizard["plan_id"] else None
+    if plan and plan.is_archived:  # archived in another tab after editing began
+        session.pop("plan_form")
+        return redirect(url_for("main.plans"))
     answers = wizard["answers"]
 
     if request.method == "POST":
@@ -500,10 +506,25 @@ def plan_summary(plan_id):
 @login_required
 def activate_plan(plan_id):
     plan = get_user_plan(plan_id)
+    if plan.is_archived:
+        flash("Untick Archive before making this plan active.", "error")
+        return redirect(url_for("main.plans"))
     make_active(plan)
     db.session.commit()
     flash(f"{DISTANCES[plan.race_distance]} plan is now active.", "success")
     return redirect(week_view_url())
+
+
+@main_bp.route("/plans/<int:plan_id>/archive", methods=["POST"])
+@login_required
+def archive_plan(plan_id):
+    plan = get_user_plan(plan_id)
+    # Sets the state the checkbox asked for, so a page left open can't do the opposite.
+    plan.is_archived = request.form.get("archived") == "yes"
+    if plan.is_archived:
+        plan.is_active = False
+    db.session.commit()
+    return redirect(url_for("main.plans"))
 
 
 @main_bp.route("/plans/<int:plan_id>/delete", methods=["POST"])
@@ -514,7 +535,8 @@ def delete_plan(plan_id):
     db.session.delete(plan)
     # Keep a plan active if there is one left, so the calendar doesn't go empty.
     if was_active:
-        replacement = Plan.query.filter(Plan.user_id == current_user.id, Plan.id != plan.id) \
+        replacement = Plan.query.filter(Plan.user_id == current_user.id, Plan.id != plan.id,
+                                        Plan.is_archived.is_(False)) \
             .order_by(Plan.race_date.desc()).first()
         if replacement:
             replacement.is_active = True
