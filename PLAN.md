@@ -224,7 +224,7 @@ One row per prompt, filled in during each build.
 | 18 | Running history on profile | Done; 77s, 7,652 out | Re-prompt (new scope) | |
 | 19 | Remove username from top bar | Done; 30s, 1,841 out | Re-prompt (UX) | |
 | 20 | Export plan button (.ics file) | Done; download checked with curl, Google import not tried yet; 96s, 10,449 out | Re-prompt (new scope) | One link can only add one event |
-| 21 | Long run at most about half the week; weekly total may rise past 10% | RUNNING when this was written; check results/build1_fix20.json | Re-prompt (plan logic) | |
+| 21 | Long run at most about half the week; weekly total may rise past 10% | Done; 79s, 7,605 out | Re-prompt (plan logic) | |
 
 ### Build 2
 
@@ -249,7 +249,7 @@ One row per prompt, filled in during each build.
 | 17 | Running history on profile | Done; 100s, 8,890 out | Re-prompt (new scope) | |
 | 18 | Remove username from top bar | Done; 23s, 993 out | Re-prompt (UX) | |
 | 19 | Export plan button (.ics file) | Done; download checked with curl, Google import not tried yet; 78s, 8,371 out | Re-prompt (new scope) | One link can only add one event |
-| 20 | Long run at most about half the week; weekly total may rise past 10% | RUNNING when this was written; check results/build2_fix20.json | Re-prompt (plan logic) | |
+| 20 | Long run at most about half the week; weekly total may rise past 10% | Done; 79s, 7,241 out | Re-prompt (plan logic) | |
 
 ## Manual edits (not by the build sessions)
 
@@ -300,9 +300,6 @@ If a new session picks this up: read this section, then the logs above. `process
 - Port 5001 is skills_marketplace, don't use it.
 - Test account phareth / 123456 on both. Login form is prefilled by local-only edits to feature_build/templates/auth.html and engineering_build/templates/login.html, hidden from git with skip-worktree. Git won't notice changes there, so check them before commits. Zip from git so the prefill is left out.
 
-### In progress when saved
-- Prompt fix20 (long run at most about half the week, weekly total may rise past 10%) was sent to both builds and may be running or finished. Its uncommitted changes must be read, committed per build, servers restarted, pushed, and log rows 21 (Build 1) and 20 (Build 2) filled in. If a result file in the old scratchpad is newer, copy it into process/results/: /private/tmp/claude-501/-Users-phareth/fe516120-6d09-4de9-9340-e5dc9592ac73/scratchpad
-
 ### User decisions so far
 - Blink: better now, accepted.
 - Long run consistent in both: builds to the race peak, may exceed 30%. Weekly total may rise so the long run stays about half the week or less.
@@ -315,17 +312,22 @@ If a new session picks this up: read this section, then the logs above. `process
 - Export plan downloads .ics. Per-run Add to Google Calendar link stays (user first asked to remove it, then changed their mind).
 - User rejected cheap models: builds use Claude Opus 5.5.
 
-### Token and time totals so far (from process/results, fix20 not included if unfinished)
-| | Build 1 | Build 2 |
-|---|---|---|
-| Result files | 20 | 19 |
-| Time in sessions | 41 min | 31 min |
-| Input | 366 | 294 |
-| Cache write | 892,508 | 743,851 |
-| Cache read | 47,125,959 | 33,881,820 |
-| Output | 238,492 | 202,797 |
+### Token and time totals (verified)
+Summed from every result file and matched exactly against each build's transcript (per API call, deduplicated by message id). Result usage is per prompt, not cumulative. `total_cost_usd` IS cumulative per session, so the final value is the total; the earlier $7.44 figure was only a midpoint.
 
-Result usage may repeat across resumes only if a result reports cumulative numbers: check against the transcripts before quoting in the report. Transcripts: ~/.claude/projects/-Users-phareth-cs162-ai-app-feature-build/af4e88fc-*.jsonl, ~/.claude/projects/-Users-phareth-cs162-ai-app-engineering-build/23c947a3-*.jsonl. Planning transcripts: ~/.claude/projects/-Users-phareth/fe516120-6d09-4de9-9340-e5dc9592ac73.jsonl and b9a683cc-477c-490d-b231-9af0804c8368.jsonl.
+| | Build 1 | Build 2 | Build 2 vs Build 1 |
+|---|---|---|---|
+| Prompts | 21 | 20 | -1 |
+| API calls | 184 | 150 | -18% |
+| AI working time | 42m 19s | 33m 10s | -22% |
+| Input | 368 | 300 | |
+| Cache write | 898,585 | 761,500 | -15% |
+| Cache read | 47,661,463 | 35,273,133 | -26% |
+| Output | 246,097 | 210,038 | -15% |
+| All tokens | 48,806,513 | 36,244,971 | -26% |
+| Reported cost | $21.64 | $17.35 | -20% |
+
+Both builds together: 85,051,484 tokens, $38.99 equivalent. Excludes the planning sessions. Start to finish on the clock was 83 minutes for both, because they ran side by side while the user tested. The 21st prompt is the Build 1-only link bug, so most of the gap is not that one prompt.
 
 ### Report points
 - Build 1: Flask, raw sqlite3, Flask sessions, split on its own into app.py, plan.py, estimates.py, calendar_export.py; still long app.py. Structure from AI defaults. Build 2: app.py, models.py, auth.py, main.py, plan_generator.py from the prompt.
@@ -334,10 +336,10 @@ Result usage may repeat across resumes only if a result reports cumulative numbe
 - Both builds independently added a rule capping other runs at the long run, and found the 30% rule contradicts the peak distances.
 - JavaScript: Build 1 added calendar.js then removed it; still has a 3-line script in templates/week.html. Build 2 has none. Check against class-covered rule.
 - Be honest in the report: some Build 1 re-prompts used engineering words (`instance/`, templates, Riegel formula); Build 2 saved a memory note Build 1 could see; prompts were refined with AI, not written alone; git history before de089b9..4b12ce3 rebuilt from transcripts; title labels are manual edits.
-- Free tier: user hit the 5-hour usage limit at 1:02 PM and one Build 1 result shows about $7.44, so tip 4 applies: list alternatives (Claude.ai free, Copilot via Education Pack, DeepSeek, Gemini free) and why not used.
+- Free tier: user hit the 5-hour usage limit at 1:02 PM and the builds report $38.99 in total ($21.64 and $17.35), so tip 4 applies: list alternatives (Claude.ai free, Copilot via Education Pack, DeepSeek, Gemini free) and why not used.
 
 ### Remaining work
-1. Finish fix20 as above. Try a real .ics import in Google Calendar.
+1. Try a real .ics import in Google Calendar.
 2. Fill "TBD after review" in row 1 of both logs.
 3. Decide on Build 1's week.html script. Name a public plan source in both READMEs (spec asked for one, e.g. Hal Higdon, never prompted). Confirm no test files in build folders.
 4. Separation-of-concerns map, one line per file, for both.
