@@ -23,9 +23,10 @@ DB_PATH = os.path.join(DATA_DIR, "planner.db")
 WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 WEEKDAY_VALUES = [str(i) for i in range(7)]
 RUN_TYPES = {"easy": "Easy", "long": "Long run", "tempo": "Tempo", "intervals": "Intervals", "race": "Race"}
+# The separate number boxes for each race time. Saved as text, "m:ss" or "h:mm:ss".
+TIME_BOXES = {"time_5k": ("min", "sec"), "time_10k": ("min", "sec"),
+              "time_half": ("h", "min", "sec"), "time_marathon": ("h", "min", "sec")}
 # Optional recent race times asked when creating a plan: (column, label).
-# Format hint shown in each box (either format is accepted for any distance).
-TIME_FORMATS = {"time_5k": "mm:ss", "time_10k": "mm:ss", "time_half": "h:mm:ss", "time_marathon": "h:mm:ss"}
 RACE_TIMES = [("time_5k", "5K"), ("time_10k", "10K"), ("time_half", "Half marathon"),
               ("time_marathon", "Marathon")]
 
@@ -212,6 +213,22 @@ def parse_number(text):
         return None
 
 
+def time_boxes(key, text):
+    """Split a saved time into its number boxes, e.g. "1:58:00" -> h, min, sec.
+
+    Older plans could save either format for any distance, so "1:02:10" for a
+    5K becomes 62 min 10 sec, and "58:30" for a half becomes 0 h 58 min 30 sec.
+    """
+    names = TIME_BOXES[key]
+    pieces = text.split(":") if text else []
+    if len(names) == 2 and len(pieces) == 3 and all(p.isdecimal() for p in pieces[:2]):
+        pieces = [str(int(pieces[0]) * 60 + int(pieces[1])), pieces[2]]
+    elif len(names) == 3 and len(pieces) == 2:
+        pieces = ["0"] + pieces
+    pieces += [""] * (len(names) - len(pieces))
+    return dict(zip(names, pieces))
+
+
 def google_calendar_link(run):
     day = date.fromisoformat(run["date"])
     params = {
@@ -227,7 +244,7 @@ def google_calendar_link(run):
 @app.context_processor
 def template_helpers():
     return {"RUN_TYPES": RUN_TYPES, "WEEKDAYS": WEEKDAYS, "DISTANCES": plan.DISTANCES,
-            "RACE_TIMES": RACE_TIMES, "TIME_FORMATS": TIME_FORMATS}
+            "RACE_TIMES": RACE_TIMES, "TIME_BOXES": TIME_BOXES, "time_boxes": time_boxes}
 
 
 @app.template_filter("nice_date")
@@ -376,7 +393,31 @@ def profile_required(view):
 
 # ---------- Plans ----------
 
-TIME_PATTERN = re.compile(r"^(\d{1,2}:)?[0-5]?\d:[0-5]\d$")  # mm:ss or h:mm:ss
+def read_race_time(key, label, form):
+    """Return (time text, error) for a ticked race time.
+
+    Comes from its number boxes, or from the hidden field that carries it
+    between steps. On an error the text keeps what was typed, to show it again.
+    """
+    names = TIME_BOXES[key]
+    boxes = {name: form.get(f"{key}_{name}", "").strip() for name in names}
+    if not any(boxes.values()):
+        boxes = time_boxes(key, form.get(key, "").strip())
+    if not any(boxes.values()):
+        return None, f"Enter your {label} time, or untick it."
+
+    boxes["sec"] = boxes["sec"] or "0"  # a blank seconds box counts as 00
+    text = ":".join(boxes[name] for name in names)
+    if not all(re.fullmatch("[0-9]+", boxes[name]) for name in names):
+        return text, f"Use whole numbers in every box of your {label} time."
+    numbers = {name: int(boxes[name]) for name in names}
+    if numbers["sec"] > 59:
+        return text, f"Seconds in your {label} time must be 0-59."
+    if "h" in names:
+        if numbers["min"] > 59:
+            return text, f"Minutes in your {label} time must be 0-59."
+        return f"{numbers['h']}:{numbers['min']:02d}:{numbers['sec']:02d}", None
+    return f"{numbers['min']}:{numbers['sec']:02d}", None
 
 
 # The plan form is split into three steps. Each step is a normal form post;
@@ -417,12 +458,12 @@ def read_plan_form(form):
     if values["has_times"] == "yes" and not any(key in ticked for key, _ in RACE_TIMES):
         errors[EXPERIENCE].append("Tick the distance of your race time, or answer No.")
     for key, label in RACE_TIMES:
-        text = form.get(key, "").strip()
-        values[key] = text if key in ticked and text else None
-        if key in ticked and not text:
-            errors[EXPERIENCE].append(f"Enter your {label} time, or untick it.")
-        elif values[key] and not TIME_PATTERN.match(text):
-            errors[EXPERIENCE].append(f"Write your {label} time as {TIME_FORMATS[key]}.")
+        if key not in ticked:
+            values[key] = None
+            continue
+        values[key], error = read_race_time(key, label, form)
+        if error:
+            errors[EXPERIENCE].append(error)
 
     if values["experience"] == "new":
         # New runners aren't asked; 0 km makes the plan start at the

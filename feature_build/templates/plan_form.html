@@ -115,8 +115,17 @@
 
           {% for key, label in RACE_TIMES %}
             <div class="field time-field" id="field-{{ key }}">
-              <label class="field-label" for="{{ key }}">{{ label }} time *</label>
-              <input id="{{ key }}" name="{{ key }}" placeholder="{{ TIME_FORMATS[key] }}" value="{{ values[key] or '' }}">
+              <label class="field-label" for="{{ key }}_{{ TIME_BOXES[key][0] }}">{{ label }} time *</label>
+              {# Text boxes with a number keypad: a hidden type="number" box with a bad
+                 value would silently block Next. The server checks the numbers. #}
+              {% set boxes = time_boxes(key, values[key]) %}
+              <div class="time-boxes">
+                {% for name in TIME_BOXES[key] %}
+                  {% if not loop.first %}<span aria-hidden="true">:</span>{% endif %}
+                  <input class="time-box" id="{{ key }}_{{ name }}" name="{{ key }}_{{ name }}" inputmode="numeric"
+                         autocomplete="off" placeholder="{{ name }}" aria-label="{{ label }} {{ name }}" value="{{ boxes[name] }}">
+                {% endfor %}
+              </div>
             </div>
           {% endfor %}
         </div>
