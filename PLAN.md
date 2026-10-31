@@ -233,6 +233,7 @@ One row per prompt, filled in during each build.
 | 27 | Rename Calendar to Home in top bar | Done; 27s, 1,984 out | Re-prompt (UX) | |
 | 28 | Delete account on profile, confirmed by typing username | Done; 113s, 11,365 out | Re-prompt (new scope) | |
 | 29 | First-time profile: hide running history and delete account | Done; 29s, 2,525 out | Re-prompt (UX, Build 1 bug) | Build 1 showed them on onboarding |
+| 30 | Race times: separate boxes with the colon shown | Done; 168s, 18,027 out | Re-prompt (UX) | Auto-inserting a colon while typing needs JavaScript |
 
 ### Build 2
 
@@ -267,6 +268,7 @@ One row per prompt, filled in during each build.
 | 27 | Delete question below an even button row | Done; 54s, 4,835 out | Re-prompt (UI bug, Build 2 only) | CSS-only confirm stretched the buttons; Build 1 uses a JS confirm() |
 | 28 | Delete account on profile, confirmed by typing username | Done; 65s, 6,424 out | Re-prompt (new scope) | |
 | 29 | First-time profile: hide running history and delete account | Done; 23s, 2,191 out | Unneeded prompt | No code change: Build 2 already hid them; the screenshot was from Build 1 |
+| 30 | Race times: separate boxes with the colon shown | Done; 144s, 14,699 out | Re-prompt (UX) | Auto-inserting a colon while typing needs JavaScript |
 
 ## Manual edits (not by the build sessions)
 
