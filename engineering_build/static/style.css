@@ -287,6 +287,9 @@ input[type=text], input[type=password], input[type=date], input[type=number], se
 
 .form-panel .race-time-rows { display: flex; flex-direction: column; gap: 0.6rem; }
 .form-panel .race-time-box { display: none; margin-top: 0.6rem; }
+.form-panel .time-parts { display: flex; align-items: center; gap: 0.4rem; }
+.form-panel .time-parts input[type=text] { width: 4.5rem; text-align: center; }
+.form-panel .time-colon { font-weight: 600; }
 .form-panel .race-time-row:has(input[type=checkbox]:checked) .race-time-box { display: block; }
 .plan-form:not(:has(input[name=has_race_time][value=yes]:checked)) .if-race-time { display: none; }
 

@@ -63,11 +63,20 @@
               <div class="race-time-row">
                 <label class="option"><input type="checkbox" name="race_time_distances" value="{{ field }}"
                   {% if field in form.race_time_distances %}checked{% endif %}> {{ label }}</label>
-                <label class="race-time-box">
-                  <span class="field-sublabel">{{ label }} time ({{ best_time_format[field] }}) <span class="required-mark">*</span></span>
-                  <input type="text" name="{{ field }}" value="{{ form[field] }}"
-                         placeholder="{{ best_time_format[field] }}">
-                </label>
+                {# Plain text boxes: a hidden number box with an out-of-range value would stop
+                   the browser submitting the form. The server checks the values instead. #}
+                <div class="race-time-box">
+                  <span class="field-sublabel">{{ label }} time <span class="required-mark">*</span></span>
+                  <div class="time-parts">
+                    {% for part in best_time_parts[field] %}
+                      {% if not loop.first %}<span class="time-colon">:</span>{% endif %}
+                      <input type="text" inputmode="numeric" autocomplete="off"
+                             name="{{ field }}_{{ part }}" value="{{ form[field ~ '_' ~ part] }}"
+                             maxlength="{{ 3 if loop.first else 2 }}" placeholder="{{ part }}"
+                             aria-label="{{ label }} time, {{ {'h': 'hours', 'min': 'minutes', 'sec': 'seconds'}[part] }}">
+                    {% endfor %}
+                  </div>
+                </div>
               </div>
             {% endfor %}
           </div>

@@ -13,8 +13,10 @@ main_bp = Blueprint("main", __name__)
 
 DISTANCES = {"5k": "5K", "10k": "10K", "15k": "15K", "half": "Half marathon", "marathon": "Marathon"}
 BEST_TIME_FIELDS = {"best_5k": "5K", "best_10k": "10K", "best_half": "Half marathon", "best_full": "Marathon"}
-# Format hint shown in each time box. Either format is accepted in any box.
-BEST_TIME_FORMAT = {"best_5k": "mm:ss", "best_10k": "mm:ss", "best_half": "h:mm:ss", "best_full": "h:mm:ss"}
+# The number boxes each race time is typed into.
+BEST_TIME_PARTS = {"best_5k": ("min", "sec"), "best_10k": ("min", "sec"),
+                   "best_half": ("h", "min", "sec"), "best_full": ("h", "min", "sec")}
+BEST_TIME_BOXES = [f"{field}_{part}" for field, parts in BEST_TIME_PARTS.items() for part in parts]
 # Which race distance each best-time column is for (the marathon column is best_full).
 BEST_TIME_DISTANCE = {"best_5k": "5k", "best_10k": "10k", "best_half": "half", "best_full": "marathon"}
 # The plan form is split into three steps, in this order. Each one names the form
@@ -22,7 +24,7 @@ BEST_TIME_DISTANCE = {"best_5k": "5k", "best_10k": "10k", "best_half": "half", "
 PLAN_STEPS = {
     1: {"key": "goal", "title": "Goal", "fields": ["race_distance", "start_date", "race_date"]},
     2: {"key": "experience", "title": "Experience", "fields": ["has_run_before", "weekly_km", "longest_run_km",
-                                                               "has_race_time", "race_time_distances", *BEST_TIME_FIELDS]},
+                                                               "has_race_time", "race_time_distances", *BEST_TIME_BOXES]},
     3: {"key": "schedule", "title": "Schedule", "fields": ["run_days", "long_run_day"]},
 }
 LAST_STEP = len(PLAN_STEPS)
@@ -59,19 +61,33 @@ def parse_number(text, kind=float):
         return None
 
 
-def parse_duration(text):
-    # "mm:ss" or "h:mm:ss" -> seconds. Raises ValueError if malformed.
-    parts = text.split(":")
-    if len(parts) not in (2, 3) or not all(p.isdigit() for p in parts):
+def duration_from_parts(form, field):
+    # The boxes of one race time -> seconds. Raises ValueError if they don't make a valid time.
+    texts = [form.get(f"{field}_{part}", "") for part in BEST_TIME_PARTS[field]]
+    texts[-1] = texts[-1] or "0"  # a blank seconds box counts as 00
+    if not all(text.isdecimal() for text in texts):
         raise ValueError
-    numbers = [int(p) for p in parts]
-    if any(n >= 60 for n in numbers[1:]):
+    numbers = [int(text) for text in texts]
+    if numbers[0] > 999 or any(number > 59 for number in numbers[1:]):
         raise ValueError
-    hours, minutes, seconds = [0] * (3 - len(numbers)) + numbers
-    total = hours * 3600 + minutes * 60 + seconds
+    total = 0
+    for number in numbers:
+        total = total * 60 + number
     if total == 0:
         raise ValueError
     return total
+
+
+def parts_from_duration(field, seconds):
+    # Saved seconds -> the text for each box. The first box isn't limited to 59, so a 5K
+    # over an hour shows as 65 : 10, and a half under an hour as 0 : 58 : 00.
+    parts = BEST_TIME_PARTS[field]
+    if seconds is None:
+        return {f"{field}_{part}": "" for part in parts}
+    minutes, secs = divmod(seconds, 60)
+    numbers = [minutes, secs] if len(parts) == 2 else [minutes // 60, minutes % 60, secs]
+    texts = [str(numbers[0])] + [f"{number:02}" for number in numbers[1:]]
+    return {f"{field}_{part}": text for part, text in zip(parts, texts)}
 
 
 def get_active_plan():
@@ -290,9 +306,11 @@ def parse_plan_form(form):
         best_times[field] = None
         if field in ticked:
             try:
-                best_times[field] = parse_duration(form[field])
+                best_times[field] = duration_from_parts(form, field)
             except ValueError:
-                errors["experience"].append(f"Write your {label} time as mm:ss or h:mm:ss.")
+                layout = " : ".join(BEST_TIME_PARTS[field])
+                limits = "seconds" if len(BEST_TIME_PARTS[field]) == 2 else "minutes and seconds"
+                errors["experience"].append(f"Enter your {label} time as {layout}, with {limits} from 0 to 59.")
 
     values = {
         "has_run_before": has_run_before,
@@ -320,7 +338,7 @@ def form_from_plan(plan):
         "race_date": plan.race_date.isoformat(),
     }
     for field in BEST_TIME_FIELDS:
-        form[field] = format_duration(getattr(plan, field))
+        form.update(parts_from_duration(field, getattr(plan, field)))
     form["race_time_distances"] = [field for field in BEST_TIME_FIELDS if getattr(plan, field)]
     if plan.has_run_before:
         form["has_race_time"] = "yes" if form["race_time_distances"] else "no"
@@ -364,7 +382,7 @@ def new_plan():
     answers = {"has_run_before": "", "weekly_km": "", "longest_run_km": "", "has_race_time": "", "race_time_distances": [],
                "run_days": [], "long_run_day": "Sun",
                "race_distance": "5k", "start_date": date.today().isoformat(), "race_date": "",
-               **{field: "" for field in BEST_TIME_FIELDS}}
+               **{box: "" for box in BEST_TIME_BOXES}}
     session["plan_form"] = {"plan_id": None, "answers": answers}
     return redirect(url_for("main.plan_step", step=1))
 
@@ -417,7 +435,7 @@ def plan_step(step):
     return render_template("setup.html", step=step, steps=PLAN_STEPS, last_step=LAST_STEP,
                            form=answers, plan=plan, days=DAYS, distances=DISTANCES,
                            recommended=RECOMMENDED_WEEKS, best_time_fields=BEST_TIME_FIELDS,
-                           best_time_format=BEST_TIME_FORMAT)
+                           best_time_parts=BEST_TIME_PARTS)
 
 
 def finish_plan(plan, values):
