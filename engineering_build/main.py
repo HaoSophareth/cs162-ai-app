@@ -147,6 +147,8 @@ def build_week(plan, week_start, plan_runs):
         "columns": [{"date": d, "runs": [r for r in runs if r.date == d]} for d in days],
         "planned_km": sum(r.distance_km for r in runs),
         "done_km": sum(r.distance_km for r in runs if r.done),
+        "has_runs": bool(runs),
+        "all_done": bool(runs) and all(r.done for r in runs),
     }
 
 
@@ -563,14 +565,21 @@ def week_frame(start):
     week_start = parse_date(start)
     if plan is None or week_start is None:
         abort(404)
+    week_start = monday_of(week_start)
+    week_end = week_start + timedelta(days=6)
     if request.method == "POST":
-        run = get_user_run(request.form.get("run_id", type=int))
-        run.done = not run.done
+        if "mark_week" in request.form:
+            # Sets the state the checkbox asked for, not a flip, so a page left open
+            # can't do the opposite of what it showed. Only the active plan's runs.
+            done = request.form["mark_week"] == "done"
+            for run in runs_between(plan, week_start, week_end):
+                run.done = done
+        else:
+            run = get_user_run(request.form.get("run_id", type=int))
+            run.done = not run.done
         db.session.commit()
         return redirect(url_for("main.week_frame", start=start))
 
-    week_start = monday_of(week_start)
-    week_end = week_start + timedelta(days=6)
     return render_template(
         "week_frame.html",
         week=build_week(plan, week_start, runs_between(plan, week_start, week_end)),

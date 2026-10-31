@@ -9,11 +9,21 @@
 <body class="week-frame-body">
   <div class="{% if week.start == this_monday %}this-week{% endif %}">
     <div class="week-header">
-      <h2>
-        {{ week.start.strftime('%b') }} {{ week.start.day }} - {{ week.end.strftime('%b') }} {{ week.end.day }}
-        {% if week.number %}<span class="muted">· Week {{ week.number }}{% if week.number == total_weeks %} (race week){% endif %}</span>{% endif %}
-        {% if week.start == this_monday %}<span class="active-tag">This week</span>{% endif %}
-      </h2>
+      <div class="week-heading">
+        {% if week.has_runs %}
+          <form method="post">
+            <input type="hidden" name="mark_week" value="{{ 'not_done' if week.all_done else 'done' }}">
+            <button type="submit" class="checkbox {% if week.all_done %}checked{% endif %}" role="checkbox"
+                    aria-checked="{{ 'true' if week.all_done else 'false' }}" aria-label="All runs this week done"
+                    title="{{ 'Mark all of this week\'s runs as not done' if week.all_done else 'Mark all of this week\'s runs as done' }}"><span class="box"></span></button>
+          </form>
+        {% endif %}
+        <h2>
+          {{ week.start.strftime('%b') }} {{ week.start.day }} - {{ week.end.strftime('%b') }} {{ week.end.day }}
+          {% if week.number %}<span class="muted">· Week {{ week.number }}{% if week.number == total_weeks %} (race week){% endif %}</span>{% endif %}
+          {% if week.start == this_monday %}<span class="active-tag">This week</span>{% endif %}
+        </h2>
+      </div>
       <div class="week-totals">
         <span><strong>{{ '%g' % week.planned_km|round(1) }} km</strong> planned</span>
         <span><strong>{{ '%g' % week.done_km|round(1) }} km</strong> done</span>
