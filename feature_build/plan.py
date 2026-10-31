@@ -27,6 +27,9 @@ RACE_KM = {"5k": 5, "10k": 10, "half": 21.1, "marathon": 42.2}
 # Shortest runs the plan will schedule. Kept small so a brand-new runner's
 # first weeks stay close to their (low) starting volume.
 MAX_LONG_RUN_STEP_KM = 3
+MAX_LONG_RUN_SHARE = 0.5  # of the week's total
+CUTBACK_FACTOR = 0.75
+TAPER_FACTOR = 0.7
 MIN_EASY_KM = 2
 MIN_QUALITY_KM = 3.5
 RACE_WEEK_EASY_KM = 3
@@ -67,7 +70,7 @@ def weekly_targets(total_weeks, start_km, distance):
         if week_number % 4 == 0:
             # Cutback: drop volume to let the body recover, then resume
             # building from where we were before the cutback.
-            weeks.append({"km": peak * 0.75, "kind": "cutback"})
+            weeks.append({"km": peak * CUTBACK_FACTOR, "kind": "cutback"})
             continue
         if week_number > 1:
             peak = min(peak * 1.10, MAX_WEEKLY_KM[distance])
@@ -76,7 +79,7 @@ def weekly_targets(total_weeks, start_km, distance):
     # Taper: the week before race week is ~70% of peak. Race week is just
     # short easy runs plus the race (see generate_plan).
     if taper_weeks == 2:
-        weeks.append({"km": peak * 0.7, "kind": "taper"})
+        weeks.append({"km": peak * TAPER_FACTOR, "kind": "taper"})
     weeks.append({"km": 0, "kind": "race"})
     return weeks
 
@@ -111,6 +114,21 @@ def long_run_targets(weeks, distance, longest_km=None):
             long_km = 0
         longs.append(long_km)
     return longs
+
+
+def balance_weeks(weeks, longs):
+    """Raise any build week whose long run would be over half its total, even if
+    that's more than 10% growth, so the other runs stay useful. Cutback and taper
+    weeks then drop from the level actually reached."""
+    level = 0
+    for week, long_km in zip(weeks, longs):
+        if week["kind"] == "build":
+            week["km"] = max(week["km"], long_km / MAX_LONG_RUN_SHARE)
+            level = week["km"]
+        elif week["kind"] == "cutback":
+            week["km"] = level * CUTBACK_FACTOR
+        elif week["kind"] == "taper":
+            week["km"] = level * TAPER_FACTOR
 
 
 def describe(run_type, km, distance):
@@ -153,6 +171,7 @@ def generate_plan(experience, current_km, run_days, long_day, distance, start_da
     start_km = starting_weekly_km(experience, current_km, distance)
     weeks = weekly_targets(total_weeks, start_km, distance)
     longs = long_run_targets(weeks, distance, longest_km)
+    balance_weeks(weeks, longs)
     first_monday = monday_of(start_date)
 
     runs = []

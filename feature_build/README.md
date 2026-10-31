@@ -64,6 +64,10 @@ Weeks run Monday to Sunday. Week 1 is the week containing the start date.
   3 km a week, so a plan with too few weeks stops short of the peak. Other runs
   aren't longer than the week's long run, so with few run days a week the week's
   total can come in under its target.
+- **Balanced weeks:** when the long run would be more than about half of a build
+  week, that week's total is raised to twice the long run, even if it grows more
+  than 10%. Cutback and taper weeks drop from that raised level. A first week cut
+  short by a mid-week start can't always balance, since few runs are left in it.
 - **One quality run a week**, alternating tempo and intervals, placed away
   from the long run. The other days are easy runs.
 - **Race day** is its own run on the race date.
