@@ -281,6 +281,7 @@ One row per prompt, filled in during each build.
 | 34 | training start date can't be in the past | Done; 59s, 5,410 out | Re-prompt (UX) | |
 | 35 | training start date defaults to Today | Done; 88s, 8,197 out | Re-prompt (UX) | |
 | 36 | week checkbox marks all its runs done | Done; 88s, 8,410 out | Re-prompt (UX) | |
+| 37 | Start date is one field showing Today | Done; 107s, 10,011 out | Re-prompt (UX, Build 2 only) | No-JS version took two clicks |
 
 ## Manual edits (not by the build sessions)
 
