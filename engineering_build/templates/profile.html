@@ -11,7 +11,7 @@
 
   <form method="post">
     <fieldset class="field">
-      <legend class="field-label">Sex</legend>
+      <legend class="field-label">Sex <span class="required-mark">*</span></legend>
       <div class="options">
         <label class="option"><input type="radio" name="sex" value="male" required
           {% if form.sex == 'male' %}checked{% endif %}> Male</label>
@@ -20,15 +20,15 @@
       </div>
     </fieldset>
     <label class="field">
-      <span class="field-label">Age</span>
+      <span class="field-label">Age <span class="required-mark">*</span></span>
       <input type="number" name="age" value="{{ form.age }}" min="10" max="100" step="1" required>
     </label>
     <label class="field">
-      <span class="field-label">Weight (kg)</span>
+      <span class="field-label">Weight (kg) <span class="required-mark">*</span></span>
       <input type="number" name="weight_kg" value="{{ form.weight_kg }}" min="25" max="300" step="0.1" required>
     </label>
     <label class="field">
-      <span class="field-label">Height (cm)</span>
+      <span class="field-label">Height (cm) <span class="required-mark">*</span></span>
       <input type="number" name="height_cm" value="{{ form.height_cm }}" min="100" max="250" step="1" required>
     </label>
     <div class="form-actions">

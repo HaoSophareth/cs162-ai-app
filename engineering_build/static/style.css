@@ -244,7 +244,8 @@ input[type=text], input[type=password], input[type=date], input[type=number], se
   font-size: 0.95rem;
 }
 .form-panel .field-label + * { clear: both; }
-.form-panel .optional { font-weight: 400; font-size: 0.85rem; color: #5f6368; margin-left: 0.3rem; }
+.form-panel .field-hint { font-weight: 400; font-size: 0.85rem; color: #5f6368; margin-left: 0.3rem; }
+.form-panel .required-mark { color: #c5221f; }
 .form-panel .field-sublabel { display: block; margin-bottom: 0.3rem; font-size: 0.85rem; color: #5f6368; }
 .form-panel label { margin: 0; }
 .form-panel input[type=text], .form-panel input[type=number], .form-panel input[type=date], .form-panel select {

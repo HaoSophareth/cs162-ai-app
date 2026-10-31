@@ -22,7 +22,7 @@
     {% set step_key = steps[step].key %}
     {% if step_key == 'experience' %}
       <fieldset class="field">
-        <legend class="field-label">Have you run before?</legend>
+        <legend class="field-label">Have you run before? <span class="required-mark">*</span></legend>
         <div class="options">
           <label class="option"><input type="radio" name="has_run_before" value="yes" required
             {% if form.has_run_before == 'yes' %}checked{% endif %}> Yes</label>
@@ -36,17 +36,17 @@
          browser won't submit a form with a required field that is hidden. #}
       <div class="if-run-before">
         <label class="field">
-          <span class="field-label">Current weekly distance (km)</span>
+          <span class="field-label">Current weekly distance (km) <span class="required-mark">*</span></span>
           <input type="number" name="weekly_km" value="{{ form.weekly_km }}" min="0" max="300" step="0.5">
         </label>
 
         <label class="field">
-          <span class="field-label">Longest recent run (km) <span class="optional">optional</span></span>
+          <span class="field-label">Longest recent run (km)</span>
           <input type="number" name="longest_run_km" value="{{ form.longest_run_km }}" min="0.5" max="100" step="0.5">
         </label>
 
         <fieldset class="field">
-          <legend class="field-label">Do you have a recent race time?</legend>
+          <legend class="field-label">Do you have a recent race time? <span class="required-mark">*</span></legend>
           <div class="options">
             <label class="option"><input type="radio" name="has_race_time" value="yes"
               {% if form.has_race_time == 'yes' %}checked{% endif %}> Yes</label>
@@ -57,14 +57,14 @@
 
         {# Shown by CSS once "Yes" is picked. Each row's time box shows when its own checkbox is ticked. #}
         <fieldset class="field if-race-time">
-          <legend class="field-label">Which distances?</legend>
+          <legend class="field-label">Which distances? <span class="required-mark">*</span></legend>
           <div class="race-time-rows">
             {% for field, label in best_time_fields.items() %}
               <div class="race-time-row">
                 <label class="option"><input type="checkbox" name="race_time_distances" value="{{ field }}"
                   {% if field in form.race_time_distances %}checked{% endif %}> {{ label }}</label>
                 <label class="race-time-box">
-                  <span class="field-sublabel">{{ label }} time ({{ best_time_format[field] }})</span>
+                  <span class="field-sublabel">{{ label }} time ({{ best_time_format[field] }}) <span class="required-mark">*</span></span>
                   <input type="text" name="{{ field }}" value="{{ form[field] }}"
                          placeholder="{{ best_time_format[field] }}">
                 </label>
@@ -76,7 +76,7 @@
 
     {% elif step_key == 'schedule' %}
       <fieldset class="field">
-        <legend class="field-label">Days you can run <span class="optional">at least 3</span></legend>
+        <legend class="field-label">Days you can run <span class="required-mark">*</span> <span class="field-hint">at least 3</span></legend>
         <div class="options day-options">
           {% for day in days %}
             <label class="option"><input type="checkbox" name="run_days" value="{{ day }}"
@@ -85,7 +85,7 @@
         </div>
       </fieldset>
       <label class="field">
-        <span class="field-label">Long-run day</span>
+        <span class="field-label">Long-run day <span class="required-mark">*</span></span>
         <select name="long_run_day">
           {% for day in days %}
             <option value="{{ day }}" {% if day == form.long_run_day %}selected{% endif %}>{{ day }}</option>
@@ -95,7 +95,7 @@
 
     {% elif step_key == 'goal' %}
       <label class="field">
-        <span class="field-label">Race distance</span>
+        <span class="field-label">Race distance <span class="required-mark">*</span></span>
         <select name="race_distance">
           {% for key, name in distances.items() %}
             <option value="{{ key }}" {% if key == form.race_distance %}selected{% endif %}>
@@ -105,11 +105,11 @@
         </select>
       </label>
       <label class="field">
-        <span class="field-label">Training start date</span>
+        <span class="field-label">Training start date <span class="required-mark">*</span></span>
         <input type="date" name="start_date" value="{{ form.start_date }}" required>
       </label>
       <label class="field">
-        <span class="field-label">Race date</span>
+        <span class="field-label">Race date <span class="required-mark">*</span></span>
         <input type="date" name="race_date" value="{{ form.race_date }}" required>
       </label>
     {% endif %}
