@@ -209,6 +209,11 @@ One row per prompt, filled in during each build.
 | 3 | "Add month view; week view scrollable to next week" (new scope) | Month view + swipe/arrow keys between weeks; added static/calendar.js (~60 lines JS) without being asked; read "scrollable" as sideways swipe; tested on a copy of the DB; 136s, 14,291 out tokens | Accept | First JS in Build 1 (no constraint in feature prompt) |
 | 4 | "Done should be a checkbox, crossed out + faded; remove color legend" | Real checkbox (shared template piece), 40% opacity; 120s, 10,660 out tokens | Re-prompt (UI preference) | |
 | 5 | Spec change: quick profile onboarding, plan questions only when creating a plan, multiple plans (one active) | Done; new DB file planner.db (old one left); race times saved but unused; 302s, 32,585 out tokens | Re-prompt (spec change) | |
+| 6 | Plan form in 3 steps (Step 1 of 3) | Done, 141s, 14,617 out | Re-prompt (UX) | |
+| 7 | Goal-first order + plan summary with Riegel finish range + remove Week/Month from top bar | Done; put formula in new estimates.py on its own; 188s, 20,256 out | Re-prompt (new scope + Build 1-only nav fix) | Top-bar duplicate only existed in Build 1 |
+| 8 | Week view scrolls down through all plan weeks | Done, checked in a real browser itself; 141s, 12,819 out | Re-prompt (UX) | Replaced its own sideways-swipe JS |
+| 9 | Neutral race-time hints + remove month view | Done; deleted calendar.js, so Build 1 has no JS again; 93s, 8,322 out | Re-prompt | Placeholder times biased to fast runners (and repeated) |
+| 10 | No plan yet: prompt to create one instead of empty calendar | Done | Re-prompt (UX) | |
 
 ### Build 2
 
@@ -219,6 +224,11 @@ One row per prompt, filled in during each build.
 | 3 | Same + "same stack and file layout, no JavaScript" (new scope) | Month view + two weeks side by side with CSS scroll-snap; refactored week logic into helpers; DELETED the real app database while testing (user data lost, no backup); 100s, 11,147 out tokens | Accept code; incident logged | Data loss = AI test habit; saved a "never delete the DB" memory that Build 1 can also see (shared memory per repo) |
 | 4 | Same as Build 1 + "no JavaScript" | Button styled as checkbox (no JS), 45% opacity; 74s, 8,190 out tokens | Re-prompt (UI preference) | |
 | 5 | Same spec change + data model/files/routes | Done; profile gate on every page; times hide with CSS only; 207s, 24,728 out tokens | Re-prompt (spec change) | |
+| 6 | Same + keep answers in Flask session | Done, 118s, 14,123 out | Re-prompt (UX) | |
+| 7 | Goal-first order + plan summary (formula in plan_generator.py) | Done; step order set in one place (PLAN_STEPS); 135s, 15,442 out | Re-prompt (new scope) | |
+| 8 | Same + page anchor, no JS | Done; 117s, 12,894 out | Re-prompt (UX) | |
+| 9 | Same as Build 1 | Done; 58s, 5,868 out | Re-prompt | |
+| 10 | Same as Build 1 | Done | Re-prompt (UX) | |
 
 ## Manual edits (not by the build sessions)
 
@@ -228,6 +238,8 @@ One row per prompt, filled in during each build.
 
 - Blink fix (row 2) didn't seem to work in Arc (default browser); likely needs Chrome 126+/Safari 18.2+. Check in Chrome before counting it as failed.
 - Git history rebuilt from transcripts after the fact: one commit per prompt/manual edit (de089b9..4b12ce3).
+
+- Local-only dev change (never committed, git skip-worktree): login form prefilled with phareth/123456 in both builds. Remove/undo before zipping (zip from git, so it's excluded anyway).
 
 ## Times
 
