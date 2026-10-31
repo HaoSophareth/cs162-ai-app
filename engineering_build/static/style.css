@@ -214,9 +214,13 @@ input[type=text], input[type=password], input[type=date], input[type=number], se
 .active-tag { background: #e8f0fe; color: #1a73e8; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.8rem; }
 .button.danger { color: #c5221f; }
 .button.danger-solid { background: #c5221f; border-color: #c5221f; }
-.confirm-delete summary { list-style: none; }
-.confirm-delete summary::-webkit-details-marker { display: none; }
-.confirm-delete[open] form { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+.plan-item .actions { align-items: center; }
+.delete-button { position: relative; }
+/* Invisible but still reachable by keyboard, unlike display: none. */
+.delete-toggle { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; }
+.delete-button:has(.delete-toggle:focus-visible) { outline: 2px solid #1a73e8; outline-offset: 2px; }
+.delete-confirm { display: none; flex-basis: 100%; justify-content: flex-end; align-items: center; gap: 0.75rem; margin: 0; }
+.plan-item:has(.delete-toggle:checked) .delete-confirm { display: flex; }
 
 /* Plan form steps */
 .step-count { margin: 0 0 0.5rem; font-size: 0.85rem; font-weight: 600; color: #1a73e8; text-transform: uppercase; letter-spacing: 0.04em; }
