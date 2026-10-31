@@ -322,7 +322,7 @@ def save_plan(plan, values):
     plan.runs = [Run(**run) for run in new_runs]
     db.session.commit()
 
-    weeks = (plan.race_date - plan.start_date).days // 7
+    weeks = total_plan_weeks(plan)
     needed = RECOMMENDED_WEEKS[plan.race_distance]
     if weeks < needed:
         flash(f"Heads up: you have {weeks} weeks until the race, but at least {needed} "
