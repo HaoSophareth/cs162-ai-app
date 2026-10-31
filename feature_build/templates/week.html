@@ -1,56 +1,65 @@
 {% extends "base.html" %}
 {% from "_done_checkbox.html" import done_checkbox with context %}
 {% block title %}Week view{% endblock %}
-{% block head %}<script src="{{ url_for('static', filename='calendar.js') }}"></script>{% endblock %}
 {% block content %}
-<div class="week-header">
-  <div class="week-nav">
-    <a class="button" href="{{ url_for('week') }}">Today</a>
-    <a class="button" data-nav="prev" href="{{ url_for('week', week=prev_week) }}" title="Previous week (←)">‹</a>
-    <a class="button" data-nav="next" href="{{ url_for('week', week=next_week) }}" title="Next week (→)">›</a>
-    <h1>
-      {{ monday.strftime('%b') }} {{ monday.day }} - {{ sunday.strftime('%b') }} {{ sunday.day }}
-      {% if week_number %}· Week {{ week_number }}{% endif %}
-    </h1>
-  </div>
-  <div class="week-totals">
-    <span><strong>{{ "%g"|format(planned_km|round(1)) }}</strong> km planned</span>
-    <span><strong>{{ "%g"|format(done_km|round(1)) }}</strong> km done</span>
-    <div class="view-switch">
-      <a class="active" href="{{ url_for('week', week=monday) }}">Week</a>
-      <a href="{{ url_for('month', month=monday.strftime('%Y-%m')) }}">Month</a>
-    </div>
+{# Stays at the top of the screen while you scroll through the weeks. #}
+<div class="week-toolbar">
+  <a class="button" href="{{ url_for('week') }}">Today</a>
+  <h1>
+    {% if active %}{{ DISTANCES[active.distance][0] }} · {{ active.race_date|nice_date }}{% else %}Your calendar{% endif %}
+  </h1>
+  <div class="view-switch">
+    <a class="active" href="{{ url_for('week', week=target) }}">Week</a>
+    <a href="{{ url_for('month', month=target.strftime('%Y-%m')) }}">Month</a>
   </div>
 </div>
-
-<p class="muted calendar-hint">Swipe sideways or use ← → to change week</p>
 
 {% include "_no_plan.html" %}
 
-<div class="week-grid calendar">
-  {% for day in days %}
-    <section class="day {% if day.date == today %}today{% endif %}">
-      <header>
-        <span class="weekday">{{ day.date.strftime('%a') }}</span>
-        <span class="daynum">{{ day.date.day }}</span>
-      </header>
-      {% for run in day.runs %}
-        <div class="run-card type-{{ run.type }} {% if run.done %}done{% endif %}">
-          {{ done_checkbox(run, next_page="week") }}
-          <a href="{{ url_for('run_detail', run_id=run.id) }}">
-            <span class="run-type">{{ RUN_TYPES[run.type] }}</span>
-            <span class="run-km">{{ "%g"|format(run.distance_km) }} km</span>
-          </a>
+{% for week in weeks %}
+  {# The week the page opens on gets id="target-week" (see the script below). #}
+  <section class="plan-week {% if week.monday == this_monday %}this-week{% endif %}"
+           {% if week.monday == target %}id="target-week"{% endif %}>
+    <header class="plan-week-header">
+      <h2>
+        {{ week.monday.strftime('%b') }} {{ week.monday.day }} - {{ week.sunday.strftime('%b') }} {{ week.sunday.day }}
+        {% if week.number %}· Week {{ week.number }}{% endif %}
+        {% if week.monday == this_monday %}<span class="this-week-badge">This week</span>{% endif %}
+      </h2>
+      <span class="muted">
+        <strong>{{ "%g"|format(week.planned_km|round(1)) }}</strong> km planned ·
+        <strong>{{ "%g"|format(week.done_km|round(1)) }}</strong> km done
+      </span>
+    </header>
+
+    <div class="week-grid">
+      {% for day in week.days %}
+        <div class="day {% if day.date == today %}today{% endif %}">
+          <header>
+            <span class="weekday">{{ day.date.strftime('%a') }}</span>
+            <span class="daynum">{{ day.date.day }}</span>
+          </header>
+          {% for run in day.runs %}
+            <div class="run-card type-{{ run.type }} {% if run.done %}done{% endif %}">
+              {{ done_checkbox(run, next_page="week") }}
+              <a href="{{ url_for('run_detail', run_id=run.id) }}">
+                <span class="run-type">{{ RUN_TYPES[run.type] }}</span>
+                <span class="run-km">{{ "%g"|format(run.distance_km) }} km</span>
+              </a>
+            </div>
+          {% endfor %}
         </div>
       {% endfor %}
-    </section>
-  {% endfor %}
-</div>
+    </div>
+  </section>
+{% endfor %}
 
 {% if active %}
-  <p class="muted">
-    Training for a {{ DISTANCES[active.distance][0] }} on {{ active.race_date|nice_date }} ·
-    <a href="{{ url_for('plans') }}">Switch plan</a>
-  </p>
+  <p class="muted"><a href="{{ url_for('plans') }}">Switch plan</a></p>
 {% endif %}
+
+<script>
+  // Open on the current week (or the one asked for) instead of the plan's first week.
+  document.getElementById("target-week")?.scrollIntoView({ block: "start" });
+</script>
 {% endblock %}

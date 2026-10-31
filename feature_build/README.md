@@ -1,9 +1,10 @@
 # Race Training Planner
 
 A small web app that builds training plans for a 5K, 10K, half marathon or
-marathon, and lets you track your runs in a calendar-style week or month view. Swipe
-sideways (trackpad or touch) or press ← / → to move to the previous or next
-week or month.
+marathon, and lets you track your runs in a calendar-style week or month view.
+The week view shows the whole plan, one week below the other from the first
+week to race week, and opens on the current week. In the month view, swipe
+sideways (trackpad or touch) or press ← / → to change month.
 
 After signing up you answer a few profile questions (sex, age, weight,
 height; profile only, not used by plans) and land on an empty calendar. Create
@@ -40,7 +41,7 @@ there between restarts. Delete the `instance/` folder to start fresh.
 - `estimates.py` - paces and finish-time estimates for the plan summary
 - `templates/` - HTML pages
 - `static/style.css` - styling, run-type colours and page transitions
-- `static/calendar.js` - swipe / arrow-key navigation between weeks and months
+- `static/calendar.js` - swipe / arrow-key navigation between months
 
 ## How the plan is built
 

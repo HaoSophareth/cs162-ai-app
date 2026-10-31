@@ -1,4 +1,4 @@
-// Week/month view: go to the previous or next period by swiping sideways
+// Month view: go to the previous or next month by swiping sideways
 // (trackpad or touch screen) or with the left/right arrow keys. It just follows
 // the ‹ › links, so the pages work the same without JavaScript.
 

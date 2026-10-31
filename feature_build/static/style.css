@@ -21,7 +21,7 @@
 /* The top bar is identical on every page, so keep it still while the rest fades. */
 .topbar { view-transition-name: topbar; }
 
-/* Week/month change: the calendar slides left (next) or right (previous).
+/* Month change: the calendar slides left (next) or right (previous).
    calendar.js sets the direction; the header text just cross-fades. */
 .calendar { view-transition-name: calendar; }
 :active-view-transition-type(next)::view-transition-old(calendar) { animation: 200ms ease-in both slide-to-left; }
@@ -119,6 +119,38 @@ dt { font-weight: 600; margin-top: 0.75rem; }
 dd { margin: 0.2rem 0 0; }
 
 /* ---------- Week view ---------- */
+/* The week view stacks the whole plan; this bar stays at the top while scrolling. */
+.week-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  background: #f8f9fa;
+}
+.week-toolbar h1 { flex: 1; font-size: 1.3rem; font-weight: 400; margin: 0; }
+.plan-week { margin-bottom: 1.5rem; scroll-margin-top: 4.5rem; } /* clear the sticky toolbar */
+.plan-week-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.5rem;
+}
+.plan-week-header h2 { font-size: 1.15rem; font-weight: 500; margin: 0; }
+.this-week .week-grid { border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
+.this-week-badge {
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: #e8f0fe;
+  color: #1967d2;
+  vertical-align: middle;
+}
 .week-header {
   display: flex;
   flex-wrap: wrap;
@@ -140,7 +172,7 @@ dd { margin: 0.2rem 0 0; }
   border-radius: 8px;
   overflow: hidden;
 }
-.day { border-left: 1px solid var(--border); min-height: 320px; padding: 0.5rem; }
+.day { border-left: 1px solid var(--border); min-height: 150px; padding: 0.5rem; }
 .day:first-child { border-left: none; }
 .day header { text-align: center; margin-bottom: 0.75rem; }
 .weekday { display: block; font-size: 0.75rem; text-transform: uppercase; color: var(--muted); }

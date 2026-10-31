@@ -585,24 +585,47 @@ def default_day(active):
 @login_required
 @profile_required
 def week():
+    """The whole active plan as weeks stacked top to bottom, from the first
+    week to race week. The page opens scrolled to the current week, or to the
+    week of ?week=<date> (used by "back to week" links)."""
     active = get_active_plan()
-    monday = plan.monday_of(parse_date(request.args.get("week")) or default_day(active))
-    sunday = monday + timedelta(days=6)
-    runs = load_runs(active, monday, sunday)
+    today = date.today()
+    target = plan.monday_of(parse_date(request.args.get("week")) or today)
 
-    return render_template(
-        "week.html",
-        days=build_days(monday, 7, runs),
-        today=date.today(),
-        monday=monday,
-        sunday=sunday,
-        week_number=plan_week_number(monday, active),
-        planned_km=sum(r["distance_km"] for r in runs),
-        done_km=sum(r["distance_km"] for r in runs if r["done"]),
-        prev_week=monday - timedelta(weeks=1),
-        next_week=monday + timedelta(weeks=1),
-        active=active,
-    )
+    if active is None:
+        # No plan: just this week, empty, under the "Create plan" banner.
+        first = last = target
+    else:
+        first = plan.monday_of(date.fromisoformat(active["start_date"]))
+        last = plan.monday_of(date.fromisoformat(active["race_date"]))
+        # Include runs the user moved outside the plan's dates.
+        dates = get_db().execute("SELECT MIN(date), MAX(date) FROM runs WHERE plan_id = ? AND user_id = ?",
+                                 (active["id"], session["user_id"])).fetchone()
+        if dates[0]:
+            first = min(first, plan.monday_of(date.fromisoformat(dates[0])))
+            last = max(last, plan.monday_of(date.fromisoformat(dates[1])))
+        # Before the plan, open on its first week; after race day, on race week.
+        target = min(max(target, first), last)
+
+    runs = load_runs(active, first, last + timedelta(days=6))
+    weeks = []
+    monday = first
+    while monday <= last:
+        days = build_days(monday, 7, [r for r in runs if monday.isoformat() <= r["date"]
+                                      <= (monday + timedelta(days=6)).isoformat()])
+        week_runs = [r for day in days for r in day["runs"]]
+        weeks.append({
+            "monday": monday,
+            "sunday": monday + timedelta(days=6),
+            "number": plan_week_number(monday, active),
+            "days": days,
+            "planned_km": sum(r["distance_km"] for r in week_runs),
+            "done_km": sum(r["distance_km"] for r in week_runs if r["done"]),
+        })
+        monday += timedelta(weeks=1)
+
+    return render_template("week.html", weeks=weeks, target=target, today=today,
+                           this_monday=plan.monday_of(today), active=active)
 
 
 @app.route("/month")
