@@ -3,6 +3,7 @@
 {% block content %}
 {# Weekly km is only asked of people who have run before (new runners start at the beginner level). #}
 {% set weekly_km = '%g'|format(values.weekly_km) if values.weekly_km is not none and values.experience == "experienced" else '' %}
+{% set longest_km = '%g'|format(values.longest_km) if values.longest_km else '' %}
 <div class="card narrow">
   <p class="step-count">Step {{ step }} of {{ steps|length }}</p>
   <ol class="steps">
@@ -82,6 +83,12 @@
           <p class="field-hint">Your plan starts from here.</p>
         </div>
 
+        <div class="field">
+          <label class="field-label" for="longest_km">Longest recent run in km (optional)</label>
+          <input id="longest_km" type="number" name="longest_km" min="0.5" max="100" step="0.5" value="{{ longest_km }}">
+          <p class="field-hint">Your plan's long run starts from here.</p>
+        </div>
+
         {% for key, label in RACE_TIMES %}
           <div class="field">
             <label class="field-label" for="{{ key }}">Recent {{ label }} time (optional)</label>
@@ -94,6 +101,7 @@
       <input type="hidden" name="experience" value="{{ values.experience or '' }}">
       {% for key, _ in RACE_TIMES %}<input type="hidden" name="{{ key }}" value="{{ values[key] or '' }}">{% endfor %}
       <input type="hidden" name="weekly_km" value="{{ weekly_km }}">
+      <input type="hidden" name="longest_km" value="{{ longest_km }}">
     {% endif %}
 
     {# ---- Step 3: schedule ---- #}

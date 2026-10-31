@@ -57,11 +57,12 @@ Weeks run Monday to Sunday. Week 1 is the week containing the start date.
 - **Every 4th week** is a cutback week at 75% of the previous level.
 - **Taper:** the week before race week drops to about 70% (only for plans of
   8+ weeks); race week has a few short easy runs, none the day before the race.
-- **Long run** on the chosen day. It starts at 30% of the week and builds
-  steadily (at most 3 km more per week) to a peak of 8/14/18/32 km. On
-  beginner-sized weekly totals 30% alone would never reach those peaks, so
-  late in a plan the long run becomes a bigger share of the week, as in common
-  beginner plans.
+- **Long run** on the chosen day. It starts from your longest recent run if you
+  gave one (otherwise 30% of the first week) and builds evenly to a peak of
+  8/14/18/32 km, even when that's more than 30% of the week. It adds at most
+  3 km a week, so a plan with too few weeks stops short of the peak. Other runs
+  aren't longer than the week's long run, so with few run days a week the week's
+  total can come in under its target.
 - **One quality run a week**, alternating tempo and intervals, placed away
   from the long run. The other days are easy runs.
 - **Race day** is its own run on the race date.

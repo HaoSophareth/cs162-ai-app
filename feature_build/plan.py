@@ -26,6 +26,7 @@ RACE_KM = {"5k": 5, "10k": 10, "half": 21.1, "marathon": 42.2}
 
 # Shortest runs the plan will schedule. Kept small so a brand-new runner's
 # first weeks stay close to their (low) starting volume.
+MAX_LONG_RUN_STEP_KM = 3
 MIN_EASY_KM = 2
 MIN_QUALITY_KM = 3.5
 RACE_WEEK_EASY_KM = 3
@@ -80,19 +81,19 @@ def weekly_targets(total_weeks, start_km, distance):
     return weeks
 
 
-def long_run_targets(weeks, distance):
+def long_run_targets(weeks, distance, longest_km=None):
     """Long run km for each week.
 
-    Starts at 30% of the week, then ramps steadily (at most 3 km more per
-    build week) toward the distance's peak (8/14/18/32 km). With only 30% of
-    a beginner-sized week, the long run would never get near those peaks, so
-    late in the plan it becomes a bigger share of the week, as it does in
-    common beginner plans.
+    Starts from the runner's longest recent run if given, otherwise 30% of
+    week 1. Then it builds evenly each build week to the distance's peak
+    (8/14/18/32 km) by the last build week, even when that's more than 30% of
+    the week. It never adds more than MAX_LONG_RUN_STEP_KM a week, so a plan
+    with too few weeks stops short of the peak.
     """
     peak_long = DISTANCES[distance][1]
-    start_long = weeks[0]["km"] * 0.30
+    start_long = min(longest_km or weeks[0]["km"] * 0.30, peak_long)
     build_count = sum(1 for w in weeks if w["kind"] == "build")
-    step = min(3, (peak_long - start_long) / max(1, build_count - 1))
+    step = min(MAX_LONG_RUN_STEP_KM, (peak_long - start_long) / max(1, build_count - 1))
 
     longs = []
     ramp = start_long
@@ -101,14 +102,14 @@ def long_run_targets(weeks, distance):
         if week["kind"] == "build":
             ramp = start_long + step * builds_seen
             builds_seen += 1
-            long_km = max(week["km"] * 0.30, ramp)
+            long_km = ramp
         elif week["kind"] == "cutback":
             long_km = ramp * 0.75
         elif week["kind"] == "taper":
             long_km = ramp * 0.6
         else:  # race week: the race itself is the long run
             long_km = 0
-        longs.append(min(long_km, peak_long))
+        longs.append(long_km)
     return longs
 
 
@@ -140,16 +141,18 @@ def make_run(day, run_type, km, distance):
     }
 
 
-def generate_plan(experience, current_km, run_days, long_day, distance, start_date, race_date):
+def generate_plan(experience, current_km, run_days, long_day, distance, start_date, race_date,
+                  longest_km=None):
     """Return the full list of runs.
 
-    current_km is how much the runner runs per week now.
+    current_km is how much the runner runs per week now; longest_km is their
+    longest recent run, if they gave one.
     run_days and long_day use Python weekday numbers (Monday = 0).
     """
     total_weeks = count_weeks(start_date, race_date)
     start_km = starting_weekly_km(experience, current_km, distance)
     weeks = weekly_targets(total_weeks, start_km, distance)
-    longs = long_run_targets(weeks, distance)
+    longs = long_run_targets(weeks, distance, longest_km)
     first_monday = monday_of(start_date)
 
     runs = []
@@ -178,11 +181,14 @@ def generate_plan(experience, current_km, run_days, long_day, distance, start_da
             quality_date = d
             break
         quality_type = "tempo" if i % 2 == 0 else "intervals"
-        quality_km = max(MIN_QUALITY_KM, round_half(week["km"] * 0.2)) if quality_date else 0
+        # The long run stays the week's longest run, even if that leaves the
+        # week short of its target (it happens with few run days a week).
+        most_km = round_half(longs[i])
+        quality_km = max(MIN_QUALITY_KM, min(round_half(week["km"] * 0.2), most_km)) if quality_date else 0
 
         easy_days = [d for d in days if d not in (long_date, quality_date)]
         left_over = week["km"] - long_km - quality_km
-        easy_km = max(MIN_EASY_KM, round_half(left_over / len(easy_days))) if easy_days else 0
+        easy_km = max(MIN_EASY_KM, min(round_half(left_over / len(easy_days)), most_km)) if easy_days else 0
 
         for day in days:
             if day == long_date:

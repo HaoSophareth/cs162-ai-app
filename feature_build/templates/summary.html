@@ -27,6 +27,20 @@
   </section>
 
   <section>
+    <h2>Experience</h2>
+    <dl class="facts">
+      <div><dt>Run before</dt><dd>{{ "Yes" if p.experience == "experienced" else "No, new to running" }}</dd></div>
+      {% if p.experience == "experienced" %}
+        <div><dt>Weekly distance</dt><dd>{{ "%g"|format(p.weekly_km) }} km</dd></div>
+        {% if p.longest_km %}<div><dt>Longest recent run</dt><dd>{{ "%g"|format(p.longest_km) }} km</dd></div>{% endif %}
+        {% for key, label in RACE_TIMES %}
+          {% if p[key] %}<div><dt>Recent {{ label }}</dt><dd>{{ p[key] }}</dd></div>{% endif %}
+        {% endfor %}
+      {% endif %}
+    </dl>
+  </section>
+
+  <section>
     <h2>The plan at a glance</h2>
     <dl class="facts">
       <div><dt>Starting week</dt><dd>{{ "%g"|format(start_km|round(1)) }} km</dd></div>

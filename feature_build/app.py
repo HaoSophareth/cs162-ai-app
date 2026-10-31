@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS plans (
     time_half TEXT,
     time_marathon TEXT,
     weekly_km REAL NOT NULL,     -- weekly distance when the plan was made
+    longest_km REAL,             -- optional longest recent run
     run_days TEXT NOT NULL,      -- weekday numbers, e.g. "0,2,5" (Monday = 0)
     long_day INTEGER NOT NULL,
     distance TEXT NOT NULL,
@@ -103,6 +104,10 @@ def init_db():
     os.makedirs(DATA_DIR, exist_ok=True)
     with sqlite3.connect(DB_PATH) as db:
         db.executescript(SCHEMA)
+        # Databases made before this column existed get it added, keeping their data.
+        columns = [row[1] for row in db.execute("PRAGMA table_info(plans)")]
+        if "longest_km" not in columns:
+            db.execute("ALTER TABLE plans ADD COLUMN longest_km REAL")
 
 
 def get_user():
@@ -146,6 +151,7 @@ def save_plan(values, plan_id=None):
         "experience": values["experience"],
         **{key: values[key] for key, _ in RACE_TIMES},
         "weekly_km": values["weekly_km"],
+        "longest_km": values["longest_km"],
         "run_days": ",".join(map(str, values["run_days"])),
         "long_day": values["long_day"],
         "distance": values["distance"],
@@ -168,7 +174,7 @@ def save_plan(values, plan_id=None):
     db.execute("DELETE FROM runs WHERE plan_id = ? AND user_id = ?", (plan_id, user_id))
     runs = plan.generate_plan(values["experience"], values["weekly_km"], values["run_days"],
                               values["long_day"], values["distance"],
-                              values["start_date"], values["race_date"])
+                              values["start_date"], values["race_date"], values["longest_km"])
     db.executemany(
         "INSERT INTO runs (plan_id, user_id, date, type, distance_km, description) VALUES (?, ?, ?, ?, ?, ?)",
         [(plan_id, user_id, r["date"].isoformat(), r["type"], r["distance_km"], r["description"])
@@ -344,6 +350,7 @@ def read_plan_form(form):
     values = {
         "experience": form.get("experience"),
         "weekly_km": parse_number(form.get("weekly_km")),
+        "longest_km": parse_number(form.get("longest_km")),
         "run_days": sorted({int(d) for d in form.getlist("run_days") if d in WEEKDAY_VALUES}),
         "long_day": int(form["long_day"]) if form.get("long_day", "").isdigit() else -1,
         "distance": form.get("distance"),
@@ -365,8 +372,14 @@ def read_plan_form(form):
         # New runners aren't asked; 0 km makes the plan start at the
         # beginner level (the lowest starting volume in plan.py).
         values["weekly_km"] = 0.0
-    elif values["weekly_km"] is None or not 0 <= values["weekly_km"] <= 200:
-        errors[EXPERIENCE].append("Enter how many km you run per week now.")
+        values["longest_km"] = None
+    else:
+        if values["weekly_km"] is None or not 0 <= values["weekly_km"] <= 200:
+            errors[EXPERIENCE].append("Enter how many km you run per week now.")
+        # Optional, but text that isn't a sensible distance shouldn't pass silently.
+        longest_text = form.get("longest_km", "").strip()
+        if longest_text and (values["longest_km"] is None or not 0 < values["longest_km"] <= 100):
+            errors[EXPERIENCE].append("Longest recent run must be between 0 and 100 km, or left empty.")
     if len(values["run_days"]) < 3:
         errors[SCHEDULE].append("Pick at least 3 days you can run.")
     if values["long_day"] not in values["run_days"]:
@@ -400,7 +413,7 @@ def handle_plan_form(existing=None):
             values = dict(existing)
             values["run_days"] = [int(d) for d in existing["run_days"].split(",")]
         else:
-            values = {"experience": "", "weekly_km": None, "run_days": [1, 3, 5], "long_day": 5,
+            values = {"experience": "", "weekly_km": None, "longest_km": None, "run_days": [1, 3, 5], "long_day": 5,
                       "distance": "5k", "start_date": date.today(),
                       "race_date": date.today() + timedelta(weeks=10)}
         return show(1, values)
