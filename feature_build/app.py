@@ -517,7 +517,8 @@ def handle_plan_form(existing=None):
         if existing:
             earliest_start = min(earliest_start, existing["start_date"])
         return render_template("plan_form.html", step=step, steps=PLAN_STEPS, values=values, existing=existing,
-                               short_warning=short_warning, confirm=confirm, earliest_start=earliest_start)
+                               short_warning=short_warning, confirm=confirm, earliest_start=earliest_start,
+                               today=date.today().isoformat())
 
     if request.method == "GET":
         if existing:

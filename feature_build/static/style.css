@@ -124,6 +124,13 @@ input, select, textarea {
 @media (max-width: 480px) {
   .form .days .option { flex-direction: column; font-size: 0.85rem; }
 }
+/* Start date: "Today" shown over the real date box when its value is today. */
+.form .date-field { position: relative; }
+.form .date-field input { cursor: pointer; }
+.form .date-today { display: none; position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.form .date-field.shows-today .date-today { display: block; }
+.form .date-field.shows-today input { color: transparent; }
+.form .date-field.shows-today input::-webkit-datetime-edit { visibility: hidden; }
 /* A race time: small number boxes on one line, with the colon between them. */
 .form .time-boxes { display: flex; align-items: center; gap: 0.4rem; }
 .form .time-boxes input.time-box[inputmode] { width: 4.5rem; text-align: center; }

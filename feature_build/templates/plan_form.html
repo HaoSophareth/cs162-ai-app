@@ -40,7 +40,11 @@
 
       <div class="field">
         <label class="field-label" for="start_date">Training start date *</label>
-        <input id="start_date" type="date" name="start_date" min="{{ earliest_start }}" required value="{{ values.start_date or '' }}">
+        {# The real date box. When its value is today, the script below shows "Today" over it. #}
+        <div class="date-field" data-today="{{ today }}">
+          <input id="start_date" type="date" name="start_date" min="{{ earliest_start }}" required value="{{ values.start_date or '' }}">
+          <span class="date-today" aria-hidden="true">Today</span>
+        </div>
       </div>
 
       <div class="field">
@@ -180,4 +184,23 @@
     </div>
   </form>
 </div>
+
+{% if step == 1 %}
+<script>
+  // Show "Today" instead of today's date, and open the date picker on any click.
+  // Typing shows the real date while editing. Without JavaScript it's a plain date box.
+  const dateField = document.querySelector(".date-field");
+  const dateBox = dateField.querySelector("input");
+  const showToday = () => dateField.classList.toggle("shows-today", dateBox.value === dateField.dataset.today);
+  showToday();
+  dateBox.addEventListener("change", showToday);
+  dateBox.addEventListener("blur", showToday);
+  dateBox.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") dateField.classList.remove("shows-today");
+  });
+  dateBox.addEventListener("click", () => {
+    try { dateBox.showPicker(); } catch {}
+  });
+</script>
+{% endif %}
 {% endblock %}
