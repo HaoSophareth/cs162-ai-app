@@ -307,3 +307,18 @@ a.button.primary:hover { background: #1765cc; }
 }
 button.danger { color: #c5221f; }
 button.danger:hover { background: #fce8e6; }
+
+/* ---------- Plan form steps ---------- */
+.step-count { margin: 0; font-size: 0.85rem; font-weight: 600; color: #1a73e8; }
+.steps { display: flex; gap: 0.4rem; list-style: none; padding: 0; margin: 0.5rem 0 1rem; }
+.steps li {
+  flex: 1;
+  padding-top: 0.4rem;
+  border-top: 4px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.steps li.done { border-color: #8ab4f8; }
+.steps li.current { border-color: #1a73e8; color: #1a73e8; font-weight: 600; }
+/* Back sits on the left and Next on the right, though Next is first in the HTML. */
+.step-buttons { display: flex; flex-direction: row-reverse; justify-content: space-between; margin-top: 1.25rem; }

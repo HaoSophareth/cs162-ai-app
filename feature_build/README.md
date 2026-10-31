@@ -7,7 +7,7 @@ week or month.
 
 After signing up you answer a few profile questions (sex, age, weight,
 height; profile only, not used by plans) and land on an empty calendar. Create
-a plan from there. You can have several plans; the calendar shows the active
+a plan from there in three short steps: experience, running days, goal. You can have several plans; the calendar shows the active
 one, and the Plans page lets you switch, edit (regenerates) or delete them.
 
 Runs entirely on your computer: Python + Flask, data in a local SQLite file.

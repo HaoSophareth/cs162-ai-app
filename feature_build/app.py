@@ -326,8 +326,17 @@ def profile_required(view):
 TIME_PATTERN = re.compile(r"^(\d{1,2}:)?[0-5]?\d:[0-5]\d$")  # mm:ss or h:mm:ss
 
 
+# The plan form is split into three steps. Each step is a normal form post;
+# answers from the other steps travel along as hidden fields, so nothing is
+# stored until the last step creates (or regenerates) the plan.
+PLAN_STEPS = {1: "Experience", 2: "Running days", 3: "Goal"}
+
+
 def read_plan_form(form):
-    """Return (values, errors) from the submitted plan form."""
+    """Return (values, errors) from the submitted plan form.
+
+    errors maps each step number to that step's error messages.
+    """
     values = {
         "experience": form.get("experience"),
         "weekly_km": parse_number(form.get("weekly_km")),
@@ -337,59 +346,87 @@ def read_plan_form(form):
         "start_date": parse_date(form.get("start_date")),
         "race_date": parse_date(form.get("race_date")),
     }
-    errors = []
+    errors = {1: [], 2: [], 3: []}
     if values["experience"] not in plan.START_KM_LIMITS:
-        errors.append("Tell us whether you have run before.")
+        errors[1].append("Tell us whether you have run before.")
 
     # Race times only make sense for people who have run before; blank is fine.
     for key, label in RACE_TIMES:
         text = form.get(key, "").strip()
         values[key] = text if values["experience"] == "experienced" and text else None
         if values[key] and not TIME_PATTERN.match(text):
-            errors.append(f"Write your {label} time as mm:ss or h:mm:ss, e.g. 27:30 or 1:58:00.")
+            errors[1].append(f"Write your {label} time as mm:ss or h:mm:ss, e.g. 27:30 or 1:58:00.")
 
     if values["weekly_km"] is None or not 0 <= values["weekly_km"] <= 200:
-        errors.append("Enter how many km you run per week now (0 if you don't run yet).")
+        errors[1].append("Enter how many km you run per week now (0 if you don't run yet).")
     if len(values["run_days"]) < 3:
-        errors.append("Pick at least 3 days you can run.")
+        errors[2].append("Pick at least 3 days you can run.")
     if values["long_day"] not in values["run_days"]:
-        errors.append("The long-run day must be one of your running days.")
+        errors[2].append("The long-run day must be one of your running days.")
     if values["distance"] not in plan.DISTANCES:
-        errors.append("Pick a race distance.")
+        errors[3].append("Pick a race distance.")
     if not values["start_date"] or not values["race_date"]:
-        errors.append("Enter both a start date and a race date.")
+        errors[3].append("Enter both a start date and a race date.")
     elif values["race_date"] <= values["start_date"]:
-        errors.append("The race date must be after the start date.")
+        errors[3].append("The race date must be after the start date.")
     return values, errors
+
+
+def short_plan_key(values):
+    """Identifies the goal the user confirmed despite the too-short warning,
+    so changing the distance or dates afterwards shows the warning again."""
+    return f"{values['distance']}|{values['start_date']}|{values['race_date']}"
 
 
 def handle_plan_form(existing=None):
     """Shared by "create plan" and "edit plan". existing is the plan being edited."""
-    if request.method == "POST":
-        values, errors = read_plan_form(request.form)
-        if not errors:
-            short = plan.is_too_short(values["distance"], values["start_date"], values["race_date"])
-            # Too-short plans are allowed, but only after the user has seen the warning.
-            if short and not request.form.get("confirm_short"):
-                weeks = plan.count_weeks(values["start_date"], values["race_date"])
-                label, _, recommended = plan.DISTANCES[values["distance"]]
-                return render_template("plan_form.html", values=values, existing=existing,
-                                       short_warning=(weeks, label, recommended))
-            save_plan(values, existing["id"] if existing else None)
-            flash("Your plan was regenerated." if existing else "Your training plan is ready.", "success")
-            return redirect(url_for("plans") if existing else url_for("week"))
-        for error in errors:
-            flash(error, "error")
-        return render_template("plan_form.html", values=values, existing=existing)
+    def show(step, values, **extra):
+        return render_template("plan_form.html", step=step, steps=PLAN_STEPS,
+                               values=values, existing=existing, **extra)
 
-    if existing:
-        values = dict(existing)
-        values["run_days"] = [int(d) for d in existing["run_days"].split(",")]
-    else:
-        values = {"experience": "", "weekly_km": None, "run_days": [1, 3, 5], "long_day": 5,
-                  "distance": "5k", "start_date": date.today(),
-                  "race_date": date.today() + timedelta(weeks=10)}
-    return render_template("plan_form.html", values=values, existing=existing)
+    if request.method == "GET":
+        if existing:
+            values = dict(existing)
+            values["run_days"] = [int(d) for d in existing["run_days"].split(",")]
+        else:
+            values = {"experience": "", "weekly_km": None, "run_days": [1, 3, 5], "long_day": 5,
+                      "distance": "5k", "start_date": date.today(),
+                      "race_date": date.today() + timedelta(weeks=10)}
+        return show(1, values)
+
+    step = int(request.form.get("step", 1)) if request.form.get("step") in ("1", "2", "3") else 1
+    values, errors = read_plan_form(request.form)
+
+    # Back never checks anything, so half-filled answers are kept as they are.
+    if request.form.get("action") == "back":
+        return show(max(step - 1, 1), values)
+
+    if errors[step]:
+        for error in errors[step]:
+            flash(error, "error")
+        return show(step, values)
+    if step < 3:
+        return show(step + 1, values)
+
+    # Last step: every step should be valid by now, but check in case a
+    # hidden field was tampered with, and send the user to the step to fix.
+    for earlier in (1, 2):
+        if errors[earlier]:
+            for error in errors[earlier]:
+                flash(error, "error")
+            return show(earlier, values)
+
+    # Too-short plans are allowed, but only after the user has seen the warning.
+    if (plan.is_too_short(values["distance"], values["start_date"], values["race_date"])
+            and request.form.get("confirm_short") != short_plan_key(values)):
+        weeks = plan.count_weeks(values["start_date"], values["race_date"])
+        label, _, recommended = plan.DISTANCES[values["distance"]]
+        return show(3, values, short_warning=(weeks, label, recommended),
+                    confirm_key=short_plan_key(values))
+
+    save_plan(values, existing["id"] if existing else None)
+    flash("Your plan was regenerated." if existing else "Your training plan is ready.", "success")
+    return redirect(url_for("plans") if existing else url_for("week"))
 
 
 @app.route("/plans")
