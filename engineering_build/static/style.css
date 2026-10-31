@@ -188,20 +188,10 @@ legend { font-weight: 600; padding: 0 0.3rem; }
 .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .actions form { margin: 0; }
 
-/* Empty calendar: a clear call to create the first plan. */
-.empty-plan {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  margin: 0.75rem 0 1rem;
-  background: #e8f0fe;
-  border: 1px solid #c6dafc;
-  border-radius: 8px;
-}
+/* Shown instead of the calendar when there is no plan yet. */
 .empty-state { text-align: center; }
+.no-plan { margin-top: 3rem; padding: 2.5rem 2rem; }
+.no-plan p { color: #5f6368; margin: 0 0 1.5rem; }
 
 /* Plan form: recent times only matter for people who have run before. */
 .best-times { margin: 0.5rem 0 1rem; }

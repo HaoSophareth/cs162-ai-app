@@ -1,23 +1,23 @@
 {% extends "base.html" %}
 {% block title %}Calendar{% endblock %}
 {% block content %}
+{% if not plan %}
+  {# No plan yet: a simple prompt instead of an empty calendar. #}
+  <div class="panel narrow empty-state no-plan">
+    <h1>Create your first training plan</h1>
+    <p>Answer a few questions about your race, your running and your week, and we'll build a
+       day-by-day plan up to race day.</p>
+    <a class="button" href="{{ url_for('main.new_plan') }}">Create plan</a>
+  </div>
+{% else %}
 <div class="calendar-toolbar">
   <div class="week-nav">
     <a class="button secondary" href="{{ url_for('main.week', _anchor='current') }}">Today</a>
-    {% if plan %}
-      <span class="muted">
-        {{ distances[plan.race_distance] }} on {{ plan.race_date.strftime('%a %b') }} {{ plan.race_date.day }}, {{ plan.race_date.year }}
-      </span>
-    {% endif %}
+    <span class="muted">
+      {{ distances[plan.race_distance] }} on {{ plan.race_date.strftime('%a %b') }} {{ plan.race_date.day }}, {{ plan.race_date.year }}
+    </span>
   </div>
 </div>
-
-{% if not plan %}
-  <div class="empty-plan">
-    <span><strong>No active plan yet.</strong> Your calendar fills in once you create one.</span>
-    <a class="button" href="{{ url_for('main.new_plan') }}">Create plan</a>
-  </div>
-{% endif %}
 
 {# Every week of the plan, one below the other. Each has an id so links can jump to it,
    and the week to land on (normally this week) also gets id="current". #}
@@ -65,4 +65,5 @@
     </section>
   {% endfor %}
 </div>
+{% endif %}
 {% endblock %}

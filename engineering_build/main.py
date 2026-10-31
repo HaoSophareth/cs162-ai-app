@@ -437,17 +437,16 @@ def delete_plan(plan_id):
 @login_required
 def week():
     plan = get_active_plan()
+    if plan is None:
+        # No calendar to show yet, just a prompt to create the first plan.
+        return render_template("week.html", plan=None)
+
     today = date.today()
     this_monday = monday_of(today)
-
-    if plan:
-        runs = runs_between(plan, date.min, date.max)
-        # From the plan's first week to race week, stretched if a run was moved outside it.
-        first = monday_of(min([plan.start_date] + [r.date for r in runs]))
-        last = monday_of(max([plan.race_date] + [r.date for r in runs]))
-    else:
-        runs = []
-        first = last = this_monday
+    runs = runs_between(plan, date.min, date.max)
+    # From the plan's first week to race week, stretched if a run was moved outside it.
+    first = monday_of(min([plan.start_date] + [r.date for r in runs]))
+    last = monday_of(max([plan.race_date] + [r.date for r in runs]))
 
     weeks = []
     week_start = first
@@ -465,7 +464,7 @@ def week():
         landing=landing,
         this_monday=this_monday,
         today=today,
-        total_weeks=total_plan_weeks(plan) if plan else None,
+        total_weeks=total_plan_weeks(plan),
         distances=DISTANCES,
     )
 
