@@ -8,7 +8,7 @@ from datetime import date, timedelta
 from functools import wraps
 from urllib.parse import urlencode
 
-from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for
+from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import estimates
@@ -788,6 +788,16 @@ def set_done(run_id):
     db = get_db()
     db.execute("UPDATE runs SET done = ? WHERE id = ? AND user_id = ?", (done, run_id, session["user_id"]))
     db.commit()
+    # The calendar saves in the background so the page doesn't move: it only needs
+    # the week's new done km. Without JavaScript, the normal redirects below apply.
+    if request.headers.get("Accept") == "application/json":
+        monday = plan.monday_of(date.fromisoformat(run["date"]))
+        week_done = db.execute(
+            "SELECT COALESCE(SUM(distance_km), 0) FROM runs"
+            " WHERE plan_id = ? AND user_id = ? AND done AND date BETWEEN ? AND ?",
+            (run["plan_id"], session["user_id"], monday.isoformat(), (monday + timedelta(days=6)).isoformat()),
+        ).fetchone()[0]
+        return jsonify(done=bool(done), week_done_km=f"{round(week_done, 1):g}")
     # Go back to wherever the checkbox was clicked.
     next_page = request.form.get("next")
     if next_page == "week":

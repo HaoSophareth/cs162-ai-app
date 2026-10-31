@@ -5,7 +5,7 @@
   <input type="hidden" name="next" value="{{ next_page }}">
   <label class="done-box" title="{{ 'Mark as not done' if run.done else 'Mark as done' }}">
     <input type="checkbox" name="done" value="1" {% if run.done %}checked{% endif %}
-           onchange="this.form.submit()"
+           onchange="this.form.requestSubmit()"
            aria-label="Done: {{ RUN_TYPES[run.type] }} {{ '%g'|format(run.distance_km) }} km">
     {{ label }}
   </label>
