@@ -1,0 +1,2 @@
+The first-time profile page right after signup should show only the quick profile questions. Hide Running history and Delete account there. Show them only on the normal profile page, once the user has filled in their profile. Don't change anything else.
+Test only with a copy of my data, not the real data. Leave the login and signup pages as they are.

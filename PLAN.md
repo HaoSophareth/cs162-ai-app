@@ -232,6 +232,7 @@ One row per prompt, filled in during each build.
 | 26 | 15K peak long run 16 km, not 12 | Done; 22s, 2,279 out | Correct | My 12 km in the prompt was wrong; both builds flagged it |
 | 27 | Rename Calendar to Home in top bar | Done; 27s, 1,984 out | Re-prompt (UX) | |
 | 28 | Delete account on profile, confirmed by typing username | Done; 113s, 11,365 out | Re-prompt (new scope) | |
+| 29 | First-time profile: hide running history and delete account | Done; 29s, 2,525 out | Re-prompt (UX) | Both builds put them on the onboarding page too |
 
 ### Build 2
 
@@ -265,6 +266,7 @@ One row per prompt, filled in during each build.
 | 26 | Rename Calendar to Home in top bar | Done; 14s, 907 out | Re-prompt (UX) | |
 | 27 | Delete question below an even button row | Done; 54s, 4,835 out | Re-prompt (UI bug, Build 2 only) | CSS-only confirm stretched the buttons; Build 1 uses a JS confirm() |
 | 28 | Delete account on profile, confirmed by typing username | Done; 65s, 6,424 out | Re-prompt (new scope) | |
+| 29 | First-time profile: hide running history and delete account | Done; 23s, 2,191 out | Re-prompt (UX) | Both builds put them on the onboarding page too |
 
 ## Manual edits (not by the build sessions)
 
